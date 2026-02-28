@@ -44,38 +44,108 @@ export default function ShopPricingPage() {
   if (loading) return <div className="p-8">Loading...</div>
 
   return (
-    <div className="p-8 font-sans max-w-lg">
-      <Link href="/shop/dashboard" className="text-blue-600 underline text-sm mb-6 inline-block">← Back to Dashboard</Link>
-      
-      <h1 className="text-2xl font-bold mb-6">Edit Pricing (₹)</h1>
+  <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-neutral-50 text-black ">
+    
+    <div className="w-full max-w-2xl">
 
-      {message && (
-        <div className={`mb-4 font-semibold ${message.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
-          {message.text}
-        </div>
-      )}
+      {/* Back Link */}
+      <Link
+        href="/shop/dashboard"
+        className="text-sm text-black hover:text-neutral-900 transition-colors"
+      >
+        ← Back to Dashboard
+      </Link>
 
-      <form onSubmit={handleSubmit} className="space-y-4 border border-gray-400 p-6">
-        <div>
-          <label className="block mb-1 font-semibold">B&W Price per page</label>
-          <input name="bw_price" type="number" step="0.5" required defaultValue={pricing?.bw_price} className="border border-gray-400 p-2 w-full" />
-        </div>
+      {/* Card */}
+      <div className="mt-4 bg-white border border-neutral-200 shadow-xl rounded-3xl overflow-hidden">
 
-        <div>
-          <label className="block mb-1 font-semibold">Color Price per page</label>
-          <input name="color_price" type="number" step="0.5" required defaultValue={pricing?.color_price} className="border border-gray-400 p-2 w-full" />
-        </div>
-
-        <div>
-          <label className="block mb-1 font-semibold">Double-Sided Modifier</label>
-          <input name="double_side_modifier" type="number" step="0.5" required defaultValue={pricing?.double_side_modifier || 0} className="border border-gray-400 p-2 w-full" />
-          <p className="text-xs text-gray-500 mt-1">Amount added per page for double-sided printing.</p>
+        {/* Header */}
+        <div className="px-8 py-6 border-b border-neutral-200">
+          <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
+            Edit Pricing (₹)
+          </h1>
+          <p className="text-sm text-neutral-500 mt-1">
+            Update your per-page printing configuration.
+          </p>
         </div>
 
-        <button disabled={saving} className="border border-gray-400 p-2 w-full mt-4 disabled:opacity-50 font-bold">
-          {saving ? 'Saving...' : 'Save Pricing'}
-        </button>
-      </form>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="px-8 py-8 space-y-8">
+
+          {/* Alerts */}
+          {message && (
+            <div
+              className={`rounded-xl px-4 py-3 text-sm font-medium border ${
+                message.type === 'error'
+                  ? 'bg-red-50 border-red-200 text-red-700'
+                  : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+              }`}
+            >
+              {message.text}
+            </div>
+          )}
+
+          {/* B&W Price */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              B&W Price per page
+            </label>
+            <input
+              name="bw_price"
+              type="number"
+              step="0.5"
+              required
+              defaultValue={pricing?.bw_price}
+              className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-900 transition"
+            />
+          </div>
+
+          {/* Color Price */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Color Price per page
+            </label>
+            <input
+              name="color_price"
+              type="number"
+              step="0.5"
+              required
+              defaultValue={pricing?.color_price}
+              className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-900 transition"
+            />
+          </div>
+
+          {/* Double-Sided Modifier */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Double-Sided Modifier
+            </label>
+            <input
+              name="double_side_modifier"
+              type="number"
+              step="0.5"
+              required
+              defaultValue={pricing?.double_side_modifier || 0}
+              className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-900 transition"
+            />
+            <p className="text-xs text-neutral-500 mt-2">
+              Amount added per page for double-sided printing.
+            </p>
+          </div>
+
+          {/* Submit Button */}
+          <div className="pt-4">
+            <button
+              disabled={saving}
+              className="w-full rounded-xl bg-neutral-900 text-white py-3 text-sm font-semibold hover:bg-neutral-800 transition disabled:opacity-60"
+            >
+              {saving ? 'Saving...' : 'Save Pricing'}
+            </button>
+          </div>
+
+        </form>
+      </div>
     </div>
-  )
+  </div>
+)
 }
