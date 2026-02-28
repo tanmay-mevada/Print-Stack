@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { signInWithGoogleAction, signupAction } from '../actions'
@@ -9,7 +9,8 @@ export default function SignupPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-
+  const [googleState, googleFormAction] = useActionState(signInWithGoogleAction, null);
+  
   async function handleSignup(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
@@ -30,9 +31,9 @@ export default function SignupPage() {
     <div className="p-8 font-sans">
       <h2 className="text-2xl font-bold mb-6">Create an account</h2>
 
-      {error && (
+      {(error || googleState?.error) && (
         <div className="text-red-600 mb-4 font-semibold">
-          Error: {error}
+          Error: {error || googleState?.error}
         </div>
       )}
 
@@ -73,7 +74,7 @@ export default function SignupPage() {
         </button>
       </form>
 
-      <form action={signInWithGoogleAction} className="mb-6">
+      <form action={googleFormAction} className="mb-6 mt-4">
         <button 
           type="submit" 
           className="text-blue-600 underline bg-transparent border-none p-0 cursor-pointer text-base"

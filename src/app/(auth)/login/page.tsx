@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { loginAction, signInWithGoogleAction } from '../actions'
+import { useActionState } from 'react';
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [googleState, googleFormAction] = useActionState(signInWithGoogleAction, null);
 
   async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -23,9 +25,9 @@ export default function LoginPage() {
     <div className="p-8 font-sans">
       <h2 className="text-2xl font-bold mb-6">Welcome back</h2>
 
-      {error && (
+      {(error || googleState?.error) && (
         <div className="text-red-600 mb-4 font-semibold">
-          Error: {error}
+          Error: {error || googleState?.error}
         </div>
       )}
 
@@ -56,7 +58,7 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <form action={signInWithGoogleAction} className="mb-6">
+      <form action={googleFormAction} className="mb-6 mt-4">
         <button 
           type="submit" 
           className="text-blue-600 underline bg-transparent border-none p-0 cursor-pointer text-base"
@@ -67,7 +69,7 @@ export default function LoginPage() {
       
       <div className="mt-8">
         <Link href="/signup" className="text-blue-600 underline">
-          Don't have an account? Sign up
+          Dont have an account? Sign up
         </Link>
       </div>
 
