@@ -4,29 +4,39 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
 export async function loginAction(formData: FormData) {
-  // Add await here
   const supabase = await createClient()
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  // 1. Sign in the user
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
   
   if (error) return { error: error.message }
-  redirect('/') 
+  
+  // 2. Fetch the role from the user's metadata (saved during signup)
+  const role = data.user.user_metadata?.role || 'student'
+  
+  // 3. Return the role to the frontend instead of redirecting from the server
+  return { success: true, role }
 }
 
 export async function signupAction(formData: FormData) {
-  // Add await here
   const supabase = await createClient()
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const name = formData.get('name') as string
+  
+  // Capture the role from the hidden input field we added to the signup page
+  const role = formData.get('role') as string || 'student' 
 
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { name } 
+      data: { 
+        name,
+        role // Save the role to Supabase user metadata
+      } 
     }
   })
 
@@ -35,17 +45,24 @@ export async function signupAction(formData: FormData) {
 }
 
 export async function verifyOtpAction(email: string, token: string) {
-  // Add await here
   const supabase = await createClient()
   
-  const { error } = await supabase.auth.verifyOtp({
+  const { data, error } = await supabase.auth.verifyOtp({
     email,
     token,
     type: 'signup'
   })
 
   if (error) return { error: error.message }
-  redirect('/')
+  
+  // After verifying OTP, check their role and redirect appropriately
+  const role = data?.user?.user_metadata?.role || 'student'
+  
+  if (role === 'shopkeeper' || role === 'admin') {
+    redirect('/dashboard')
+  } else {
+    redirect('/student')
+  }
 }
 
 export async function logoutAction() {
