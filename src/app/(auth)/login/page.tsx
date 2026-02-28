@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { loginAction } from '../actions'
+import { loginAction, signInWithGoogleAction } from '../actions'
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
@@ -56,11 +56,21 @@ export default function LoginPage() {
         </button>
       </form>
 
+      <form action={signInWithGoogleAction} className="mb-6">
+        <button 
+          type="submit" 
+          className="text-blue-600 underline bg-transparent border-none p-0 cursor-pointer text-base"
+        >
+          Continue with Google
+        </button>
+      </form>
+      
       <div className="mt-8">
         <Link href="/signup" className="text-blue-600 underline">
           Don't have an account? Sign up
         </Link>
       </div>
+
     </div>
   )
 }

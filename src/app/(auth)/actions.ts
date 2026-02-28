@@ -57,3 +57,25 @@ export async function logoutAction() {
   // Send the user back to the login page
   redirect('/login')
 }
+
+export async function signInWithGoogleAction() {
+  const supabase = await createClient()
+  
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      // Supabase will redirect back to your callback route after Google approves
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`
+    }
+  })
+
+  if (error) {
+    console.error('Google Auth Error:', error.message)
+    return { error: error.message }
+  }
+
+  // Redirect the user to the Google login screen
+  if (data.url) {
+    redirect(data.url)
+  }
+}

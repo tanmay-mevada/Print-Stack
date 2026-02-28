@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { signupAction } from '../actions'
+import { signInWithGoogleAction, signupAction } from '../actions'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -70,6 +70,15 @@ export default function SignupPage() {
           className="border border-gray-400 p-2 w-full mt-2 disabled:opacity-50"
         >
           {loading ? 'Creating account...' : 'Sign Up'}
+        </button>
+      </form>
+
+      <form action={signInWithGoogleAction} className="mb-6">
+        <button 
+          type="submit" 
+          className="text-blue-600 underline bg-transparent border-none p-0 cursor-pointer text-base"
+        >
+          Continue with Google
         </button>
       </form>
 
