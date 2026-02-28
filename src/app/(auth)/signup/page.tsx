@@ -22,6 +22,17 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<"student" | "shopkeeper">("student");
 
+import { useActionState, useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { signInWithGoogleAction, signupAction } from '../actions'
+
+export default function SignupPage() {
+  const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [googleState, googleFormAction] = useActionState(signInWithGoogleAction, null);
+  
   async function handleSignup(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
@@ -55,6 +66,12 @@ export default function SignupPage() {
               PrintStack++
             </span>
           </Link>
+    <div className="p-8 font-sans">
+      <h2 className="text-2xl font-bold mb-6">Create an account</h2>
+
+      {(error || googleState?.error) && (
+        <div className="text-red-600 mb-4 font-semibold">
+          Error: {error || googleState?.error}
         </div>
 
         <div className="max-w-md w-full mx-auto mt-16 lg:mt-0">
@@ -371,6 +388,27 @@ export default function SignupPage() {
             )}
           </div> */}
         </div>
+        <button 
+          disabled={loading} 
+          className="border border-gray-400 p-2 w-full mt-2 disabled:opacity-50"
+        >
+          {loading ? 'Creating account...' : 'Sign Up'}
+        </button>
+      </form>
+
+      <form action={googleFormAction} className="mb-6 mt-4">
+        <button 
+          type="submit" 
+          className="text-blue-600 underline bg-transparent border-none p-0 cursor-pointer text-base"
+        >
+          Continue with Google
+        </button>
+      </form>
+
+      <div className="mt-8">
+        <Link href="/login" className="text-blue-600 underline">
+          Already have an account? Sign in
+        </Link>
       </div>
     </div>
   );

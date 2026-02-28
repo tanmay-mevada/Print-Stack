@@ -5,11 +5,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation' // Added useRouter
 import { loginAction, signInWithGoogleAction } from '../actions'
 import { Printer, Mail, Lock, ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react'
+import { useActionState } from 'react';
 
 export default function LoginPage() {
   const router = useRouter() // Initialize router
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [googleState, googleFormAction] = useActionState(signInWithGoogleAction, null);
 
   async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -48,6 +50,12 @@ export default function LoginPage() {
               PrintStack++
             </span>
           </Link>
+    <div className="p-8 font-sans">
+      <h2 className="text-2xl font-bold mb-6">Welcome back</h2>
+
+      {(error || googleState?.error) && (
+        <div className="text-red-600 mb-4 font-semibold">
+          Error: {error || googleState?.error}
         </div>
 
         <div className="max-w-md w-full mx-auto mt-16 lg:mt-0">
@@ -197,6 +205,19 @@ export default function LoginPage() {
             </div>
           </div> */}
         </div>
+      <form action={googleFormAction} className="mb-6 mt-4">
+        <button 
+          type="submit" 
+          className="text-blue-600 underline bg-transparent border-none p-0 cursor-pointer text-base"
+        >
+          Continue with Google
+        </button>
+      </form>
+      
+      <div className="mt-8">
+        <Link href="/signup" className="text-blue-600 underline">
+          Dont have an account? Sign up
+        </Link>
       </div>
 
     </div>
