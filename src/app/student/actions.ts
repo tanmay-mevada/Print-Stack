@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import crypto from 'crypto'
 
 export async function fetchAvailableShopsAction(lat?: number, lng?: number) {
   const supabase = await createClient()
@@ -48,22 +49,16 @@ export async function submitOrderAction(payload: {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  // 1. SECURE PRICE CALCULATION: Fetch the specific shop's exact pricing from the DB
-  const { data: pricing, error: pricingError } = await supabase.from('pricing_configs').select('*').eq('shop_id', payload.shopId).single()
-  
-  if (pricingError || !pricing) {
-    return { error: 'Could not calculate exact price because shop pricing configuration is missing.' }
-  }
+  // 1. Calculate Exact Price Securely
+  const { data: pricing } = await supabase.from('pricing_configs').select('*').eq('shop_id', payload.shopId).single()
+  if (!pricing) return { error: 'Missing pricing config.' }
 
-  // 2. Do the math securely on the server
   let pricePerPage = payload.config.print_type === 'COLOR' ? pricing.color_price : pricing.bw_price;
   let sideModifier = payload.config.sided === 'DOUBLE' ? pricing.double_side_modifier : 1;
-  
-  // Total = (Base Price * Sided Modifier) * Pages * Copies
   const finalExactPrice = (pricePerPage * sideModifier) * payload.config.total_pages * payload.config.copies;
 
-  // 3. Insert into database
-  const { error } = await supabase.from('orders').insert({
+  // 2. Insert the 'CREATED' order into Supabase
+  const { data: newOrder, error } = await supabase.from('orders').insert({
     student_id: user.id,
     shop_id: payload.shopId,
     file_path: payload.filePath,
@@ -73,8 +68,57 @@ export async function submitOrderAction(payload: {
     copies: payload.config.copies,
     total_price: finalExactPrice,
     status: 'CREATED' 
-  })
+  }).select('id').single()
 
   if (error) return { error: error.message }
-  return { success: true }
+
+  // 3. Construct the PhonePe Payload
+  const amountInPaise = Math.round(finalExactPrice * 100)
+  const formattedTransactionId = newOrder.id.replace(/-/g, '') // PhonePe doesn't like dashes in TXN IDs
+
+  const paymentPayload = {
+    merchantId: process.env.PHONEPE_MERCHANT_ID,
+    merchantTransactionId: formattedTransactionId,
+    merchantUserId: user.id.replace(/-/g, ''),
+    amount: amountInPaise,
+    redirectUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/student/verify?id=${newOrder.id}&txid=${formattedTransactionId}`,
+    redirectMode: "REDIRECT",
+    paymentInstrument: { type: "PAY_PAGE" }
+  }
+
+  // 4. Cryptographically Sign the Request (The "Salt" Checksum)
+  const base64Payload = Buffer.from(JSON.stringify(paymentPayload)).toString('base64')
+  const saltKey = process.env.PHONEPE_SALT_KEY!
+  const saltIndex = process.env.PHONEPE_SALT_INDEX!
+  
+  const checksum = crypto.createHash('sha256').update(base64Payload + '/pg/v1/pay' + saltKey).digest('hex') + '###' + saltIndex
+
+  // 5. Send to PhonePe UAT Test Endpoint
+  const HOST = process.env.PHONEPE_ENV === 'PROD' 
+    ? 'https://api.phonepe.com/apis/hermes' 
+    : 'https://api-preprod.phonepe.com/apis/pg-sandbox' // <-- TEST MODE URL
+
+  try {
+    const res = await fetch(`${HOST}/pg/v1/pay`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-VERIFY': checksum
+      },
+      body: JSON.stringify({ request: base64Payload })
+    })
+
+    const data = await res.json()
+    
+    if (data.success) {
+      // Send the PhonePe hosted payment URL back to the frontend
+      return { success: true, paymentUrl: data.data.instrumentResponse.redirectInfo.url }
+    } else {
+      console.error("PhonePe Error:", data)
+      return { error: data.message || "Failed to initialize PhonePe." }
+    }
+  } catch (err) {
+    console.error(err)
+    return { error: "Payment gateway error." }
+  }
 }

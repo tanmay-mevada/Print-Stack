@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { fetchAvailableShopsAction, submitOrderAction } from '../actions'
 import { logoutAction } from '@/app/(auth)/actions'
 import { createClient } from '@/lib/supabase/client'
 import { PDFDocument } from 'pdf-lib'
+import { fetchAvailableShopsAction, submitOrderAction, verifyPaymentAction } from '../actions'
 import { Sun, Moon, Printer, LogOut, UploadCloud, FileText, CheckCircle2, MapPin, Store,ArrowRight } from 'lucide-react'
 
 export default function StudentDashboardPage() {
@@ -90,38 +90,48 @@ export default function StudentDashboardPage() {
         }
     }
 
+    // Helper to load the Razorpay script dynamically
+    const loadRazorpayScript = () => {
+        return new Promise((resolve) => {
+            const script = document.createElement('script')
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+            script.onload = () => resolve(true)
+            script.onerror = () => resolve(false)
+            document.body.appendChild(script)
+        })
+    }
+
     async function handleCheckout() {
         if (!file || !selectedShopId) return
         setUploading(true)
 
+        // 1. Upload File
         const supabase = createClient()
         const fileExt = file.name.split('.').pop()
         const safeFileName = file.name.replace(/[^a-zA-Z0-9]/g, '_')
-        const uniqueFileName = `${Date.now()}-${safeFileName}.${fileExt}`
-        const storagePath = `uploads/${uniqueFileName}`
+        const storagePath = `uploads/${Date.now()}-${safeFileName}.${fileExt}`
 
-        const { error: uploadError } = await supabase.storage
-            .from('print_files')
-            .upload(storagePath, file)
-
+        const { error: uploadError } = await supabase.storage.from('print_files').upload(storagePath, file)
         if (uploadError) {
             alert("Upload failed: " + uploadError.message)
             setUploading(false)
             return
         }
 
+        // 2. Generate the Order & Get the Link
         const res = await submitOrderAction({
             shopId: selectedShopId,
             filePath: storagePath,
             config: printConfig 
         })
 
-        if (res.success) {
-            setStep(4) 
+        if (res.success && res.paymentUrl) {
+            // 3. Redirect the student to the PhonePe Test Page!
+            window.location.href = res.paymentUrl
         } else {
-            alert("Failed to submit order: " + res.error)
+            alert("Failed to start payment: " + res.error)
+            setUploading(false)
         }
-        setUploading(false)
     }
 
     return (
