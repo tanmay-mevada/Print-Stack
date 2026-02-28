@@ -1,4 +1,11 @@
+import LogoutButton from "@/components/LogoutButton";
+
 export default function AdminDashboard()
 {
-    return <div>AMDINNNNN</div>
+    return (
+        <div>
+            Studenttttt
+            <LogoutButton />
+        </div>
+        )
 }
