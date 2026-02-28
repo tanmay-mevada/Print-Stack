@@ -2,15 +2,15 @@
 
 import { useState } from 'react'
 import { fetchAvailableShopsAction, submitOrderAction } from '../actions'
-import { createClient } from '@/lib/supabase/client' // <-- NEW
+import { createClient } from '@/lib/supabase/client'
+import { PDFDocument } from 'pdf-lib'
 
 export default function StudentDashboardPage() {
-    // --- STATE ---
     // --- STATE ---
     const [step, setStep] = useState(1)
     const [file, setFile] = useState<File | null>(null)
 
-    // UPDATED: Values strictly match your ENUMs and added total_pages
+    // Values strictly match your ENUMs and added total_pages
     const [printConfig, setPrintConfig] = useState<{
         print_type: 'BW' | 'COLOR';
         sided: 'SINGLE' | 'DOUBLE';
@@ -23,23 +23,55 @@ export default function StudentDashboardPage() {
         total_pages: 1,
     })
 
-
     // Shop Selection State
     const [locating, setLocating] = useState(false)
     const [shops, setShops] = useState<any[]>([])
     const [searchType, setSearchType] = useState<'nearby' | 'all'>('all')
     const [selectedShopId, setSelectedShopId] = useState<string | null>(null)
-    const [uploading, setUploading] = useState(false) // <-- NEW
+    const [uploading, setUploading] = useState(false)
 
-    // --- HANDLERS ---
-    function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    // --- MATH HELPERS ---
+    
+    // Step 1: Approximate standard market price
+    const approxPrice = (() => {
+        const base = printConfig.print_type === 'COLOR' ? 10 : 2; // Est: ₹10 Color, ₹2 B&W
+        const modifier = printConfig.sided === 'DOUBLE' ? 0.8 : 1; // Est: 20% off double-sided
+        return ((base * modifier) * printConfig.total_pages * printConfig.copies).toFixed(2);
+    })();
+
+    // Step 2 & 3: Exact price based on specific shop config
+    function getExactShopPrice(shop: any) {
+        if (!shop?.pricing) return null;
+        const base = printConfig.print_type === 'COLOR' ? shop.pricing.color_price : shop.pricing.bw_price;
+        const modifier = printConfig.sided === 'DOUBLE' ? shop.pricing.double_side_modifier : 1;
+        return ((base * modifier) * printConfig.total_pages * printConfig.copies).toFixed(2);
+    }
+
+    async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
         if (e.target.files && e.target.files[0]) {
             const selected = e.target.files[0]
             if (selected.type !== 'application/pdf') {
                 alert("Please upload a PDF file.")
                 return
             }
+            
             setFile(selected)
+
+            // --- AUTO-DETECT PAGE COUNT ---
+            try {
+                // 1. Read the file into memory
+                const arrayBuffer = await selected.arrayBuffer()
+                // 2. Load it into the PDF parser (ignoring encryption just in case)
+                const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true })
+                // 3. Extract the exact page count
+                const pageCount = pdfDoc.getPageCount()
+                
+                // 4. Update the config automatically!
+                setPrintConfig(prev => ({ ...prev, total_pages: pageCount }))
+            } catch (error) {
+                console.error("Failed to parse PDF:", error)
+                alert("We couldn't read the page count of this PDF. It might be corrupted or heavily encrypted.")
+            }
         }
     }
 
@@ -105,7 +137,7 @@ export default function StudentDashboardPage() {
         const res = await submitOrderAction({
             shopId: selectedShopId,
             filePath: storagePath,
-            config: printConfig // This now has print_type, sided, and total_pages
+            config: printConfig 
         })
 
         if (res.success) {
@@ -152,20 +184,22 @@ export default function StudentDashboardPage() {
                     </div>
 
                     {/* Print Options */}
-                    <div className="border border-gray-400 p-6">
+                    <div className="border border-gray-400 p-6 relative">
                         <h2 className="text-lg font-bold mb-4 uppercase tracking-wider text-sm">Print Configuration</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        {/* APPROXIMATE COST BADGE */}
+                        <div className="absolute top-6 right-6 text-right">
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Est. Cost</span>
+                            <span className="text-2xl font-bold text-black">₹{approxPrice}</span>
+                        </div>
 
-                            {/* Added Manual Page Count Input for MVP */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            {/* Auto-detected Page Count */}
                             <div>
                                 <label className="block mb-2 font-semibold text-sm">Total Pages in PDF</label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={printConfig.total_pages}
-                                    onChange={(e) => setPrintConfig({ ...printConfig, total_pages: parseInt(e.target.value) || 1 })}
-                                    className="border border-gray-400 p-2 w-full focus:outline-none focus:border-black"
-                                />
+                                <div className="border border-gray-200 bg-gray-100 p-2 w-full text-gray-500 font-mono text-sm cursor-not-allowed">
+                                    {file ? `${printConfig.total_pages} Pages (Auto-detected)` : 'Upload a PDF first'}
+                                </div>
                             </div>
 
                             <div>
@@ -203,7 +237,6 @@ export default function StudentDashboardPage() {
                                     <option value="DOUBLE">Double-Sided</option>
                                 </select>
                             </div>
-
                         </div>
                     </div>
 
@@ -240,31 +273,42 @@ export default function StudentDashboardPage() {
                                 No active print shops found.
                             </div>
                         ) : (
-                            shops.map((shop) => (
-                                <div
-                                    key={shop.id}
-                                    className={`border p-5 cursor-pointer transition-colors ${selectedShopId === shop.id
-                                        ? 'border-black ring-1 ring-black'
-                                        : 'border-gray-400 hover:border-black'
-                                        }`}
-                                    onClick={() => setSelectedShopId(shop.id)}
-                                >
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <h3 className="font-bold text-lg">{shop.name}</h3>
-                                            <p className="text-sm text-gray-600 mt-1">{shop.address}</p>
-                                            {shop.phone && <p className="text-xs font-mono text-gray-500 mt-1">📞 {shop.phone}</p>}
-                                        </div>
+                            shops.map((shop) => {
+                                const exactPrice = getExactShopPrice(shop);
+                                const isConfigured = exactPrice !== null;
 
-                                        {/* Only show distance if it was returned by the PostGIS query */}
-                                        {shop.dist_meters && (
-                                            <div className="text-xs font-bold bg-black text-white px-2 py-1">
-                                                {(shop.dist_meters / 1000).toFixed(1)} km away
+                                return (
+                                    <div
+                                        key={shop.id}
+                                        onClick={() => isConfigured && setSelectedShopId(shop.id)}
+                                        className={`border p-5 transition-colors relative ${!isConfigured ? 'opacity-50 cursor-not-allowed border-gray-200' : selectedShopId === shop.id
+                                            ? 'border-black ring-1 ring-black cursor-pointer'
+                                            : 'border-gray-400 hover:border-black cursor-pointer'
+                                            }`}
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h3 className="font-bold text-lg">{shop.name}</h3>
+                                                <p className="text-sm text-gray-600 mt-1">{shop.address}</p>
+                                                {shop.phone && <p className="text-xs font-mono text-gray-500 mt-1">📞 {shop.phone}</p>}
+                                                {!isConfigured && <p className="text-xs text-red-600 mt-2 font-bold uppercase tracking-wider">Pricing not configured by shop</p>}
                                             </div>
-                                        )}
+
+                                            <div className="text-right flex flex-col items-end gap-2">
+                                                {/* SHOP EXACT PRICE BADGE */}
+                                                {isConfigured && (
+                                                    <div className="text-xl font-bold text-black border-b-2 border-black">₹{exactPrice}</div>
+                                                )}
+                                                {shop.dist_meters && (
+                                                    <div className="text-xs font-bold bg-gray-200 text-black px-2 py-1 mt-1">
+                                                        {(shop.dist_meters / 1000).toFixed(1)} km away
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            ))
+                                )
+                            })
                         )}
                     </div>
 
@@ -288,14 +332,20 @@ export default function StudentDashboardPage() {
                         </button>
                     </div>
 
-                    <div className="border border-gray-400 p-6 bg-gray-50">
+                    <div className="border border-gray-400 p-6">
                         <h3 className="font-bold border-b border-gray-300 pb-2 mb-4 uppercase text-sm tracking-wider">Order Summary</h3>
-                        <div className="space-y-2 text-sm">
+                        <div className="space-y-3 text-sm">
                             <p><span className="font-bold text-gray-500 w-32 inline-block">File:</span> {file?.name}</p>
-                            <p><span className="font-bold text-gray-500 w-32 inline-block">Color Mode:</span> {printConfig.print_type.toUpperCase()}</p>
-                            <p><span className="font-bold text-gray-500 w-32 inline-block">Sides:</span> {printConfig.sided.toUpperCase()}</p>
-                            <p><span className="font-bold text-gray-500 w-32 inline-block">Copies:</span> {printConfig.copies}</p>
+                            <p><span className="font-bold text-gray-500 w-32 inline-block">Color Mode:</span> {printConfig.print_type}</p>
+                            <p><span className="font-bold text-gray-500 w-32 inline-block">Sides:</span> {printConfig.sided}</p>
+                            <p><span className="font-bold text-gray-500 w-32 inline-block">Pages x Copies:</span> {printConfig.total_pages} x {printConfig.copies}</p>
                             <p><span className="font-bold text-gray-500 w-32 inline-block">Shop:</span> {shops.find(s => s.id === selectedShopId)?.name}</p>
+                        </div>
+
+                        {/* FINAL EXACT TOTAL */}
+                        <div className="mt-6 pt-4 border-t border-gray-300 flex justify-between items-end">
+                            <span className="font-bold uppercase tracking-wider text-sm">Total Due</span>
+                            <span className="text-3xl font-bold">₹{getExactShopPrice(shops.find(s => s.id === selectedShopId))}</span>
                         </div>
                     </div>
 
@@ -311,12 +361,12 @@ export default function StudentDashboardPage() {
 
             {/* STEP 4: SUCCESS */}
             {step === 4 && (
-                <div className="border border-green-600 p-12 text-center bg-green-50">
-                    <h2 className="text-2xl font-bold text-green-700 uppercase tracking-wider mb-2">Order Submitted!</h2>
-                    <p className="text-gray-700 mb-6">Your file has been sent to the shopkeeper securely.</p>
+                <div className="border border-black p-12 text-center">
+                    <h2 className="text-2xl font-bold text-black uppercase tracking-wider mb-2">Order Submitted!</h2>
+                    <p className="text-gray-700 mb-6">Your document is securely on its way to the print shop.</p>
                     <button
                         onClick={() => window.location.reload()}
-                        className="text-black border-b border-black font-bold text-sm uppercase tracking-widest"
+                        className="bg-black text-white px-6 py-3 font-bold text-sm uppercase tracking-widest hover:bg-gray-800 transition-colors"
                     >
                         Print Another Document
                     </button>
