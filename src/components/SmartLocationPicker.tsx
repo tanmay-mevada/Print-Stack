@@ -2,14 +2,42 @@
 
 import { useState, useEffect, useRef } from 'react'
 import 'leaflet/dist/leaflet.css'
+// Import only the types from leaflet to avoid breaking SSR
+import type { Map, Marker, LeafletMouseEvent } from 'leaflet'
 
-export default function SmartLocationPicker({ defaultLat = 21.1702, defaultLng = 72.8311, onLocationChange }: any) {
+// 1. Define types for the Component Props
+interface SmartLocationPickerProps {
+  defaultLat?: number;
+  defaultLng?: number;
+  onLocationChange: (lat: number, lng: number) => void;
+}
+
+// 2. Define types for the Komoot Photon API response structure
+interface PhotonFeature {
+  geometry: {
+    coordinates: [number, number]; // [longitude, latitude]
+  };
+  properties: {
+    name?: string;
+    street?: string;
+    city?: string;
+    state?: string;
+  };
+}
+
+export default function SmartLocationPicker({ 
+  defaultLat = 21.1702, 
+  defaultLng = 72.8311, 
+  onLocationChange 
+}: SmartLocationPickerProps) {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState([])
+  const [results, setResults] = useState<PhotonFeature[]>([])
   
   const mapContainerRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<any>(null)
-  const markerRef = useRef<any>(null)
+  
+  // 3. Apply Leaflet types to the Refs
+  const mapRef = useRef<Map | null>(null)
+  const markerRef = useRef<Marker | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined' || !mapContainerRef.current) return
@@ -17,17 +45,18 @@ export default function SmartLocationPicker({ defaultLat = 21.1702, defaultLng =
     import('leaflet').then((L) => {
       if (mapRef.current) return
 
-      // 1. Define the geographical boundaries of India [SouthWest, NorthEast]
+      // Define the geographical boundaries of India [SouthWest, NorthEast]
       const indiaBounds = L.latLngBounds(
         L.latLng(8.0, 68.1),
         L.latLng(37.6, 97.4)
       )
 
-      // 2. Lock the map to those bounds
-      const map = L.map(mapContainerRef.current, {
+      // Lock the map to those bounds
+      // We use the non-null assertion operator (!) since we checked for it at the top of the effect
+      const map = L.map(mapContainerRef.current!, {
         maxBounds: indiaBounds,
-        maxBoundsViscosity: 1.0, // Acts like a hard solid wall
-        minZoom: 5 // Prevents zooming out too far
+        maxBoundsViscosity: 1.0, 
+        minZoom: 5 
       }).setView([defaultLat, defaultLng], 15)
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -47,7 +76,8 @@ export default function SmartLocationPicker({ defaultLat = 21.1702, defaultLng =
         onLocationChange(pos.lat, pos.lng)
       })
 
-      map.on('click', (e: any) => {
+      // 4. Strongly type the Leaflet mouse event
+      map.on('click', (e: LeafletMouseEvent) => {
         marker.setLatLng(e.latlng)
         onLocationChange(e.latlng.lat, e.latlng.lng)
       })
@@ -62,14 +92,13 @@ export default function SmartLocationPicker({ defaultLat = 21.1702, defaultLng =
         mapRef.current = null
       }
     }
-  }, [defaultLat, defaultLng])
+  }, [defaultLat, defaultLng, onLocationChange])
 
   async function handleSearch(text: string) {
     setQuery(text)
     if (text.length < 3) return setResults([])
     
     try {
-      // 3. Add the &bbox parameter to strictly filter search results to India
       const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(text)}&limit=5&bbox=68.1,8.0,97.4,37.6`)
       const data = await res.json()
       setResults(data.features || [])
@@ -102,7 +131,8 @@ export default function SmartLocationPicker({ defaultLat = 21.1702, defaultLng =
         
         {results.length > 0 && (
           <ul className="absolute bg-white border border-gray-400 w-full shadow-lg mt-1 max-h-60 overflow-y-auto">
-            {results.map((r: any, i) => (
+            {/* 5. Results mapped against the newly created PhotonFeature interface */}
+            {results.map((r: PhotonFeature, i: number) => (
               <li 
                 key={i}
                 onClick={() => {
