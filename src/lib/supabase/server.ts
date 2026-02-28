@@ -1,9 +1,7 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-// 1. Add 'async' to the function signature
 export async function createClient() {
-  // 2. Add 'await' before calling cookies()
   const cookieStore = await cookies()
 
   return createServerClient(
@@ -11,22 +9,17 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
+        getAll() {
+          return cookieStore.getAll()
         },
-        set(name: string, value: string, options: CookieOptions) {
+        setAll(cookiesToSet) {
           try {
-            cookieStore.set({ name, value, ...options })
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options)
+            })
           } catch (error) {
-            // Next.js throws an error if trying to set cookies in Server Components.
-            // This try/catch allows the client to handle it gracefully.
-          }
-        },
-        remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options })
-          } catch (error) {
-            // Next.js throws an error if trying to remove cookies in Server Components.
+            // This happens if you try to set cookies in a Server Component.
+            // It can be ignored safely because the middleware handles refreshing sessions.
           }
         },
       },
