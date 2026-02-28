@@ -4,10 +4,11 @@ import { useState, useActionState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { loginAction, signInWithGoogleAction } from '../actions'
-import { Printer, Mail, Lock, ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react'
+import { Printer, Mail, Lock, ArrowRight, CheckCircle2, ShieldCheck, Sun, Moon } from 'lucide-react'
 
 export default function LoginPage() {
     const router = useRouter()
+    const [isDark, setIsDark] = useState(true) // Theme state
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
     const [googleState, googleFormAction] = useActionState(signInWithGoogleAction, null)
@@ -37,36 +38,45 @@ export default function LoginPage() {
     const displayError = error || googleState?.error;
 
     return (
-        <div className="min-h-screen bg-[#faf9f6] text-stone-900 font-sans flex">
+        <div className={`min-h-screen font-sans flex transition-colors duration-500 ${isDark ? 'bg-[#0A0A0A] text-white' : 'bg-[#faf9f6] text-stone-900'}`}>
 
             {/* ================= LEFT COLUMN: LOGIN FORM ================= */}
-            <div className="w-full lg:w-1/2 flex flex-col p-8 sm:p-12 md:p-16 lg:p-24 justify-center relative">
+            <div className="w-full lg:w-1/2 flex flex-col p-8 sm:p-12 md:p-16 lg:p-24 justify-center relative z-10">
 
-                {/* Back to Home / Logo */}
-                <div className="absolute top-8 left-8 sm:top-12 sm:left-12">
+                {/* Header: Logo & Theme Toggle */}
+                <div className="absolute top-8 left-8 sm:top-12 sm:left-12 flex items-center gap-6 z-10">
                     <Link href="/" className="flex items-center gap-3 group">
-                        <div className="w-10 h-10 bg-stone-900 rounded-lg flex items-center justify-center shadow-sm group-hover:bg-orange-600 transition-colors">
-                            <Printer className="text-[#faf9f6] w-5 h-5" />
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-300 ${isDark ? 'bg-white group-hover:bg-gray-300' : 'bg-stone-900 group-hover:bg-stone-700'}`}>
+                            <Printer className={`w-5 h-5 ${isDark ? 'text-black' : 'text-white'}`} />
                         </div>
-                        <span className="font-bold text-xl tracking-tight text-stone-900">
+                        <span className={`font-bold text-xl tracking-tight transition-colors ${isDark ? 'text-white' : 'text-stone-900'}`}>
                             PrintStack++
                         </span>
                     </Link>
+                    
+                    <button 
+                        type="button"
+                        onClick={() => setIsDark(!isDark)}
+                        className={`p-2 rounded-full transition-all duration-300 ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-black/5 hover:bg-black/10 text-stone-900'}`}
+                        aria-label="Toggle Theme"
+                    >
+                        {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    </button>
                 </div>
 
                 <div className="max-w-md w-full mx-auto mt-16 lg:mt-0">
                     <div className="mb-10">
-                        <h2 className="text-4xl font-black tracking-tight text-stone-900 mb-3">
+                        <h2 className={`text-4xl font-black tracking-tight mb-3 transition-colors ${isDark ? 'text-white' : 'text-stone-900'}`}>
                             Welcome back
                         </h2>
-                        <p className="text-stone-500 font-medium">
+                        <p className={`font-medium transition-colors ${isDark ? 'text-white/60' : 'text-stone-500'}`}>
                             Enter your credentials to access your digital print queue.
                         </p>
                     </div>
 
                     {displayError && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-semibold flex items-start gap-3">
-                            <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <div className={`mb-6 p-4 rounded-xl text-sm font-semibold flex items-start gap-3 transition-colors ${isDark ? 'bg-red-500/10 border border-red-500/20 text-red-400' : 'bg-red-50 border border-red-200 text-red-600'}`}>
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${isDark ? 'bg-red-500/20' : 'bg-red-100'}`}>
                                 !
                             </div>
                             {displayError}
@@ -76,53 +86,65 @@ export default function LoginPage() {
                     {/* Credentials Form */}
                     <form onSubmit={handleLogin} className="space-y-5">
                         <div>
-                            <label className="block text-sm font-bold text-stone-700 mb-2 uppercase tracking-wide">
+                            <label className={`block text-sm font-bold mb-2 uppercase tracking-wide transition-colors ${isDark ? 'text-white/80' : 'text-stone-700'}`}>
                                 Email Address
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Mail className="h-5 w-5 text-stone-400" />
+                                    <Mail className={`h-5 w-5 transition-colors ${isDark ? 'text-white/40' : 'text-stone-400'}`} />
                                 </div>
                                 <input
                                     name="email"
                                     type="email"
                                     placeholder="student@cvmu.edu.in"
                                     required
-                                    className="block w-full pl-11 pr-4 py-3.5 bg-white border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all shadow-sm"
+                                    className={`block w-full pl-11 pr-4 py-3.5 rounded-xl transition-all shadow-sm outline-none focus:ring-2 ${
+                                        isDark 
+                                        ? 'bg-[#111111] border border-white/10 text-white placeholder-white/40 focus:ring-white/30 focus:border-white/30' 
+                                        : 'bg-white border border-stone-200 text-stone-900 placeholder-stone-400 focus:ring-stone-900/20 focus:border-stone-900'
+                                    }`}
                                 />
                             </div>
                         </div>
 
                         <div>
                             <div className="flex justify-between items-center mb-2">
-                                <label className="block text-sm font-bold text-stone-700 uppercase tracking-wide">
+                                <label className={`block text-sm font-bold uppercase tracking-wide transition-colors ${isDark ? 'text-white/80' : 'text-stone-700'}`}>
                                     Password
                                 </label>
-                                <Link href="#" className="text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors">
+                                <Link href="#" className={`text-sm font-bold transition-colors ${isDark ? 'text-white/60 hover:text-white' : 'text-stone-500 hover:text-stone-900'}`}>
                                     Forgot password?
                                 </Link>
                             </div>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-stone-400" />
+                                    <Lock className={`h-5 w-5 transition-colors ${isDark ? 'text-white/40' : 'text-stone-400'}`} />
                                 </div>
                                 <input
                                     name="password"
                                     type="password"
                                     placeholder="••••••••"
                                     required
-                                    className="block w-full pl-11 pr-4 py-3.5 bg-white border border-stone-200 rounded-xl text-stone-900 placeholder-stone-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all shadow-sm"
+                                    className={`block w-full pl-11 pr-4 py-3.5 rounded-xl transition-all shadow-sm outline-none focus:ring-2 ${
+                                        isDark 
+                                        ? 'bg-[#111111] border border-white/10 text-white placeholder-white/40 focus:ring-white/30 focus:border-white/30' 
+                                        : 'bg-white border border-stone-200 text-stone-900 placeholder-stone-400 focus:ring-stone-900/20 focus:border-stone-900'
+                                    }`}
                                 />
                             </div>
                         </div>
 
                         <button
                             disabled={loading}
-                            className="w-full py-4 bg-stone-900 text-white font-bold rounded-xl hover:bg-orange-600 focus:ring-4 focus:ring-orange-500/20 transition-all duration-300 disabled:opacity-70 flex items-center justify-center gap-2 shadow-lg shadow-stone-900/10 mt-6"
+                            className={`w-full py-4 font-bold rounded-xl transition-all duration-300 disabled:opacity-70 flex items-center justify-center gap-2 mt-6 ${
+                                isDark
+                                ? 'bg-white text-black hover:bg-gray-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]'
+                                : 'bg-stone-900 text-white hover:bg-stone-800 shadow-lg shadow-stone-900/10'
+                            }`}
                         >
                             {loading ? (
                                 <span className="flex items-center gap-2">
-                                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    <svg className={`animate-spin h-5 w-5 ${isDark ? 'text-black' : 'text-white'}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                     Signing in...
                                 </span>
                             ) : (
@@ -132,16 +154,20 @@ export default function LoginPage() {
                     </form>
 
                     <div className="my-8 flex items-center">
-                        <div className="flex-1 border-t border-stone-200"></div>
-                        <span className="px-4 text-xs font-bold text-stone-400 uppercase tracking-widest">Or</span>
-                        <div className="flex-1 border-t border-stone-200"></div>
+                        <div className={`flex-1 border-t transition-colors ${isDark ? 'border-white/10' : 'border-stone-200'}`}></div>
+                        <span className={`px-4 text-xs font-bold uppercase tracking-widest transition-colors ${isDark ? 'text-white/40' : 'text-stone-400'}`}>Or</span>
+                        <div className={`flex-1 border-t transition-colors ${isDark ? 'border-white/10' : 'border-stone-200'}`}></div>
                     </div>
 
                     {/* Google OAuth Form */}
                     <form action={googleFormAction}>
                         <button
                             type="submit"
-                            className="w-full py-3.5 bg-white border border-stone-200 text-stone-800 font-bold rounded-xl hover:bg-stone-50 transition-all flex items-center justify-center gap-3 shadow-sm"
+                            className={`w-full py-3.5 font-bold rounded-xl transition-all flex items-center justify-center gap-3 border ${
+                                isDark
+                                ? 'bg-[#111111] border-white/10 text-white hover:bg-white/5'
+                                : 'bg-white border-stone-200 text-stone-800 hover:bg-stone-50 shadow-sm'
+                            }`}
                         >
                             <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -154,9 +180,9 @@ export default function LoginPage() {
                     </form>
 
                     <div className="mt-10 text-center">
-                        <p className="text-stone-500 font-medium">
-                            Dont have an account?{' '}
-                            <Link href="/signup" className="text-orange-600 font-bold hover:underline hover:text-orange-700 transition-all">
+                        <p className={`font-medium transition-colors ${isDark ? 'text-white/60' : 'text-stone-500'}`}>
+                            Don't have an account?{' '}
+                            <Link href="/signup" className={`font-bold hover:underline transition-all ${isDark ? 'text-white hover:text-gray-300' : 'text-stone-900 hover:text-stone-700'}`}>
                                 Sign up
                             </Link>
                         </p>
@@ -166,39 +192,46 @@ export default function LoginPage() {
             </div>
 
             {/* ================= RIGHT COLUMN: VISUAL / IMAGE ================= */}
-            <div className="hidden lg:flex w-1/2 bg-stone-900 relative overflow-hidden items-center justify-center">
-                {/* Sleek Abstract Paper/Stack Image via Unsplash */}
+            {/* The background here dynamically shifts opposite to the main theme for a striking split-screen effect */}
+            <div className={`hidden lg:flex w-1/2 relative overflow-hidden items-center justify-center transition-colors duration-500 ${isDark ? 'bg-[#faf9f6]' : 'bg-[#050505]'}`}>
+                
+                {/* Image adjusts blending and opacity based on theme */}
                 <div
-                    className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity"
+                    className={`absolute inset-0 bg-cover bg-center transition-all duration-500 ${isDark ? 'mix-blend-multiply opacity-[0.07]' : 'mix-blend-luminosity opacity-30'}`}
                     style={{ backgroundImage: "url('https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=2070&auto=format&fit=crop')" }}
                 />
 
-                {/* Gradient Overlay to ensure text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-900/60 to-transparent" />
+                {/* Gradient Overlay dynamically shifts to match background */}
+                <div className={`absolute inset-0 bg-gradient-to-t transition-colors duration-500 ${isDark ? 'from-[#faf9f6] via-[#faf9f6]/40 to-transparent' : 'from-[#0A0A0A] via-[#0A0A0A]/60 to-transparent'}`} />
 
                 {/* Floating Feature Highlight */}
                 <div className="relative z-10 p-12 max-w-lg mt-auto mb-12 w-full">
-                    <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-[2rem] shadow-2xl">
-                        <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center mb-6">
-                            <ShieldCheck className="w-6 h-6 text-white" />
+                    {/* Glass card dynamically shifts colors in strict opposition to the left side */}
+                    <div className={`backdrop-blur-xl border p-8 rounded-[2rem] shadow-2xl transition-all duration-500 ${isDark ? 'bg-white/60 border-stone-200 shadow-stone-200/50' : 'bg-white/10 border-white/20 shadow-black'}`}>
+                        
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-6 transition-colors duration-500 ${isDark ? 'bg-stone-900' : 'bg-white'}`}>
+                            <ShieldCheck className={`w-6 h-6 ${isDark ? 'text-white' : 'text-black'}`} />
                         </div>
-                        <h3 className="text-2xl font-black tracking-tight text-white mb-3">
+                        
+                        <h3 className={`text-2xl font-black tracking-tight mb-3 transition-colors ${isDark ? 'text-stone-900' : 'text-white'}`}>
                             Secure Document Handover
                         </h3>
-                        <p className="text-stone-300 font-medium leading-relaxed mb-6">
+                        
+                        <p className={`font-medium leading-relaxed mb-6 transition-colors ${isDark ? 'text-stone-600' : 'text-white/80'}`}>
                             Upload from your hostel, pay securely, and collect exactly when you need it using your private OTP. No more waiting in long lines.
                         </p>
 
                         <div className="space-y-3">
-                            <div className="flex items-center gap-3 text-stone-200 font-medium text-sm">
-                                <CheckCircle2 className="w-5 h-5 text-green-400" />
+                            <div className={`flex items-center gap-3 font-medium text-sm transition-colors ${isDark ? 'text-stone-800' : 'text-white/90'}`}>
+                                <CheckCircle2 className={`w-5 h-5 ${isDark ? 'text-stone-900' : 'text-white'}`} />
                                 Auto Page & Cost Detection
                             </div>
-                            <div className="flex items-center gap-3 text-stone-200 font-medium text-sm">
-                                <CheckCircle2 className="w-5 h-5 text-green-400" />
+                            <div className={`flex items-center gap-3 font-medium text-sm transition-colors ${isDark ? 'text-stone-800' : 'text-white/90'}`}>
+                                <CheckCircle2 className={`w-5 h-5 ${isDark ? 'text-stone-900' : 'text-white'}`} />
                                 Zero Cost Ambiguity
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>

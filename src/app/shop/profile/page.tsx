@@ -56,62 +56,119 @@ export default function ShopProfilePage() {
   if (loading) return <div className="p-8">Loading...</div>
 
   return (
-    <div className="p-8 font-sans max-w-xl">
-      <Link href="/shop/dashboard" className="text-blue-600 underline text-sm mb-4 inline-block">← Back</Link>
-      <h1 className="text-2xl font-bold mb-6">Shop Profile</h1>
+  <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-neutral-50 text-black">
+    
+    <div className="w-full max-w-3xl">
 
-      <form onSubmit={handleSubmit} className="space-y-4 border border-gray-400 p-6">
-        <div>
-          <label className="block mb-1">Shop Name</label>
-          <input name="name" type="text" required defaultValue={shop?.name} className="border border-gray-400 p-2 w-full" />
-        </div>
+      {/* Back Link */}
+      <Link
+        href="/shop/dashboard"
+        className="text-sm text-neutral-500 hover:text-neutral-900 transition-colors"
+      >
+        ← Back to Dashboard
+      </Link>
 
-        <div>
-          <label className="block mb-1">Phone Number</label>
-          <input 
-            name="phone" 
-            type="tel" 
-            required 
-            defaultValue={shop?.phone} 
-            pattern="[0-9]{10}" 
-            title="Please enter a valid 10-digit phone number"
-            placeholder="e.g., 9876543210"
-            className="border border-gray-400 p-2 w-full" 
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1">Shop Address (Text)</label>
-          <input 
-            name="address" 
-            type="text" 
-            required 
-            defaultValue={shop?.address} 
-            placeholder="e.g., Shop 42, University Road..."
-            className="border border-gray-400 p-2 w-full" 
-          />
-        </div>
+      {/* Card */}
+      <div className="mt-4 bg-white border border-neutral-200 shadow-xl rounded-3xl overflow-hidden">
         
-        <div className="pt-2">
-          <label className="block mb-1 font-semibold">Pin Exact Location</label>
-          <SmartLocationPicker
-            defaultLat={shop?.latitude}
-            defaultLng={shop?.longitude}
-            onLocationChange={(lat: number, lng: number) => setCoords({ lat, lng })}
-          />
-        </div>
-
-        <button disabled={saving} className="border border-gray-400 bg-gray-100 p-2 w-full mt-4 font-bold hover:bg-gray-200">
-          {saving ? 'Saving...' : 'Save Profile'}
-        </button>
-        
-        {/* Render the success/error messages clearly */}
-        {message && (
-          <p className={`text-sm mt-2 font-bold ${message.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
-            {message.text}
+        {/* Header */}
+        <div className="px-8 py-6 border-b border-neutral-200">
+          <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
+            Shop Profile
+          </h1>
+          <p className="text-sm text-neutral-500 mt-1">
+            Update your shop details and exact location.
           </p>
-        )}
-      </form>
+        </div>
+
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="px-8 py-8 space-y-6">
+
+          {/* Shop Name */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Shop Name
+            </label>
+            <input
+              name="name"
+              type="text"
+              required
+              defaultValue={shop?.name}
+              className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-900 transition"
+            />
+          </div>
+
+          {/* Phone */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Phone Number
+            </label>
+            <input
+              name="phone"
+              type="tel"
+              required
+              defaultValue={shop?.phone}
+              pattern="[0-9]{10}"
+              placeholder="e.g., 9876543210"
+              className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-900 transition"
+            />
+          </div>
+
+          {/* Address */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Shop Address
+            </label>
+            <input
+              name="address"
+              type="text"
+              required
+              defaultValue={shop?.address}
+              placeholder="Shop 42, University Road..."
+              className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-900 transition"
+            />
+          </div>
+
+          {/* Location Picker */}
+          <div className="pt-4 border-t border-neutral-200">
+            <h3 className="text-sm font-semibold text-neutral-800 mb-4">
+              Pin Exact Location
+            </h3>
+
+            <SmartLocationPicker
+              defaultLat={shop?.latitude}
+              defaultLng={shop?.longitude}
+              onLocationChange={(lat: number, lng: number) =>
+                setCoords({ lat, lng })
+              }
+            />
+          </div>
+
+          {/* Submit */}
+          <div className="pt-6">
+            <button
+              disabled={saving}
+              className="w-full rounded-xl bg-neutral-900 text-white py-3 text-sm font-semibold hover:bg-neutral-800 transition disabled:opacity-60"
+            >
+              {saving ? 'Saving...' : 'Save Profile'}
+            </button>
+
+            {message && (
+              <p
+                className={`text-sm mt-4 font-medium ${
+                  message.type === 'error'
+                    ? 'text-red-600'
+                    : 'text-emerald-600'
+                }`}
+              >
+                {message.text}
+              </p>
+            )}
+          </div>
+
+        </form>
+      </div>
     </div>
-  )
+  </div>
+)
 }
