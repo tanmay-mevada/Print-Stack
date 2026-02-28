@@ -12,15 +12,14 @@ import {
     User,
     Store,
     MapPin,
-    Phone,
-    GraduationCap,
+    Phone
 } from "lucide-react";
 
 export default function SignupPage() {
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [role, setRole] = useState<"student" | "shopkeeper">("student");
+    const [role] = useState<"student" | "shopkeeper">("student");
     const [googleState, googleFormAction] = useActionState(signInWithGoogleAction, null);
 
     async function handleSignup(e: React.FormEvent<HTMLFormElement>) {
