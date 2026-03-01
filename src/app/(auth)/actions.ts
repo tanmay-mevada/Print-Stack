@@ -96,3 +96,34 @@ export async function signInWithGoogleAction() {
     redirect(data.url)
   }
 }
+
+export async function submitOrderAction({ shopId, filePath, config }: any) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { success: false, error: "Not logged in" }
+
+    // Calculate price...
+    const base = config.print_type === 'COLOR' ? 10 : 2;
+    const modifier = config.sided === 'DOUBLE' ? 0.8 : 1;
+    const totalPrice = ((base * modifier) * config.total_pages * config.copies).toFixed(2);
+
+    const { data, error } = await supabase
+        .from('orders')
+        .insert({
+            shop_id: shopId,
+            student_id: user.id, // <--- MAKE SURE THIS LINE IS HERE!
+            file_path: filePath,
+            print_type: config.print_type,
+            sided: config.sided,
+            copies: config.copies,
+            total_pages: config.total_pages,
+            total_price: totalPrice,
+            status: 'PENDING'
+        })
+        .select()
+        .single()
+
+    if (error) return { success: false, error: error.message }
+    return { success: true, orderId: data.id } // Note: Removed Payment URL logic for a moment to ensure DB works
+}
