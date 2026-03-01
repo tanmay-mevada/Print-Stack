@@ -1,7 +1,7 @@
-
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
 import Link from 'next/link'
+import { CheckCircle2, XCircle, ArrowRight, Receipt } from 'lucide-react'
 
 export default async function VerifyPaymentPage({
     searchParams
@@ -12,7 +12,13 @@ export default async function VerifyPaymentPage({
     const orderId = resolvedParams.id;
     const transactionId = resolvedParams.txid;
 
-    if (!orderId || !transactionId) return <div>Invalid Request</div>
+    if (!orderId || !transactionId) {
+        return (
+            <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white/50 font-bold tracking-widest uppercase">
+                Invalid Request
+            </div>
+        )
+    }
 
     const merchantId = process.env.PHONEPE_MERCHANT_ID!
     const saltKey = process.env.PHONEPE_SALT_KEY!
@@ -76,17 +82,69 @@ export default async function VerifyPaymentPage({
 
     console.log("========================================")
 
-    return (
-        <div className="p-8 font-sans max-w-2xl mx-auto text-center mt-20 border border-black p-12 bg-white">
-            <h1 className={`text-3xl font-bold uppercase tracking-widest mb-4 ${isSuccess ? 'text-green-600' : 'text-red-600'}`}>
-                {isSuccess ? 'Payment Successful!' : 'Payment Failed'}
-            </h1>
-            <p className="text-gray-600 font-semibold mb-8">
-                {isSuccess ? 'Your order is confirmed.' : 'Check your terminal for the error.'}
-            </p>
-            <Link href="/student/dashboard" className="bg-black text-white font-bold py-4 px-8 uppercase hover:bg-gray-800">
-                Return to Dashboard
-            </Link>
+   return (
+  <div className="min-h-screen bg-black text-white font-sans flex items-center justify-center px-6">
+
+    <div className="w-full max-w-xl">
+
+      {/* Brand */}
+      <div className="flex justify-center mb-12">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-white text-black flex items-center justify-center">
+            <Receipt className="w-5 h-5" />
+          </div>
+          <span className="text-2xl font-semibold tracking-tight">
+            PrintStack++
+          </span>
         </div>
-    )
+      </div>
+
+      {/* Card */}
+      <div className="border border-white/20 p-12 rounded-3xl text-center">
+
+        {/* Status Icon */}
+        <div className={`w-24 h-24 rounded-full border mx-auto mb-8 flex items-center justify-center transition ${
+          isSuccess ? 'border-white bg-white text-black' : 'border-white/30 text-white'
+        }`}>
+          {isSuccess ? (
+            <CheckCircle2 className="w-12 h-12" />
+          ) : (
+            <XCircle className="w-12 h-12" />
+          )}
+        </div>
+
+        {/* Heading */}
+        <h1 className="text-3xl font-semibold mb-4 tracking-tight">
+          {isSuccess ? 'Payment Successful' : 'Payment Failed'}
+        </h1>
+
+        {/* Description */}
+        <p className="text-white/60 text-sm leading-relaxed mb-8">
+          {isSuccess
+            ? 'Your order has been confirmed and forwarded to the print shop.'
+            : 'The transaction could not be completed. Please try again.'}
+        </p>
+
+        {/* TXN Badge */}
+        <div className="inline-block border border-white/20 px-4 py-2 text-xs font-mono tracking-widest text-white/50 mb-10">
+          TXN: {transactionId}
+        </div>
+
+        {/* Button */}
+        <Link
+          href="/student/dashboard"
+          className={`w-full block py-4 rounded-xl text-sm font-semibold uppercase tracking-widest border transition ${
+            isSuccess
+              ? 'bg-white text-black border-white hover:bg-gray-200'
+              : 'border-white hover:bg-white hover:text-black'
+          }`}
+        >
+          Return to Dashboard
+        </Link>
+
+      </div>
+
+    </div>
+  </div>
+)
 }

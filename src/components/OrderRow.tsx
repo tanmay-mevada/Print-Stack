@@ -1,107 +1,89 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { updateOrderStatusAction, verifyPickupOTPAction } from '@/app/shop/actions'
+import { useRouter } from 'next/navigation'
+import { FileText, ChevronRight } from 'lucide-react'
 
-export default function OrderRow({ order, onStatusChange }: { order: any, onStatusChange: () => void }) {
-  const [updating, setUpdating] = useState(false)
-  const [otpInput, setOtpInput] = useState('')
+type OrderRowProps = {
+  order: any;
+  isDark: boolean;
+}
 
-  // Helper to extract a clean filename
-  const fileName = order.file_path.split('/').pop()?.split('-').slice(1).join('-') || 'Document.pdf'
-  const studentName = order.profiles?.name || 'Unknown Student'
+export default function OrderRow({ order, isDark }: OrderRowProps) {
+  const router = useRouter()
+  if (!order) return null;
 
-  async function handleStatusAdvance(currentStatus: string) {
-    let nextStatus = '';
-    let confirmMsg = '';
+  // Format Date gracefully
+  const formattedDate = new Date(order.created_at).toLocaleDateString('en-IN', {
+    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+  })
 
-    if (currentStatus === 'PAID') {
-      nextStatus = 'PRINTING';
-      confirmMsg = "Start printing this order?";
-    } else if (currentStatus === 'PRINTING') {
-      nextStatus = 'READY';
-      confirmMsg = "Mark as ready? This will email the OTP to the student.";
-    } else {
-      return;
-    }
-
-    if (!window.confirm(confirmMsg)) return;
-
-    setUpdating(true)
-    const res = await updateOrderStatusAction(order.id, nextStatus, order.student_id)
-    if (!res.success) alert("Error: " + res.error)
-    else onStatusChange() // Refresh parent data
-    setUpdating(false)
-  }
-
-  async function handleVerifyOTP() {
-    if (otpInput.length !== 6) return alert("Please enter a 6-digit OTP.");
-    
-    setUpdating(true)
-    const res = await verifyPickupOTPAction(order.id, otpInput)
-    if (res.success) {
-      alert("OTP Verified! Order Complete.")
-      onStatusChange()
-    } else {
-      alert(res.error)
-    }
-    setUpdating(false)
-  }
+  // Extract clean filename
+  const fileName = order.file_path ? order.file_path.split('-').slice(1).join('-') : 'Document.pdf'
 
   return (
-    <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-      <td className="p-4 text-sm whitespace-nowrap text-gray-500">
-        {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        <br/>
-        <span className="text-xs">{new Date(order.created_at).toLocaleDateString()}</span>
+    <tr 
+      onClick={() => router.push(`/shop/orders/${order.id}`)}
+      className={`cursor-pointer transition-all duration-300 group ${
+        isDark 
+        ? 'hover:bg-white/5 border-white/10' 
+        : 'hover:bg-stone-50/80 border-stone-200'
+      }`}
+    >
+      
+      {/* 1. Time / Date */}
+      <td className="p-6 border-r border-inherit whitespace-nowrap">
+        <span className={`text-xs font-bold uppercase tracking-widest ${isDark ? 'text-white/60' : 'text-stone-500'}`}>
+          {formattedDate}
+        </span>
       </td>
-      <td className="p-4 font-bold text-gray-900">{studentName}</td>
-      <td className="p-4 text-sm text-gray-600 font-mono truncate max-w-[200px]" title={fileName}>
-        {fileName}
+
+      {/* 2. Student Name */}
+      <td className="p-6 border-r border-inherit">
+        <span className="font-bold text-sm truncate max-w-[150px] block">
+          {order.profiles?.name || 'Student'}
+        </span>
       </td>
-      <td className="p-4 font-bold text-black">
-        <Link href={`/shop/dashboard/orders/${order.id}`} className="text-xs underline uppercase tracking-wider hover:text-gray-500">
-          View Details →
-        </Link>
+
+      {/* 3. Document Name */}
+      <td className="p-6 border-r border-inherit">
+        <div className="flex items-center gap-2">
+          <FileText className={`w-4 h-4 shrink-0 ${isDark ? 'text-white/40' : 'text-stone-400'}`} />
+          <span className="font-bold text-sm truncate max-w-[150px] sm:max-w-[200px] block">
+            {fileName}
+          </span>
+        </div>
+      </td>
+
+      {/* 4. Specs */}
+      <td className="p-6 border-r border-inherit">
+        <div className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest ${isDark ? 'text-white/60' : 'text-stone-500'}`}>
+          <span className={order.print_type === 'COLOR' ? (isDark ? 'text-blue-400' : 'text-blue-600') : ''}>
+            {order.print_type}
+          </span>
+          <span className="opacity-30">•</span>
+          <span>{order.total_pages} PG</span>
+          <span className="opacity-30">•</span>
+          <span>{order.copies} {order.copies === 1 ? 'CPY' : 'CPYS'}</span>
+        </div>
+      </td>
+
+      {/* 5. Status & Arrow Indicator */}
+      <td className="p-6 text-right">
+        <div className="flex items-center justify-end gap-4">
+          <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${
+              order.status === 'COMPLETED' ? (isDark ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-green-50 border-green-200 text-green-700') :
+              order.status === 'READY' ? (isDark ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-indigo-50 border-indigo-200 text-indigo-700') :
+              order.status === 'PRINTING' ? (isDark ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-700') :
+              (isDark ? 'bg-white/10 border-white/10 text-white' : 'bg-stone-100 border-stone-200 text-stone-700')
+          }`}>
+              {order.status}
+          </span>
+          <ChevronRight className={`w-5 h-5 transition-transform group-hover:translate-x-1 ${
+              isDark ? 'text-white/30 group-hover:text-white' : 'text-stone-300 group-hover:text-stone-900'
+          }`} />
+        </div>
       </td>
       
-      {/* Dynamic Action Column */}
-      <td className="p-4 text-right">
-        {order.status === 'PAID' && (
-          <button onClick={() => handleStatusAdvance('PAID')} disabled={updating} className="bg-black text-white text-xs font-bold px-4 py-2 uppercase hover:bg-gray-800 disabled:opacity-50 w-full sm:w-auto">
-            {updating ? 'WAIT...' : 'START PRINTING'}
-          </button>
-        )}
-
-        {order.status === 'PRINTING' && (
-          <button onClick={() => handleStatusAdvance('PRINTING')} disabled={updating} className="bg-blue-600 text-white text-xs font-bold px-4 py-2 uppercase hover:bg-blue-700 disabled:opacity-50 w-full sm:w-auto">
-            {updating ? 'WAIT...' : 'MARK AS READY'}
-          </button>
-        )}
-
-        {order.status === 'READY' && (
-          <div className="flex flex-col sm:flex-row gap-2 justify-end">
-            <input 
-              type="text" 
-              maxLength={6} 
-              placeholder="6-Digit OTP" 
-              value={otpInput}
-              onChange={(e) => setOtpInput(e.target.value)}
-              className="border border-gray-400 p-2 text-center text-sm font-bold tracking-widest w-full sm:w-32 focus:outline-none focus:border-black"
-            />
-            <button onClick={handleVerifyOTP} disabled={updating || otpInput.length !== 6} className="bg-green-600 text-white text-xs font-bold px-4 py-2 uppercase hover:bg-green-700 disabled:opacity-50 w-full sm:w-auto">
-              {updating ? 'WAIT...' : 'VERIFY OTP'}
-            </button>
-          </div>
-        )}
-
-        {order.status === 'COMPLETED' && (
-          <span className="text-green-600 font-bold text-xs uppercase tracking-widest bg-green-50 px-3 py-1 border border-green-200">
-            ✓ Completed
-          </span>
-        )}
-      </td>
     </tr>
   )
 }
