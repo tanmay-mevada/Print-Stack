@@ -82,9 +82,41 @@ export default function ShopDashboardPage() {
                 <LogOut className="w-4 h-4" /> <span className="hidden sm:inline">Log Out</span>
               </button>
             </form>
+
+            {/* RESTORED: Profile Circle & Dropdown */}
+            <div className="relative hidden sm:block">
+              <button 
+                onClick={() => setIsOpen(!isOpen)}
+                className={`w-11 h-11 border rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                  isDark 
+                  ? 'border-white/20 bg-[#111111] hover:bg-white/10 text-white' 
+                  : 'border-stone-300 bg-white hover:bg-stone-100 text-stone-900 shadow-sm'
+                }`}
+              >
+                {shop?.name ? shop.name.charAt(0).toUpperCase() : 'S'}
+              </button>
+
+              {isOpen && (
+                <div className={`absolute right-0 mt-3 w-56 border rounded-2xl shadow-xl z-50 overflow-hidden transition-colors duration-300 ${
+                  isDark ? 'bg-[#111111] border-white/10 shadow-black' : 'bg-white border-stone-200 shadow-stone-200/50'
+                }`}>
+                  <div className={`p-2 border-b ${isDark ? 'border-white/10' : 'border-stone-100'}`}>
+                    <Link href="/shop/profile" className={`block p-3 rounded-xl text-sm font-bold transition-colors ${isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'}`}>
+                      Edit Shop Details
+                    </Link>
+                  </div>
+                  <div className="p-2">
+                    <Link href="/shop/pricing" className={`block p-3 rounded-xl text-sm font-bold transition-colors ${isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'}`}>
+                      Edit Prices
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
+        {/* ================= DASHBOARD CONTENT ================= */}
         {!shop ? (
            <div className={`border rounded-[3rem] p-16 text-center backdrop-blur-xl max-w-2xl mx-auto mt-12 transition-all duration-500 ${isDark ? 'bg-[#111111]/80 border-white/10 shadow-[0_20px_60px_-15px_rgba(255,255,255,0.05)] ring-1 ring-white/5' : 'bg-white border-stone-200 shadow-2xl shadow-stone-200/50'}`}>
              <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl ${isDark ? 'bg-white/5 text-white/50 ring-1 ring-white/10' : 'bg-stone-100 text-stone-400 ring-1 ring-stone-200'}`}><Store className="w-12 h-12" /></div>
