@@ -6,10 +6,10 @@ import { logoutAction } from '@/app/(auth)/actions'
 import { toggleShopActiveStatus } from '../actions'
 import { createClient } from '@/lib/supabase/client'
 import OrderRow from '@/components/OrderRow'
-import { Sun, Moon, LogOut, Store, Settings, Printer } from 'lucide-react'
+import { Sun, Moon, LogOut, Store, Settings, Printer, Zap, PauseCircle } from 'lucide-react'
 
 export default function ShopDashboardPage() {
-  const [isDark, setIsDark] = useState(false)
+  const [isDark, setIsDark] = useState(true)
   const [isOpen, setIsOpen] = useState(false) 
   
   const [shop, setShop] = useState<any>(null)
@@ -26,7 +26,6 @@ export default function ShopDashboardPage() {
       setShop(shopData)
 
       if (shopData) {
-        // Fetch orders AND join the profiles table to get the student's name
         const { data: ordersData } = await supabase
           .from('orders')
           .select('*, profiles:student_id(name)')
@@ -34,8 +33,7 @@ export default function ShopDashboardPage() {
           .order('created_at', { ascending: false })
 
         if (ordersData) {
-          // Split orders based on status
-          setActiveOrders(ordersData.filter(o => ['PAID', 'PRINTING', 'READY'].includes(o.status)))
+          setActiveOrders(ordersData.filter(o => ['PENDING', 'PAID', 'PRINTING', 'READY'].includes(o.status)))
           setCompletedOrders(ordersData.filter(o => ['COMPLETED', 'CANCELLED'].includes(o.status)))
         }
       }
@@ -54,27 +52,33 @@ export default function ShopDashboardPage() {
     await toggleShopActiveStatus(shop.id, shop.is_active);
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center font-bold tracking-widest uppercase bg-[#faf9f6] text-stone-400">Loading Workspace...</div>
+  if (loading) return <div className={`min-h-screen flex items-center justify-center font-bold tracking-widest uppercase transition-colors duration-500 ${isDark ? 'bg-[#050505] text-white/50' : 'bg-[#f4f4f0] text-stone-400'}`}>Loading Workspace...</div>
 
   return (
-    <div className={`min-h-screen font-sans transition-colors duration-500 pb-20 ${isDark ? 'bg-[#0A0A0A] text-white' : 'bg-[#faf9f6] text-stone-900'}`}>
-      <div className="p-6 sm:p-8 max-w-6xl mx-auto">
+    <div className={`min-h-screen font-sans transition-all duration-700 pb-20 ${
+        isDark ? 'bg-[#050505] text-white selection:bg-white/20' : 'bg-[#f4f4f0] text-stone-900 selection:bg-stone-900/20'
+    }`}>
+      <div className="p-6 sm:p-8 max-w-6xl mx-auto relative">
         
-        {/* ================= NAVBAR ================= */}
-        <div className={`flex justify-between items-center border-b pb-6 mb-10 relative transition-colors duration-500 ${isDark ? 'border-white/10' : 'border-stone-200'}`}>
+        {/* NAVBAR */}
+        <div className={`flex justify-between items-center pb-6 mb-10 relative transition-colors duration-500 border-b ${isDark ? 'border-white/10' : 'border-stone-200/60'}`}>
           <div className="flex items-center gap-4">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm ${isDark ? 'bg-white' : 'bg-stone-900'}`}>
-                <Printer className={`w-5 h-5 ${isDark ? 'text-black' : 'text-white'}`} />
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center shadow-lg transition-colors duration-300 ${isDark ? 'bg-gradient-to-br from-white to-gray-300 text-black' : 'bg-gradient-to-br from-stone-800 to-black text-white'}`}>
+                <Printer className="w-5 h-5" />
             </div>
-            <h1 className="text-2xl font-black tracking-tight">{shop?.name ? `${shop.name} ` : 'PrintStack '} <span className="text-stone-400">Workspace</span></h1>
+            <h1 className="text-2xl font-black tracking-tight">
+                <span className={`bg-clip-text text-transparent ${isDark ? 'bg-gradient-to-r from-white to-gray-400' : 'bg-gradient-to-r from-stone-900 to-stone-500'}`}>
+                    {shop?.name ? `${shop.name} ` : 'PrintStack++ '}
+                </span>
+                <span className={`hidden sm:inline-block ml-2 text-sm font-bold uppercase tracking-widest px-2 py-1 rounded-md ${isDark ? 'bg-white/10 text-white/60' : 'bg-stone-200/50 text-stone-500'}`}>Workspace</span>
+            </h1>
           </div>
-          
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsDark(!isDark)} className="p-2.5 rounded-full bg-black/5 hover:bg-black/10 text-stone-900">
-                {isDark ? <Sun className="w-5 h-5 text-white" /> : <Moon className="w-5 h-5" />}
+          <div className="flex items-center gap-3 sm:gap-5">
+            <button onClick={() => setIsDark(!isDark)} className={`p-3 rounded-full transition-all duration-300 hover:scale-105 ${isDark ? 'bg-white/5 hover:bg-white/10 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]' : 'bg-white hover:bg-stone-50 text-stone-900 shadow-sm border border-stone-200/50'}`}>
+                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             <form action={logoutAction}>
-              <button type="submit" className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold border border-stone-300 bg-white text-stone-900">
+              <button type="submit" className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold transition-all duration-300 hover:scale-105 ${isDark ? 'bg-white/5 hover:bg-red-500/20 text-white hover:text-red-400 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] ring-1 ring-white/10' : 'bg-white hover:bg-red-50 text-stone-900 hover:text-red-600 shadow-sm border border-stone-200/50'}`}>
                 <LogOut className="w-4 h-4" /> <span className="hidden sm:inline">Log Out</span>
               </button>
             </form>
@@ -114,78 +118,93 @@ export default function ShopDashboardPage() {
 
         {/* ================= DASHBOARD CONTENT ================= */}
         {!shop ? (
-           <div className="border border-stone-200 rounded-[2.5rem] p-16 text-center bg-white max-w-2xl mx-auto mt-12 shadow-sm">
-             <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 bg-stone-100 text-stone-400"><Store className="w-10 h-10" /></div>
-             <h2 className="text-2xl font-black uppercase tracking-widest mb-4">Profile Incomplete</h2>
-             <Link href="/shop/profile" className="inline-flex items-center gap-2 p-4 px-8 rounded-xl font-bold uppercase tracking-widest bg-stone-900 text-white">
-               <Settings className="w-5 h-5" /> Setup Shop Details
+           <div className={`border rounded-[3rem] p-16 text-center backdrop-blur-xl max-w-2xl mx-auto mt-12 transition-all duration-500 ${isDark ? 'bg-[#111111]/80 border-white/10 shadow-[0_20px_60px_-15px_rgba(255,255,255,0.05)] ring-1 ring-white/5' : 'bg-white border-stone-200 shadow-2xl shadow-stone-200/50'}`}>
+             <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl ${isDark ? 'bg-white/5 text-white/50 ring-1 ring-white/10' : 'bg-stone-100 text-stone-400 ring-1 ring-stone-200'}`}><Store className="w-12 h-12" /></div>
+             <h2 className="text-3xl font-black uppercase tracking-widest mb-4">Profile Incomplete</h2>
+             <Link href="/shop/profile" className={`inline-flex items-center gap-3 py-5 px-10 rounded-[2rem] font-black text-lg tracking-widest uppercase transition-all duration-500 hover:-translate-y-1 ${isDark ? 'bg-white text-black hover:bg-gray-200 shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.25)]' : 'bg-stone-900 text-white hover:bg-black shadow-xl shadow-stone-900/20'}`}>
+               <Settings className="w-6 h-6" /> Setup Shop Details
              </Link>
            </div>
         ) : (
-          <div className="space-y-12">
+          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
             
-            {/* Storefront Status Toggle */}
-            <div className={`border rounded-[2rem] p-8 flex flex-col sm:flex-row justify-between items-center gap-6 shadow-sm ${isDark ? 'bg-[#111111] border-white/10' : 'bg-white border-stone-200'}`}>
-              <div>
-                <h2 className="text-xl font-black uppercase tracking-wider mb-2">Storefront Visibility</h2>
-                <p className="font-medium text-sm text-stone-500">{shop.is_active ? "LIVE on the map. Accepting orders." : "HIDDEN. Paused."}</p>
+            {/* STATUS TOGGLE */}
+            <div className={`relative overflow-hidden border rounded-[2.5rem] p-8 sm:p-12 flex flex-col md:flex-row justify-between items-center gap-8 backdrop-blur-xl transition-all duration-500 ${isDark ? 'bg-[#111111]/60 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/5' : 'bg-white border-stone-200/60 shadow-xl shadow-stone-200/40'}`}>
+              {shop.is_active && isDark && <div className="absolute inset-0 bg-green-500/5 blur-3xl rounded-[2.5rem] pointer-events-none" />}
+              <div className="text-center md:text-left z-10">
+                <h2 className="text-3xl font-black tracking-tight mb-2">Storefront Visibility</h2>
+                <p className={`font-medium text-lg ${isDark ? 'text-white/60' : 'text-stone-500'}`}>
+                    {shop.is_active ? "Students can see your shop and place orders." : "Your shop is currently hidden from the map."}
+                </p>
               </div>
-              <button onClick={handleToggleStatus} className={`px-8 py-4 rounded-xl font-black tracking-widest uppercase transition-all duration-300 border ${shop.is_active ? 'bg-stone-900 text-white' : 'bg-transparent border-stone-300 text-stone-500'}`}>
-                {shop.is_active ? '● ACCEPTING ORDERS' : '○ PAUSED'}
+              <button onClick={handleToggleStatus} className={`relative z-10 w-full md:w-auto min-w-[300px] flex items-center justify-between p-2 rounded-full transition-all duration-500 overflow-hidden ${shop.is_active ? (isDark ? 'bg-green-500/10 border border-green-500/30 ring-1 ring-green-500/20 shadow-[0_0_40px_rgba(34,197,94,0.15)]' : 'bg-green-50 border border-green-200 shadow-inner') : (isDark ? 'bg-white/5 border border-white/10' : 'bg-stone-100 border border-stone-200')}`}>
+                  <div className={`flex items-center gap-3 px-6 py-4 font-black tracking-widest uppercase transition-colors ${shop.is_active ? 'text-green-500' : (isDark ? 'text-white/40' : 'text-stone-400')}`}>
+                      {shop.is_active ? <Zap className="w-5 h-5 animate-pulse" /> : <PauseCircle className="w-5 h-5" />}
+                      {shop.is_active ? 'LIVE & ACTIVE' : 'PAUSED'}
+                  </div>
+                  <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-500 shadow-md ${shop.is_active ? 'bg-green-500 text-white translate-x-0' : (isDark ? 'bg-white/20 text-white/50 -translate-x-[calc(100%+140px)] md:-translate-x-[calc(100%+110px)]' : 'bg-white border border-stone-200 text-stone-400 -translate-x-[calc(100%+140px)] md:-translate-x-[calc(100%+110px)]')}`}>
+                      <div className={`w-3 h-3 rounded-full ${shop.is_active ? 'bg-white animate-pulse' : (isDark ? 'bg-white/50' : 'bg-stone-300')}`} />
+                  </div>
               </button>
             </div>
 
             {/* ACTIVE ORDERS SECTION */}
             <div>
-              <h2 className="text-2xl font-black mb-6 uppercase tracking-wider flex items-center gap-3">
-                <span className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span> Active Queue
-              </h2>
-              <div className={`border overflow-hidden shadow-sm ${isDark ? 'border-white/10 bg-[#111111]' : 'border-stone-200 bg-white'}`}>
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className={`border-b text-xs uppercase tracking-widest font-black ${isDark ? 'bg-white/5 border-white/10' : 'bg-stone-50 border-stone-200'}`}>
-                      <th className="p-4 border-r">Time</th>
-                      <th className="p-4 border-r">Student Name</th>
-                      <th className="p-4 border-r">File Name</th>
-                      <th className="p-4 border-r">Details</th>
-                      <th className="p-4 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {activeOrders.length === 0 ? (
-                      <tr><td colSpan={5} className="p-12 text-center text-sm font-bold uppercase tracking-widest text-stone-400">Queue is empty.</td></tr>
-                    ) : (
-                      activeOrders.map(order => <OrderRow key={order.id} order={order} onStatusChange={fetchDashboardData} />)
-                    )}
-                  </tbody>
-                </table>
+              <div className="flex items-center gap-4 mb-6 px-2">
+                  <div className="relative flex h-4 w-4">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500"></span>
+                  </div>
+                  <h2 className="text-3xl font-black tracking-tight">Active Queue</h2>
+              </div>
+              <div className={`border rounded-[2rem] overflow-hidden backdrop-blur-xl transition-all duration-500 ${isDark ? 'bg-[#111111]/80 border-white/10 ring-1 ring-white/5' : 'bg-white border-stone-200/60 shadow-xl shadow-stone-200/30'}`}>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[900px]">
+                    <thead>
+                        <tr className={`border-b text-[10px] uppercase tracking-widest font-black ${isDark ? 'bg-white/5 border-white/10 text-white/50' : 'bg-stone-50 border-stone-200 text-stone-500'}`}>
+                        <th className="p-6 border-r border-inherit w-40">Time</th>
+                        <th className="p-6 border-r border-inherit">Student</th>
+                        <th className="p-6 border-r border-inherit">Document</th>
+                        <th className="p-6 border-r border-inherit">Specs</th>
+                        <th className="p-6 text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody className={`divide-y transition-colors ${isDark ? 'divide-white/10' : 'divide-stone-200'}`}>
+                        {activeOrders.length === 0 ? (
+                        <tr><td colSpan={5} className={`p-16 text-center text-sm font-bold uppercase tracking-widest ${isDark ? 'text-white/30' : 'text-stone-400'}`}>Queue is empty. Waiting for students.</td></tr>
+                        ) : (
+                        activeOrders.map(order => <OrderRow key={order.id} order={order} isDark={isDark} />)
+                        )}
+                    </tbody>
+                    </table>
+                </div>
               </div>
             </div>
 
             {/* COMPLETED ORDERS SECTION */}
-            <div>
-              <h2 className="text-xl font-black mb-6 uppercase tracking-wider text-stone-400">Order History</h2>
-              <div className={`border overflow-hidden shadow-sm opacity-80 ${isDark ? 'border-white/10 bg-[#111111]' : 'border-stone-200 bg-white'}`}>
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b text-xs uppercase tracking-widest font-black bg-stone-50 border-stone-200 text-stone-500">
-                      <th className="p-4 border-r">Date</th>
-                      <th className="p-4 border-r">Student Name</th>
-                      <th className="p-4 border-r">File Name</th>
-                      <th className="p-4 border-r">Details</th>
-                      <th className="p-4 text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {completedOrders.length === 0 ? (
-                      <tr><td colSpan={5} className="p-8 text-center text-sm font-bold uppercase tracking-widest text-stone-400">No completed orders yet.</td></tr>
-                    ) : (
-                      completedOrders.map(order => <OrderRow key={order.id} order={order} onStatusChange={fetchDashboardData} />)
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            {completedOrders.length > 0 && (
+                <div className="pt-8">
+                <h2 className={`text-2xl font-black tracking-tight mb-6 px-2 ${isDark ? 'text-white/50' : 'text-stone-400'}`}>Order History</h2>
+                <div className={`border rounded-[2rem] overflow-hidden backdrop-blur-xl transition-all duration-500 opacity-60 hover:opacity-100 ${isDark ? 'bg-[#111111]/40 border-white/10 ring-1 ring-white/5' : 'bg-stone-50 border-stone-200/60 shadow-sm'}`}>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse min-w-[900px]">
+                        <thead>
+                            <tr className={`border-b text-[10px] uppercase tracking-widest font-black ${isDark ? 'bg-white/5 border-white/10 text-white/50' : 'bg-stone-100 border-stone-200 text-stone-500'}`}>
+                            <th className="p-6 border-r border-inherit w-40">Date</th>
+                            <th className="p-6 border-r border-inherit">Student</th>
+                            <th className="p-6 border-r border-inherit">Document</th>
+                            <th className="p-6 border-r border-inherit">Specs</th>
+                            <th className="p-6 text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className={`divide-y transition-colors ${isDark ? 'divide-white/10' : 'divide-stone-200'}`}>
+                            {completedOrders.map(order => <OrderRow key={order.id} order={order} isDark={isDark} />)}
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+                </div>
+            )}
 
           </div>
         )}
