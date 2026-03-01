@@ -162,3 +162,65 @@ export async function verifyPickupOTPAction(orderId: string, inputOtp: string) {
     return { error: "Invalid OTP. Please try again." }
   }
 }
+
+export async function resolveGoogleMapsLinkAction(link: string) {
+  try {
+    // 1. Visit the link natively on the server to follow all redirects
+    const response = await fetch(link, {
+      method: 'GET',
+      redirect: 'follow',
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+    });
+    
+    const finalUrl = response.url;
+    const html = await response.text(); // Download the raw page code
+    
+    let lat = null;
+    let lng = null;
+
+    // STEP 1: Try to find coordinates in the Final URL first
+    const urlPatterns = [
+      /@(-?\d+\.\d+),(-?\d+\.\d+)/,
+      /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,
+      /[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/,
+      /[?&]query=(-?\d+\.\d+),(-?\d+\.\d+)/,
+      /[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/
+    ];
+
+    for (const pattern of urlPatterns) {
+      const match = finalUrl.match(pattern);
+      if (match) {
+        lat = parseFloat(match[1]);
+        lng = parseFloat(match[2]);
+        break;
+      }
+    }
+
+    // STEP 2: If the URL hides them, scrape the coordinates from Google's hidden HTML meta tags!
+    if (!lat || !lng) {
+      // Look for the static map preview image URL tag (contains center=LAT,LNG)
+      const centerMatch = html.match(/center=(-?\d+\.\d+)(?:%2C|,)(-?\d+\.\d+)/);
+      if (centerMatch) {
+        lat = parseFloat(centerMatch[1]);
+        lng = parseFloat(centerMatch[2]);
+      } else {
+        // Look inside Google's internal initialization JSON array
+        const initMatch = html.match(/\[null,null,(-?\d+\.\d+),(-?\d+\.\d+)\]/);
+        if (initMatch) {
+          lat = parseFloat(initMatch[1]);
+          lng = parseFloat(initMatch[2]);
+        }
+      }
+    }
+
+    if (lat && lng) {
+      return { success: true, lat, lng };
+    } else {
+      return { error: "Coordinates not found. Please try the pin method." };
+    }
+
+  } catch (err) {
+    console.error("Link parsing error:", err);
+    return { error: "Failed to resolve the link. It may be broken." };
+  }
+}
