@@ -16,14 +16,18 @@ export async function updateShopProfileAction(formData: FormData) {
   const phone = formData.get('phone') as string
   const latitude = parseFloat(formData.get('latitude') as string)
   const longitude = parseFloat(formData.get('longitude') as string)
+  const map_link = formData.get('map_link') as string // <-- NEW: Grab the link
 
   const { data: existingShop } = await supabase.from('shops').select('id').eq('owner_id', user.id).single()
 
   if (existingShop) {
-    const { error } = await supabase.from('shops').update({ name, address, phone, latitude, longitude }).eq('id', existingShop.id)
+    const { error } = await supabase.from('shops')
+      .update({ name, address, phone, latitude, longitude, map_link }) // <-- NEW: Update link
+      .eq('id', existingShop.id)
     if (error) return { error: error.message }
   } else {
-    const { error } = await supabase.from('shops').insert({ owner_id: user.id, name, address, phone, latitude, longitude })
+    const { error } = await supabase.from('shops')
+      .insert({ owner_id: user.id, name, address, phone, latitude, longitude, map_link }) // <-- NEW: Insert link
     if (error) return { error: error.message }
   }
 
