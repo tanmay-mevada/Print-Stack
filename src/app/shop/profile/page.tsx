@@ -21,6 +21,9 @@ export default function ShopProfilePage() {
   const [parsingLink, setParsingLink] = useState(false)
   const [linkSuccess, setLinkSuccess] = useState(false)
 
+  // Standardized Map Link Generator
+  const generatedMapLink = `https://www.google.com/maps?q=${coords.lat},${coords.lng}`
+
   useEffect(() => {
     async function fetchShop() {
       const supabase = createClient()
@@ -30,6 +33,10 @@ export default function ShopProfilePage() {
         if (data) {
           setShop(data)
           setCoords({ lat: data.latitude, lng: data.longitude })
+          // If they already have a saved link, pre-fill the input box!
+          if (data.map_link) {
+            setMapsInput(data.map_link)
+          }
         }
       }
       setLoading(false)
@@ -42,7 +49,6 @@ export default function ShopProfilePage() {
     setLinkSuccess(false) // Reset success if they drag the pin manually
   }, [])
 
-  // Send the URL straight to our bulletproof Server Action
   const handleMapsLinkPaste = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const url = e.target.value
     setMapsInput(url)
@@ -53,7 +59,6 @@ export default function ShopProfilePage() {
 
     setParsingLink(true)
 
-    // Call the server to fetch and scrape the URL
     const res = await resolveGoogleMapsLinkAction(url)
     
     if (res?.success && res.lat && res.lng) {
@@ -74,6 +79,15 @@ export default function ShopProfilePage() {
     const formData = new FormData(e.currentTarget)
     formData.set('latitude', coords.lat.toString())
     formData.set('longitude', coords.lng.toString())
+    
+    // INTELLIGENT LINK SAVING:
+    // If they used the Link method and it succeeded, save their exact pasted link.
+    // Otherwise, save the dynamically generated one based on the pin.
+    const finalMapLink = (locationMode === 'link' && linkSuccess && mapsInput) 
+      ? mapsInput 
+      : generatedMapLink;
+      
+    formData.set('map_link', finalMapLink)
 
     const res = await updateShopProfileAction(formData)
     
@@ -84,9 +98,6 @@ export default function ShopProfilePage() {
   }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-neutral-50 font-bold uppercase tracking-widest text-stone-400">Loading...</div>
-
-  // Official Google Maps URL standard for outputting clean coordinates
-  const generatedMapLink = `http://maps.google.com/maps?q=loc:${coords.lat},${coords.lng}`
 
   return (
   <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-neutral-50 text-black font-sans">
@@ -128,7 +139,6 @@ export default function ShopProfilePage() {
           <div>
             <h2 className="text-sm font-black text-neutral-400 uppercase tracking-widest mb-6 pb-2 border-b border-neutral-200">2. Map Pin Setup</h2>
             
-            {/* Custom Tab Toggles */}
             <div className="flex gap-4 mb-6">
               <button
                 type="button"
@@ -150,7 +160,6 @@ export default function ShopProfilePage() {
               </button>
             </div>
 
-            {/* Mode: Paste Link */}
             {locationMode === 'link' && (
               <div className="mb-6 p-6 bg-neutral-50 border border-neutral-200 rounded-xl relative overflow-hidden">
                 <label className="block text-sm font-bold text-neutral-900 mb-2 flex items-center gap-2">
@@ -162,7 +171,7 @@ export default function ShopProfilePage() {
                   type="url"
                   value={mapsInput}
                   onChange={handleMapsLinkPaste}
-                  placeholder="https://maps.app.goo.gl/..."
+                  placeholder="https://maps.google.com/..."
                   className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition mb-2 ${
                     linkError ? 'border-red-400 bg-red-50' : 
                     linkSuccess ? 'border-emerald-400 bg-emerald-50 focus:ring-emerald-500' :
@@ -170,7 +179,6 @@ export default function ShopProfilePage() {
                   }`}
                 />
                 
-                {/* Status Messages */}
                 {linkError && <p className="text-xs text-red-600 font-bold">{linkError}</p>}
                 {linkSuccess && (
                   <p className="text-xs text-emerald-600 font-bold flex items-center gap-1">
@@ -180,17 +188,15 @@ export default function ShopProfilePage() {
               </div>
             )}
 
-            {/* The Map */}
             <div className="mb-6">
               <SmartLocationPicker
                 defaultLat={coords.lat}
                 defaultLng={coords.lng}
                 onLocationChange={handleLocationChange}
-                isReadOnly={locationMode === 'link'} // Locks the map
+                isReadOnly={locationMode === 'link'} 
               />
             </div>
 
-            {/* Link Generator (Only shows when in Pin Mode) */}
             {locationMode === 'pin' && (
               <div className="bg-neutral-50 border border-neutral-200 p-5 rounded-xl flex items-center justify-between">
                 <div className="truncate pr-4">
