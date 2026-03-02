@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { logoutAction } from '@/app/(auth)/actions'
 import { toggleShopActiveStatus } from '../actions'
 import { createClient } from '@/lib/supabase/client'
 import OrderRow from '@/components/OrderRow'
+import LoadingScreen from '@/components/LoadingScreen'
 import { Sun, Moon, LogOut, Store, Settings, Printer, Zap, PauseCircle } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
 
@@ -16,33 +17,54 @@ export default function ShopDashboardPage() {
   const [activeOrders, setActiveOrders] = useState<any[]>([])
   const [completedOrders, setCompletedOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-
-  const fetchDashboardData = async () => {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (user) {
-      const { data: shopData } = await supabase.from('shops').select('*').eq('owner_id', user.id).single()
-      setShop(shopData)
-
-      if (shopData) {
-        const { data: ordersData } = await supabase
-          .from('orders')
-          .select('*, profiles:student_id(name)')
-          .eq('shop_id', shopData.id)
-          .order('created_at', { ascending: false })
-
-        if (ordersData) {
-          setActiveOrders(ordersData.filter(o => ['PENDING', 'PAID', 'PRINTING', 'READY'].includes(o.status)))
-          setCompletedOrders(ordersData.filter(o => ['COMPLETED', 'CANCELLED'].includes(o.status)))
-        }
-      }
-    }
-    setLoading(false)
-  }
+  
+  // Ref for the dropdown menu
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    async function fetchDashboardData() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        const { data: shopData } = await supabase.from('shops').select('*').eq('owner_id', user.id).single()
+        setShop(shopData)
+
+        if (shopData) {
+          const { data: ordersData } = await supabase
+            .from('orders')
+            .select('*, profiles:student_id(name)')
+            .eq('shop_id', shopData.id)
+            .order('created_at', { ascending: false })
+
+          if (ordersData) {
+            setActiveOrders(ordersData.filter(o => ['PENDING', 'PAID', 'PRINTING', 'READY'].includes(o.status)))
+            setCompletedOrders(ordersData.filter(o => ['COMPLETED', 'CANCELLED'].includes(o.status)))
+          }
+        }
+      }
+      setLoading(false)
+    }
+    
     fetchDashboardData()
+  }, [])
+
+  // Click Outside Logic
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+        // If the dropdown is open AND the click happened outside the referenced div, close it!
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+            setIsOpen(false) // Fixed to match your state variable name
+        }
+    }
+
+    // Attach the listener to the whole document
+    document.addEventListener("mousedown", handleClickOutside)
+    
+    // Cleanup the listener when the component unmounts
+    return () => {
+        document.removeEventListener("mousedown", handleClickOutside)
+    }
   }, [])
 
   const handleToggleStatus = async () => {
@@ -52,7 +74,8 @@ export default function ShopDashboardPage() {
     await toggleShopActiveStatus(shop.id, shop.is_active);
   }
 
-  if (loading) return <div className={`min-h-screen flex items-center justify-center font-bold tracking-widest uppercase transition-colors duration-500 ${isDark ? 'bg-[#050505] text-white/50' : 'bg-[#f4f4f0] text-stone-400'}`}>Loading Workspace...</div>
+  // Use the premium loading screen instead of plain text!
+  if (loading) return <LoadingScreen isDark={isDark} />
 
   return (
     <div className={`min-h-screen font-sans transition-all duration-700 pb-20 ${
@@ -83,8 +106,8 @@ export default function ShopDashboardPage() {
               </button>
             </form>
 
-            {/* RESTORED: Profile Circle & Dropdown */}
-            <div className="relative hidden sm:block">
+            {/* RESTORED: Profile Circle & Dropdown WITH REF ATTACHED */}
+            <div className="relative hidden sm:block" ref={dropdownRef}>
               <button 
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-11 h-11 border rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
@@ -97,16 +120,24 @@ export default function ShopDashboardPage() {
               </button>
 
               {isOpen && (
-                <div className={`absolute right-0 mt-3 w-56 border rounded-2xl shadow-xl z-50 overflow-hidden transition-colors duration-300 ${
+                <div className={`absolute right-0 mt-3 w-56 border rounded-2xl shadow-xl z-50 overflow-hidden transition-colors duration-300 animate-in fade-in slide-in-from-top-2 ${
                   isDark ? 'bg-[#111111] border-white/10 shadow-black' : 'bg-white border-stone-200 shadow-stone-200/50'
                 }`}>
                   <div className={`p-2 border-b ${isDark ? 'border-white/10' : 'border-stone-100'}`}>
-                    <Link href="/shop/profile" className={`block p-3 rounded-xl text-sm font-bold transition-colors ${isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'}`}>
+                    <Link 
+                        href="/shop/profile" 
+                        onClick={() => setIsOpen(false)} // Closes menu when clicked
+                        className={`block p-3 rounded-xl text-sm font-bold transition-colors ${isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'}`}
+                    >
                       Edit Shop Details
                     </Link>
                   </div>
                   <div className="p-2">
-                    <Link href="/shop/pricing" className={`block p-3 rounded-xl text-sm font-bold transition-colors ${isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'}`}>
+                    <Link 
+                        href="/shop/pricing" 
+                        onClick={() => setIsOpen(false)} // Closes menu when clicked
+                        className={`block p-3 rounded-xl text-sm font-bold transition-colors ${isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'}`}
+                    >
                       Edit Prices
                     </Link>
                   </div>
@@ -129,6 +160,7 @@ export default function ShopDashboardPage() {
           <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
             
             {/* STATUS TOGGLE */}
+           {/* STATUS TOGGLE */}
             <div className={`relative overflow-hidden border rounded-[2.5rem] p-8 sm:p-12 flex flex-col md:flex-row justify-between items-center gap-8 backdrop-blur-xl transition-all duration-500 ${isDark ? 'bg-[#111111]/60 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/5' : 'bg-white border-stone-200/60 shadow-xl shadow-stone-200/40'}`}>
               {shop.is_active && isDark && <div className="absolute inset-0 bg-green-500/5 blur-3xl rounded-[2.5rem] pointer-events-none" />}
               <div className="text-center md:text-left z-10">
@@ -137,15 +169,36 @@ export default function ShopDashboardPage() {
                     {shop.is_active ? "Students can see your shop and place orders." : "Your shop is currently hidden from the map."}
                 </p>
               </div>
-              <button onClick={handleToggleStatus} className={`relative z-10 w-full md:w-auto min-w-[300px] flex items-center justify-between p-2 rounded-full transition-all duration-500 overflow-hidden ${shop.is_active ? (isDark ? 'bg-green-500/10 border border-green-500/30 ring-1 ring-green-500/20 shadow-[0_0_40px_rgba(34,197,94,0.15)]' : 'bg-green-50 border border-green-200 shadow-inner') : (isDark ? 'bg-white/5 border border-white/10' : 'bg-stone-100 border border-stone-200')}`}>
-                  <div className={`flex items-center gap-3 px-6 py-4 font-black tracking-widest uppercase transition-colors ${shop.is_active ? 'text-green-500' : (isDark ? 'text-white/40' : 'text-stone-400')}`}>
+              
+              {/* THE CORRECTED TOGGLE BUTTON */}
+              <button 
+                  onClick={handleToggleStatus} 
+                  className={`relative z-10 w-full md:w-auto min-w-[280px] sm:min-w-[320px] h-[72px] rounded-full transition-all duration-500 overflow-hidden ${
+                      shop.is_active 
+                      ? (isDark ? 'bg-green-500/10 border border-green-500/30 ring-1 ring-green-500/20 shadow-[0_0_40px_rgba(34,197,94,0.15)]' : 'bg-green-50 border border-green-200 shadow-inner') 
+                      : (isDark ? 'bg-white/5 border border-white/10' : 'bg-stone-100 border border-stone-200')
+                  }`}
+              >
+                  {/* The Text Track */}
+                  <div className={`absolute inset-0 w-full flex items-center gap-3 font-black tracking-widest uppercase transition-all duration-500 ${
+                      shop.is_active 
+                      ? 'justify-start pl-7 text-green-500' 
+                      : `justify-end pr-7 ${isDark ? 'text-white/40' : 'text-stone-400'}`
+                  }`}>
                       {shop.is_active ? <Zap className="w-5 h-5 animate-pulse" /> : <PauseCircle className="w-5 h-5" />}
                       {shop.is_active ? 'LIVE & ACTIVE' : 'PAUSED'}
                   </div>
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-500 shadow-md ${shop.is_active ? 'bg-green-500 text-white translate-x-0' : (isDark ? 'bg-white/20 text-white/50 -translate-x-[calc(100%+140px)] md:-translate-x-[calc(100%+110px)]' : 'bg-white border border-stone-200 text-stone-400 -translate-x-[calc(100%+140px)] md:-translate-x-[calc(100%+110px)]')}`}>
+
+                  {/* The Moving Circle (Thumb) */}
+                  <div className={`absolute top-1/2 -translate-y-1/2 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-500 shadow-md ${
+                      shop.is_active 
+                      ? 'left-[calc(100%-4rem)] bg-green-500' 
+                      : `left-2 ${isDark ? 'bg-white/20 backdrop-blur-md' : 'bg-white border border-stone-200 text-stone-400'}`
+                  }`}>
                       <div className={`w-3 h-3 rounded-full ${shop.is_active ? 'bg-white animate-pulse' : (isDark ? 'bg-white/50' : 'bg-stone-300')}`} />
                   </div>
               </button>
+
             </div>
 
             {/* ACTIVE ORDERS SECTION */}
