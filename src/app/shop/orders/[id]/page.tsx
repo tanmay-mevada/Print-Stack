@@ -4,16 +4,15 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { updateOrderStatusAction, verifyPickupOTPAction, getDownloadUrlAction } from '@/app/shop/actions'
-import { ArrowLeft, FileText, Download, CheckCircle2, Clock, User, FileDigit, RefreshCw, KeyRound } from 'lucide-react'
+import { ArrowLeft, FileText, Download, CheckCircle2, Clock, User, FileDigit, RefreshCw, KeyRound, X } from 'lucide-react'
 import toast, { Toaster } from 'react-hot-toast'
 import LoadingScreen from '@/components/LoadingScreen'
-import { useTheme } from '@/context/ThemeContext' // Imported ThemeContext
+import { useTheme } from '@/context/ThemeContext'
 
 export default function OrderDetailsPage() {
     const params = useParams()
     const router = useRouter()
     
-    // Added useTheme hook
     const { isDark } = useTheme() 
 
     const [order, setOrder] = useState<any>(null)
@@ -23,6 +22,7 @@ export default function OrderDetailsPage() {
     // OTP State
     const [otpInput, setOtpInput] = useState('')
     const [verifying, setVerifying] = useState(false)
+    const [showOtpModal, setShowOtpModal] = useState(false) // Added Modal State
 
     useEffect(() => {
         async function fetchOrderDetails() {
@@ -52,7 +52,6 @@ export default function OrderDetailsPage() {
         
         const loadingToast = toast.loading("Generating secure download link...")
         
-        // Pass the raw, exact database file path securely to your server action
         const res = await getDownloadUrlAction(order.file_path)
             
         toast.dismiss(loadingToast)
@@ -69,7 +68,6 @@ export default function OrderDetailsPage() {
         setUpdating(true)
         const updateToast = toast.loading(`Updating status to ${newStatus}...`)
         
-        // Use your server action from (auth)/actions.ts
         const res = await updateOrderStatusAction(order.id, newStatus, order.student_id)
         
         toast.dismiss(updateToast)
@@ -94,7 +92,6 @@ export default function OrderDetailsPage() {
         setVerifying(true)
         const verifyToast = toast.loading("Verifying code...")
         
-        // Use your secure verification action from (auth)/actions.ts
         const res = await verifyPickupOTPAction(order.id, otpInput)
 
         toast.dismiss(verifyToast)
@@ -102,6 +99,8 @@ export default function OrderDetailsPage() {
         if (res.success) {
             setOrder({ ...order, status: 'COMPLETED' })
             toast.success("OTP Verified! Order is now complete.", { duration: 4000 })
+            setShowOtpModal(false) // Close modal on success
+            setOtpInput('') // Clear input
         } else {
             toast.error(res.error || "Invalid OTP. Please try again.")
         }
@@ -110,7 +109,6 @@ export default function OrderDetailsPage() {
     }
 
     if (loading) {
-        // Pass isDark to LoadingScreen
         return <LoadingScreen isDark={isDark} />
     }
 
@@ -128,19 +126,16 @@ export default function OrderDetailsPage() {
     const fileName = order.file_path ? order.file_path.split('-').slice(1).join('-') : 'Document.pdf'
 
     return (
-        // Applied dynamic classes for theme switching based on isDark
         <div className={`min-h-screen font-sans transition-colors duration-700 pb-20 ${
             isDark 
             ? 'bg-[#050505] text-white selection:bg-white/20' 
             : 'bg-[#faf9f6] text-stone-900 selection:bg-stone-900/20'
         }`}>
             
-            {/* ================= TOASTER CONFIGURATION ================= */}
             <Toaster 
                 position="top-center"
                 toastOptions={{
                     style: {
-                        // Dynamic Toaster styling
                         background: isDark ? '#111111' : '#ffffff',
                         color: isDark ? '#fff' : '#1c1917',
                         border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e7e5e4',
@@ -162,7 +157,7 @@ export default function OrderDetailsPage() {
 
             <div className="p-6 sm:p-10 max-w-5xl mx-auto">
                 
-                {/* ================= HEADER & BACK BUTTON ================= */}
+                {/* Header & Back Button */}
                 <button 
                     onClick={() => router.push('/shop/dashboard')} 
                     className={`flex items-center gap-2 text-sm font-bold uppercase tracking-widest mb-10 transition-colors ${
@@ -178,7 +173,6 @@ export default function OrderDetailsPage() {
                         <p className={`font-mono text-sm tracking-widest uppercase ${isDark ? 'text-white/40' : 'text-stone-400'}`}>ID: {order.id}</p>
                     </div>
                     
-                    {/* Status Badge styling adapted for both themes */}
                     <div className={`px-5 py-3 rounded-2xl text-sm font-black uppercase tracking-widest border backdrop-blur-md flex items-center gap-3 ${
                         order.status === 'COMPLETED' 
                             ? (isDark ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-green-50 border-green-200 text-green-700') :
@@ -200,10 +194,8 @@ export default function OrderDetailsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     
-                    {/* ================= LEFT COLUMN: ORDER INFO ================= */}
+                    {/* Left Column: Order Info */}
                     <div className="md:col-span-2 space-y-8">
-                        
-                        {/* Document Card */}
                         <div className={`border p-8 sm:p-10 rounded-[2.5rem] ring-1 backdrop-blur-xl transition-colors duration-500 ${
                             isDark 
                             ? 'bg-[#111111]/80 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-white/5' 
@@ -250,7 +242,6 @@ export default function OrderDetailsPage() {
                             </div>
                         </div>
 
-                        {/* Customer & Payment Card */}
                         <div className={`border p-8 sm:p-10 rounded-[2.5rem] shadow-xl ring-1 backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-6 transition-colors duration-500 ${
                             isDark 
                             ? 'bg-[#111111]/80 border-white/10 ring-white/5' 
@@ -271,10 +262,9 @@ export default function OrderDetailsPage() {
                         </div>
                     </div>
 
-                    {/* ================= RIGHT COLUMN: ACTIONS ================= */}
+                    {/* Right Column: Actions */}
                     <div className="space-y-6">
                         
-                        {/* Download Action */}
                         <div className={`border p-8 rounded-[2.5rem] shadow-xl ring-1 backdrop-blur-xl transition-colors duration-500 ${
                             isDark 
                             ? 'bg-gradient-to-b from-[#1a1a1e] to-[#111111] border-white/10 ring-white/5' 
@@ -295,7 +285,6 @@ export default function OrderDetailsPage() {
                             </button>
                         </div>
 
-                        {/* Status Management Pipeline */}
                         <div className={`border p-8 rounded-[2.5rem] shadow-xl ring-1 backdrop-blur-xl transition-colors duration-500 ${
                             isDark 
                             ? 'bg-[#111111]/80 border-white/10 ring-white/5' 
@@ -308,7 +297,6 @@ export default function OrderDetailsPage() {
                             
                             <div className="flex flex-col gap-4">
                                 
-                                {/* Step 1: PRINTING */}
                                 <button 
                                     onClick={() => handleStatusUpdate('PRINTING')}
                                     disabled={order.status === 'PRINTING' || order.status === 'READY' || order.status === 'COMPLETED'}
@@ -322,7 +310,6 @@ export default function OrderDetailsPage() {
                                     {(order.status === 'PRINTING' || order.status === 'READY' || order.status === 'COMPLETED') && <CheckCircle2 className="w-4 h-4" />}
                                 </button>
                                 
-                                {/* Step 2: READY (Triggers Email and OTP generation via server action) */}
                                 <button 
                                     onClick={() => handleStatusUpdate('READY')}
                                     disabled={order.status === 'READY' || order.status === 'COMPLETED'}
@@ -336,7 +323,7 @@ export default function OrderDetailsPage() {
                                     {(order.status === 'READY' || order.status === 'COMPLETED') && <CheckCircle2 className="w-4 h-4" />}
                                 </button>
 
-                                {/* Step 3: COMPLETED (WITH 6-DIGIT OTP) */}
+                                {/* Step 3: Now triggers Modal when READY */}
                                 {order.status === 'COMPLETED' ? (
                                     <div className={`py-4 px-5 rounded-2xl font-bold tracking-widest uppercase text-sm border text-left flex justify-between items-center cursor-not-allowed ${
                                         isDark ? 'bg-green-500/10 border-green-500/20 text-green-500/50' : 'bg-green-50 border-green-200 text-green-700/50'
@@ -345,36 +332,16 @@ export default function OrderDetailsPage() {
                                         <CheckCircle2 className={`w-4 h-4 ${isDark ? 'text-green-500' : 'text-green-600'}`} />
                                     </div>
                                 ) : order.status === 'READY' ? (
-                                    <div className={`p-5 rounded-2xl border ring-1 shadow-inner space-y-4 animate-in fade-in zoom-in-95 duration-500 ${
-                                        isDark ? 'bg-white/5 border-white/10 ring-white/5' : 'bg-stone-50 border-stone-200 ring-stone-100'
-                                    }`}>
-                                        <p className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 ${isDark ? 'text-white/50' : 'text-stone-500'}`}>
-                                            <KeyRound className="w-3 h-3" /> 3. Student Handover
-                                        </p>
-                                        <input 
-                                            type="text" 
-                                            placeholder="6-DIGIT OTP" 
-                                            maxLength={6}
-                                            value={otpInput}
-                                            onChange={(e) => setOtpInput(e.target.value.replace(/[^0-9]/g, ''))}
-                                            className={`w-full border rounded-xl px-4 py-3 font-mono text-xl tracking-[0.5em] text-center outline-none transition-all placeholder:tracking-normal placeholder:text-sm ${
-                                                isDark 
-                                                ? 'bg-[#0A0A0A] border-white/10 focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 placeholder:text-white/20' 
-                                                : 'bg-white border-stone-300 focus:border-green-500 focus:ring-1 focus:ring-green-500 placeholder:text-stone-400'
-                                            }`}
-                                        />
-                                        <button 
-                                            onClick={handleVerifyOtp}
-                                            disabled={verifying || otpInput.length < 6}
-                                            className={`w-full py-3.5 rounded-xl font-black tracking-widest uppercase text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                                                isDark 
-                                                ? 'bg-green-500 text-black hover:bg-green-400 shadow-[0_0_20px_rgba(34,197,94,0.2)]' 
-                                                : 'bg-green-600 text-white hover:bg-green-500 shadow-md'
-                                            }`}
-                                        >
-                                            {verifying ? 'Verifying...' : 'Verify & Complete'}
-                                        </button>
-                                    </div>
+                                    <button 
+                                        onClick={() => setShowOtpModal(true)}
+                                        className={`py-4 px-5 rounded-2xl font-bold tracking-widest uppercase text-sm border transition-all text-left flex items-center justify-between group ${
+                                            isDark 
+                                            ? 'bg-white/5 border-white/10 hover:bg-green-500/20 hover:text-green-400 hover:border-green-500/50 text-white' 
+                                            : 'bg-stone-50 border-stone-200 hover:bg-green-50 hover:text-green-700 hover:border-green-300 text-stone-700'
+                                        }`}
+                                    >
+                                        3. Enter OTP & Complete
+                                    </button>
                                 ) : (
                                     <button 
                                         disabled={true}
@@ -393,6 +360,58 @@ export default function OrderDetailsPage() {
                 </div>
 
             </div>
+
+            {/* ================= OTP VERIFICATION MODAL ================= */}
+            {showOtpModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className={`w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl ring-1 animate-in zoom-in-95 duration-300 ${
+                        isDark ? 'bg-[#111111] border-white/10 ring-white/5' : 'bg-white border-stone-200 ring-stone-100'
+                    }`}>
+                        <div className="flex justify-between items-center mb-8">
+                            <h3 className={`text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${isDark ? 'text-white/50' : 'text-stone-500'}`}>
+                                <KeyRound className="w-4 h-4" /> Student Handover
+                            </h3>
+                            <button 
+                                onClick={() => {
+                                    setShowOtpModal(false)
+                                    setOtpInput('')
+                                }} 
+                                className={`p-2 rounded-full transition-colors ${
+                                    isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-stone-100 text-stone-400 hover:text-stone-700'
+                                }`}
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <input 
+                                type="text" 
+                                placeholder="6-DIGIT OTP" 
+                                maxLength={6}
+                                value={otpInput}
+                                onChange={(e) => setOtpInput(e.target.value.replace(/[^0-9]/g, ''))}
+                                className={`w-full border rounded-xl px-4 py-4 font-mono text-2xl tracking-[0.5em] text-center outline-none transition-all placeholder:tracking-normal placeholder:text-sm ${
+                                    isDark 
+                                    ? 'bg-[#0A0A0A] border-white/10 focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 placeholder:text-white/20 text-white' 
+                                    : 'bg-stone-50 border-stone-300 focus:border-green-500 focus:ring-1 focus:ring-green-500 placeholder:text-stone-400 text-stone-900'
+                                }`}
+                            />
+                            <button 
+                                onClick={handleVerifyOtp}
+                                disabled={verifying || otpInput.length < 6}
+                                className={`w-full py-4 rounded-xl font-black tracking-widest uppercase text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                                    isDark 
+                                    ? 'bg-green-500 text-black hover:bg-green-400 shadow-[0_0_20px_rgba(34,197,94,0.2)]' 
+                                    : 'bg-green-600 text-white hover:bg-green-500 shadow-md'
+                                }`}
+                            >
+                                {verifying ? 'Verifying...' : 'Verify & Complete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
