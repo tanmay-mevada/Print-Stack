@@ -13,7 +13,7 @@ import {
 import { useTheme } from '@/context/ThemeContext'
 
 // ============================================================================
-// CUSTOM DROP-DOWN COMPONENT (Replaces native <select> for perfect styling)
+// CUSTOM DROP-DOWN COMPONENT
 // ============================================================================
 function CustomSelect({ label, value, options, onChange, isDark }: any) {
     const [isOpen, setIsOpen] = useState(false)
@@ -36,34 +36,37 @@ function CustomSelect({ label, value, options, onChange, isDark }: any) {
             ref={dropdownRef}
             className={`relative p-5 rounded-2xl border transition-all duration-300 ${
                 isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-white/20' : 'bg-stone-50 border-stone-200/60 hover:border-stone-300'
-            } ${isOpen ? (isDark ? 'ring-2 ring-white/30 border-white/30' : 'ring-2 ring-stone-900/20 border-stone-900') : ''}`}
+            } ${isOpen ? (isDark ? 'ring-2 ring-white/20 border-white/20' : 'ring-2 ring-stone-900/20 border-stone-900') : ''}`}
         >
             <label className={`block text-[10px] font-bold mb-2 uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-stone-500'}`}>
                 {label}
             </label>
             <div 
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full bg-transparent font-black text-lg outline-none cursor-pointer flex justify-between items-center select-none"
+                className="w-full bg-transparent font-black text-xl tracking-tight outline-none cursor-pointer flex justify-between items-center select-none"
             >
                 {selectedOption?.label}
                 <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </div>
 
+            {/* THE DROPDOWN MENU */}
             {isOpen && (
-                <div className={`absolute left-0 right-0 top-[calc(100%+8px)] z-50 rounded-xl overflow-hidden shadow-2xl border backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-200 ${
-                    isDark ? 'bg-[#111111]/95 border-white/10 shadow-black/50' : 'bg-white/95 border-stone-200 shadow-stone-300/50'
+                <div className={`absolute left-0 right-0 top-[calc(100%+12px)] z-[999] rounded-2xl overflow-hidden shadow-2xl border py-2 animate-in fade-in zoom-in-95 duration-200 ${
+                    isDark ? 'bg-[#18181b] border-white/10 shadow-black/80' : 'bg-white border-stone-200 shadow-stone-300/50'
                 }`}>
                     {options.map((opt: any) => (
                         <div 
                             key={opt.value}
                             onClick={() => { onChange(opt.value); setIsOpen(false); }}
-                            className={`px-5 py-4 font-bold cursor-pointer transition-all ${
+                            className={`px-5 py-3.5 font-bold cursor-pointer transition-all flex items-center justify-between ${
                                 value === opt.value 
-                                ? (isDark ? 'bg-white/10 text-white' : 'bg-stone-100 text-stone-900') 
-                                : (isDark ? 'text-white/70 hover:bg-white/5 hover:text-white' : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900')
+                                ? (isDark ? 'text-white bg-white/5' : 'text-stone-900 bg-stone-50') 
+                                : (isDark ? 'text-white/50 hover:bg-white/5 hover:text-white' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900')
                             }`}
                         >
                             {opt.label}
+                            {/* Shows a checkmark on the currently selected item */}
+                            {value === opt.value && <CheckCircle2 className={`w-4 h-4 ${isDark ? 'text-white' : 'text-stone-900'}`} />}
                         </div>
                     ))}
                 </div>
@@ -81,6 +84,29 @@ export default function StudentDashboardPage() {
     
     const profileDropdownRef = useRef<HTMLDivElement>(null)
     
+    // ====== MOBILE SWIPE NAVIGATION LOGIC ======
+    const mobileNavRef = useRef<HTMLDivElement>(null)
+    const [isDraggingNav, setIsDraggingNav] = useState(false)
+
+    const handleNavPointerMove = (e: React.PointerEvent) => {
+        if (!isDraggingNav || !mobileNavRef.current) return;
+        
+        const rect = mobileNavRef.current.getBoundingClientRect();
+        // Calculate where the finger is across the bar (0 to width)
+        const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width - 1)); 
+        const section = Math.floor((x / rect.width) * 3); // Evaluates to 0, 1, or 2
+
+        // Slide to the step ONLY if they have unlocked it!
+        if (section === 0 && step !== 1) {
+            setStep(1);
+        } else if (section === 1 && step !== 2 && file) {
+            setStep(2);
+        } else if (section === 2 && step !== 3 && file && selectedShopId) {
+            setStep(3);
+        }
+    };
+    // ===========================================
+
     const [printConfig, setPrintConfig] = useState<{
         print_type: 'BW' | 'COLOR';
         sided: 'SINGLE' | 'DOUBLE';
@@ -217,51 +243,86 @@ export default function StudentDashboardPage() {
             : 'bg-[#f4f4f0] text-stone-900 selection:bg-stone-900/20'
         }`}>
             
+            {/* ================= FLOATING MOBILE PROGRESS BAR ================= */}
             {step < 4 && (
-                <div className="fixed sm:hidden bottom-6 left-1/2 -translate-x-1/2 z-50">
-                    <div className={`flex items-center gap-1 p-1.5 rounded-[2rem] border backdrop-blur-xl shadow-2xl ${
-                        isDark ? 'bg-[#18181b]/80 border-white/10' : 'bg-white/90 border-stone-200'
-                    }`}>
-                        <button 
-                            onClick={() => setStep(1)}
-                            className={`flex flex-col items-center justify-center w-[72px] py-2.5 rounded-[1.5rem] transition-all duration-200 ${
-                                step === 1 
-                                ? (isDark ? 'bg-white/15 text-white' : 'bg-stone-200 text-stone-900') 
-                                : (isDark ? 'text-white/50 hover:text-white' : 'text-stone-400 hover:text-stone-600')
+                <div className="fixed sm:hidden bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-[340px] z-[100] animate-in slide-in-from-bottom-10 duration-700">
+                    <div 
+                        ref={mobileNavRef}
+                        onPointerDown={(e) => { setIsDraggingNav(true); (e.target as HTMLElement).releasePointerCapture(e.pointerId); }}
+                        onPointerMove={handleNavPointerMove}
+                        onPointerUp={() => setIsDraggingNav(false)}
+                        onPointerLeave={() => setIsDraggingNav(false)}
+                        onPointerCancel={() => setIsDraggingNav(false)}
+                        className={`relative flex items-center p-1.5 rounded-[2.5rem] border backdrop-blur-2xl shadow-2xl transition-colors duration-500 touch-none select-none overflow-hidden cursor-pointer ${
+                            isDark ? 'bg-[#111111]/95 border-white/10 shadow-black/80' : 'bg-white/95 border-stone-200 shadow-stone-300/50'
+                        }`}
+                    >
+                        {/* The Sliding Active Pill */}
+                        <div 
+                            className={`absolute top-1.5 bottom-1.5 w-[calc(33.333%-4px)] rounded-[2rem] transition-all duration-300 ease-out shadow-sm pointer-events-none ${
+                                isDark ? 'bg-[#2a2a2a]' : 'bg-stone-100'
                             }`}
-                        >
-                            <UploadCloud className="w-5 h-5 mb-1" strokeWidth={step === 1 ? 2.5 : 2} />
-                            <span className="text-[11px] font-medium">Upload</span>
-                        </button>
+                            style={{
+                                left: step === 1 ? '6px' : step === 2 ? 'calc(33.333% + 2px)' : 'calc(66.666% - 2px)'
+                            }}
+                        />
 
-                        <button 
-                            onClick={() => { if (file) setStep(2) }}
-                            className={`flex flex-col items-center justify-center w-[72px] py-2.5 rounded-[1.5rem] transition-all duration-200 ${!file && 'opacity-50'} ${
-                                step === 2 
-                                ? (isDark ? 'bg-white/15 text-white' : 'bg-stone-200 text-stone-900') 
-                                : (isDark ? 'text-white/50 hover:text-white' : 'text-stone-400 hover:text-stone-600')
-                            }`}
-                        >
-                            <Store className="w-5 h-5 mb-1" strokeWidth={step === 2 ? 2.5 : 2} />
-                            <span className="text-[11px] font-medium">Shop</span>
-                        </button>
+                        <div className="relative z-10 grid grid-cols-3 w-full">
+                            {/* Step 1: Upload */}
+                            <button 
+                                onClick={() => setStep(1)}
+                                className={`flex flex-col items-center justify-center w-full py-3.5 transition-all duration-300 ${
+                                    step === 1 
+                                    ? (isDark ? 'text-white' : 'text-stone-900') 
+                                    : (step > 1 ? (isDark ? 'text-white hover:text-white/80' : 'text-stone-900 hover:text-stone-700') : (isDark ? 'text-white/40' : 'text-stone-400'))
+                                }`}
+                            >
+                                {step > 1 ? (
+                                    <CheckCircle2 className="w-6 h-6 mb-1 text-green-500 animate-in zoom-in duration-300" />
+                                ) : (
+                                    <UploadCloud className={`w-6 h-6 mb-1 transition-transform duration-300 ${step === 1 ? 'scale-110' : ''}`} strokeWidth={step === 1 ? 2.5 : 2} />
+                                )}
+                                <span className="text-[10px] font-black tracking-widest uppercase">Upload</span>
+                            </button>
 
-                        <button 
-                            onClick={() => { if (file && selectedShopId) setStep(3) }}
-                            className={`flex flex-col items-center justify-center w-[72px] py-2.5 rounded-[1.5rem] transition-all duration-200 ${(!file || !selectedShopId) && 'opacity-50'} ${
-                                step === 3 
-                                ? (isDark ? 'bg-white/15 text-white' : 'bg-stone-200 text-stone-900') 
-                                : (isDark ? 'text-white/50 hover:text-white' : 'text-stone-400 hover:text-stone-600')
-                            }`}
-                        >
-                            <CreditCard className="w-5 h-5 mb-1" strokeWidth={step === 3 ? 2.5 : 2} />
-                            <span className="text-[11px] font-medium">Pay</span>
-                        </button>
+                            {/* Step 2: Shop */}
+                            <button 
+                                onClick={() => { if (file) setStep(2) }}
+                                className={`flex flex-col items-center justify-center w-full py-3.5 transition-all duration-300 ${
+                                    step === 2 
+                                    ? (isDark ? 'text-white' : 'text-stone-900') 
+                                    : (step > 2 ? (isDark ? 'text-white hover:text-white/80' : 'text-stone-900 hover:text-stone-700') : (isDark ? 'text-white/40' : 'text-stone-400'))
+                                } ${!file && step !== 2 ? 'opacity-40' : ''}`}
+                            >
+                                {step > 2 ? (
+                                    <CheckCircle2 className="w-6 h-6 mb-1 text-green-500 animate-in zoom-in duration-300" />
+                                ) : (
+                                    <Store className={`w-6 h-6 mb-1 transition-transform duration-300 ${step === 2 ? 'scale-110' : ''}`} strokeWidth={step === 2 ? 2.5 : 2} />
+                                )}
+                                <span className="text-[10px] font-black tracking-widest uppercase">Shop</span>
+                            </button>
+
+                            {/* Step 3: Checkout */}
+                            <button 
+                                onClick={() => { if (file && selectedShopId) setStep(3) }}
+                                className={`flex flex-col items-center justify-center w-full py-3.5 transition-all duration-300 ${
+                                    step === 3 
+                                    ? (isDark ? 'text-white' : 'text-stone-900') 
+                                    : (isDark ? 'text-white/40' : 'text-stone-400')
+                                } ${(!file || !selectedShopId) && step !== 3 ? 'opacity-40' : ''}`}
+                            >
+                                <CreditCard className={`w-6 h-6 mb-1 transition-transform duration-300 ${step === 3 ? 'scale-110' : ''}`} strokeWidth={step === 3 ? 2.5 : 2} />
+                                <span className="text-[10px] font-black tracking-widest uppercase">Pay</span>
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             )}
+
             <div className="p-6 sm:p-8 max-w-5xl mx-auto relative">
                 
+                {/* ================= NAVBAR ================= */}
                 <div className={`flex justify-between items-center pb-6 mb-10 relative transition-colors duration-500 border-b ${isDark ? 'border-white/10' : 'border-stone-200/60'}`}>
                     <div className="flex items-center gap-4">
                         <div className={`w-11 h-11 rounded-xl flex items-center justify-center shadow-lg transition-colors duration-300 ${
@@ -324,26 +385,66 @@ export default function StudentDashboardPage() {
                     </div>
                 </div>
 
+                {/* ================= DESKTOP PROGRESS TRACKER ================= */}
                 {step < 4 && (
-                    <div className="hidden sm:flex items-center gap-5 mb-12 overflow-x-auto pb-4 no-scrollbar text-sm font-bold uppercase tracking-widest">
-                        <div className={`flex items-center gap-3 shrink-0 transition-colors duration-500 ${step >= 1 ? (isDark ? 'text-white' : 'text-stone-900') : (isDark ? 'text-white/30' : 'text-stone-400')}`}>
-                            <span className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all duration-500 ${step >= 1 ? (isDark ? 'border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'border-stone-900 bg-stone-900 text-white shadow-md') : ''}`}>1</span> UPLOAD
-                        </div>
-                        <div className={`h-[2px] w-20 shrink-0 rounded-full transition-colors duration-500 ${isDark ? 'bg-white/10' : 'bg-stone-200'}`}>
-                            <div className={`h-full bg-current transition-all duration-700 ease-in-out ${step >= 2 ? 'w-full' : 'w-0'} ${isDark ? 'text-white' : 'text-stone-900'}`} />
-                        </div>
-                        <div className={`flex items-center gap-3 shrink-0 transition-colors duration-500 ${step >= 2 ? (isDark ? 'text-white' : 'text-stone-900') : (isDark ? 'text-white/30' : 'text-stone-400')}`}>
-                            <span className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all duration-500 ${step >= 2 ? (isDark ? 'border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'border-stone-900 bg-stone-900 text-white shadow-md') : (isDark ? 'border-white/30' : 'border-stone-300')}`}>2</span> SELECT SHOP
-                        </div>
-                        <div className={`h-[2px] w-20 shrink-0 rounded-full transition-colors duration-500 ${isDark ? 'bg-white/10' : 'bg-stone-200'}`}>
-                            <div className={`h-full bg-current transition-all duration-700 ease-in-out ${step >= 3 ? 'w-full' : 'w-0'} ${isDark ? 'text-white' : 'text-stone-900'}`} />
-                        </div>
-                        <div className={`flex items-center gap-3 shrink-0 transition-colors duration-500 ${step >= 3 ? (isDark ? 'text-white' : 'text-stone-900') : (isDark ? 'text-white/30' : 'text-stone-400')}`}>
-                            <span className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all duration-500 ${step >= 3 ? (isDark ? 'border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'border-stone-900 bg-stone-900 text-white shadow-md') : (isDark ? 'border-white/30' : 'border-stone-300')}`}>3</span> CHECKOUT
+                    <div className="hidden sm:flex justify-center mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
+                        <div className={`inline-flex items-center p-2 rounded-full border backdrop-blur-xl shadow-xl transition-all duration-500 ${
+                            isDark ? 'bg-[#111111]/80 border-white/10 ring-1 ring-white/5' : 'bg-white/90 border-stone-200 shadow-stone-200/50'
+                        }`}>
+                            <button 
+                                onClick={() => setStep(1)} 
+                                className={`flex items-center gap-3 px-6 py-3 rounded-full transition-all duration-300 ${
+                                    step === 1 
+                                    ? (isDark ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]' : 'bg-stone-900 text-white shadow-lg') 
+                                    : (step > 1 ? (isDark ? 'text-white hover:bg-white/10' : 'text-stone-900 hover:bg-stone-100') : (isDark ? 'text-white/40' : 'text-stone-400'))
+                                }`}
+                            >
+                                {step > 1 ? (
+                                    <CheckCircle2 className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
+                                ) : (
+                                    <UploadCloud className="w-5 h-5" />
+                                )}
+                                <span className="text-sm font-black tracking-widest uppercase">1. Upload</span>
+                            </button>
+
+                            <div className={`w-8 h-[2px] rounded-full mx-2 ${isDark ? 'bg-white/10' : 'bg-stone-200'}`} />
+
+                            <button 
+                                onClick={() => { if (file) setStep(2) }}
+                                disabled={!file}
+                                className={`flex items-center gap-3 px-6 py-3 rounded-full transition-all duration-300 disabled:cursor-not-allowed ${
+                                    step === 2 
+                                    ? (isDark ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]' : 'bg-stone-900 text-white shadow-lg') 
+                                    : (step > 2 ? (isDark ? 'text-white hover:bg-white/10' : 'text-stone-900 hover:bg-stone-100') : (isDark ? 'text-white/40' : 'text-stone-400'))
+                                }`}
+                            >
+                                {step > 2 ? (
+                                    <CheckCircle2 className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
+                                ) : (
+                                    <Store className="w-5 h-5" />
+                                )}
+                                <span className="text-sm font-black tracking-widest uppercase">2. Shop</span>
+                            </button>
+
+                            <div className={`w-8 h-[2px] rounded-full mx-2 ${isDark ? 'bg-white/10' : 'bg-stone-200'}`} />
+
+                            <button 
+                                onClick={() => { if (file && selectedShopId) setStep(3) }}
+                                disabled={!file || !selectedShopId}
+                                className={`flex items-center gap-3 px-6 py-3 rounded-full transition-all duration-300 disabled:cursor-not-allowed ${
+                                    step === 3 
+                                    ? (isDark ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]' : 'bg-stone-900 text-white shadow-lg') 
+                                    : (isDark ? 'text-white/40' : 'text-stone-400')
+                                }`}
+                            >
+                                <CreditCard className="w-5 h-5" />
+                                <span className="text-sm font-black tracking-widest uppercase">3. Pay</span>
+                            </button>
                         </div>
                     </div>
                 )}
 
+                {/* ================= STEP 1: UPLOAD & SETTINGS ================= */}
                 {step === 1 && (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <div className={`border rounded-[2.5rem] p-6 sm:p-10 transition-all duration-500 backdrop-blur-xl ${
@@ -410,7 +511,6 @@ export default function StudentDashboardPage() {
                                     </div>
                                 </div>
                                 
-                                {/* REPLACED: Color Mode Dropdown */}
                                 <CustomSelect 
                                     label="Color Mode"
                                     value={printConfig.print_type}
@@ -422,7 +522,6 @@ export default function StudentDashboardPage() {
                                     isDark={isDark}
                                 />
                                 
-                                {/* REPLACED: Layout Dropdown */}
                                 <CustomSelect 
                                     label="Layout"
                                     value={printConfig.sided}
@@ -478,7 +577,6 @@ export default function StudentDashboardPage() {
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     {activeOrders.map(order => {
-                                        // Extraction for nice file name display
                                         const fileName = order.file_path 
                                             ? order.file_path.split('-').slice(1).join('-') 
                                             : 'Document.pdf';
@@ -494,7 +592,6 @@ export default function StudentDashboardPage() {
                                                         </p>
                                                         <p className="font-black text-xl tracking-tight mb-1">{order.shops?.name || 'Print Shop'}</p>
                                                         
-                                                        {/* Document File Name Display */}
                                                         <div className={`flex items-center gap-2 text-sm font-bold truncate max-w-[200px] sm:max-w-[250px] ${isDark ? 'text-white/70' : 'text-stone-600'}`}>
                                                             <FileText className="w-4 h-4 shrink-0" />
                                                             <span className="truncate">{fileName}</span>
@@ -533,6 +630,7 @@ export default function StudentDashboardPage() {
                     </div>
                 )}
 
+                {/* ================= STEP 2: SHOP SELECTION ================= */}
                 {step === 2 && (
                     <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-700">
                         <div className="flex justify-between items-end mb-8 px-2">
@@ -587,6 +685,7 @@ export default function StudentDashboardPage() {
                     </div>
                 )}
 
+                {/* ================= STEP 3: CHECKOUT ================= */}
                 {step === 3 && (
                     <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-700 max-w-2xl mx-auto">
                         <div className="flex justify-between items-end mb-8 px-2">
@@ -643,6 +742,7 @@ export default function StudentDashboardPage() {
                     </div>
                 )}
 
+                {/* ================= STEP 4: SUCCESS ================= */}
                 {step === 4 && (
                     <div className="animate-in zoom-in-95 duration-700 max-w-lg mx-auto mt-12">
                         <div className={`border rounded-[3rem] p-12 sm:p-16 text-center backdrop-blur-xl ${
