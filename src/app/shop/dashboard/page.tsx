@@ -91,7 +91,7 @@ export default function ShopDashboardPage() {
             </div>
             <h1 className="text-2xl font-black tracking-tight">
                 <span className={`bg-clip-text text-transparent ${isDark ? 'bg-gradient-to-r from-white to-gray-400' : 'bg-gradient-to-r from-stone-900 to-stone-500'}`}>
-                    {shop?.name ? `${shop.name} ` : 'PrintStack++ '}
+                    {shop?.name ? `${shop.name} ` : 'PrintStack '}
                 </span>
                 <span className={`hidden sm:inline-block ml-2 text-sm font-bold uppercase tracking-widest px-2 py-1 rounded-md ${isDark ? 'bg-white/10 text-white/60' : 'bg-stone-200/50 text-stone-500'}`}>Workspace</span>
             </h1>

@@ -49,7 +49,7 @@ export default function Home() {
             <span
               className={`font-bold text-xl tracking-tight transition-colors ${isDark ? "text-white" : "text-stone-900"}`}
             >
-              PrintStack++
+              PrintStack
             </span>
           </div>
 
@@ -511,7 +511,7 @@ export default function Home() {
             <div className="flex items-center gap-3 text-white">
               <Printer className="w-6 h-6" />
               <span className="font-black tracking-tight text-2xl">
-                PrintStack++
+                PrintStack
               </span>
             </div>
             <p
