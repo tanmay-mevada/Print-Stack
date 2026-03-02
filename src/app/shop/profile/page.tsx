@@ -228,7 +228,6 @@ export default function ShopProfilePage() {
               </div>
             )}
           </div>
-
         </form>
       </div>
     </div>
