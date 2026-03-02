@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/context/ThemeContext"; // <-- Import the provid
 export const metadata: Metadata = {
   title: "PrintStack++ | Smart Print Shop Management",
   description: "Join the paperless revolution and skip the printing queues forever.",
+  manifest: "/manifest.json", // <-- ADDED THIS LINE FOR THE PWA
   icons: {
     icon: [
       {

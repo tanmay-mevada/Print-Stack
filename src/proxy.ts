@@ -1,8 +1,9 @@
-// src/middleware.ts
+// src/proxy.ts
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
-export async function middleware(request: NextRequest) {
+// THE FIX: Changed 'middleware' to 'proxy' right here
+export async function proxy(request: NextRequest) {
   const response = NextResponse.next({
     request: { headers: request.headers },
   })
