@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { updateOrderStatusAction, verifyPickupOTPAction } from '@/app/(auth)/actions' 
+import { updateOrderStatusAction, verifyPickupOTPAction, getDownloadUrlAction } from '@/app/shop/actions'
 import { ArrowLeft, FileText, Download, CheckCircle2, Clock, User, FileDigit, RefreshCw, KeyRound } from 'lucide-react'
-import toast, { Toaster } from 'react-hot-toast' 
+import toast, { Toaster } from 'react-hot-toast'
 import LoadingScreen from '@/components/LoadingScreen'
 import { useTheme } from '@/context/ThemeContext' // Imported ThemeContext
 
@@ -52,20 +52,16 @@ export default function OrderDetailsPage() {
         
         const loadingToast = toast.loading("Generating secure download link...")
         
-        const supabase = createClient()
-        const path = order.file_path.replace('uploads/', '')
-        
-        const { data, error } = await supabase.storage
-            .from('print_files')
-            .createSignedUrl(path, 60) 
+        // Pass the raw, exact database file path securely to your server action
+        const res = await getDownloadUrlAction(order.file_path)
             
         toast.dismiss(loadingToast)
             
-        if (data?.signedUrl) {
-            window.open(data.signedUrl, '_blank')
+        if (res.url) {
+            window.open(res.url, '_blank')
             toast.success("Download started!")
         } else {
-            toast.error("Could not generate download link.")
+            toast.error("Could not generate link: " + (res.error || 'Unknown error'))
         }
     }
 

@@ -318,7 +318,6 @@ export default function ShopProfilePage() {
               {saving ? 'SAVING PROFILE...' : 'SAVE SHOP PROFILE'}
             </button>
           </div>
-
         </form>
       </div>
     </div>
