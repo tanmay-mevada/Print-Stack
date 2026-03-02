@@ -182,7 +182,7 @@ export default function LoginPage() {
 
                     <div className="mt-10 text-center">
                         <p className={`font-medium transition-colors ${isDark ? 'text-white/60' : 'text-stone-500'}`}>
-                            Don't have an account?{' '}
+                            Dont have an account?{' '}
                             <Link href="/signup" className={`font-bold hover:underline transition-all ${isDark ? 'text-white hover:text-gray-300' : 'text-stone-900 hover:text-stone-700'}`}>
                                 Sign up
                             </Link>

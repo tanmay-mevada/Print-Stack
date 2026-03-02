@@ -29,25 +29,50 @@ export async function loginAction(formData: FormData) {
 
 export async function signupAction(formData: FormData) {
   const supabase = await createClient()
+  
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const name = formData.get('name') as string
-  
-  // Capture the role from the hidden input field we added to the signup page
   const role = formData.get('role') as string || 'student' 
 
-  const { error } = await supabase.auth.signUp({
+  // EDGE CASE 1: Missing Data
+  if (!email || !password || !name) {
+    return { error: "All fields are required. Please fill out the entire form." }
+  }
+
+  // EDGE CASE 2: Password too short (Supabase requires 6 by default, but it's good to catch it early)
+  if (password.length < 6) {
+    return { error: "Your password must be at least 6 characters long." }
+  }
+
+  // Attempt the Signup
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: { 
         name,
-        role // Save the role to Supabase user metadata
+        role 
       } 
     }
   })
 
-  if (error) return { error: error.message }
+  // EDGE CASE 3: Standard Supabase Errors (e.g., Invalid email format)
+  if (error) {
+    // Make the error message slightly more user-friendly
+    if (error.message.toLowerCase().includes('already registered')) {
+        return { error: "An account with this email already exists. Please log in instead." }
+    }
+    return { error: error.message }
+  }
+
+  // EDGE CASE 4: The "Silent" Existing User Catch (Email Enumeration Protection)
+  // If the email already exists, Supabase returns data.user, but the identities array will be empty.
+  if (data?.user && data.user.identities && data.user.identities.length === 0) {
+    return { error: "An account with this email already exists. Please log in instead." }
+  }
+
+  // Success!
   return { success: true, email }
 }
 
