@@ -35,6 +35,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         })
     }
 
+    
     // Prevents a hydration mismatch flash when the page first loads
     if (!mounted) {
         return (
