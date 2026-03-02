@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { logoutAction } from '@/app/(auth)/actions'
 import { createClient } from '@/lib/supabase/client'
@@ -8,17 +8,105 @@ import { PDFDocument } from 'pdf-lib'
 import { fetchAvailableShopsAction, submitOrderAction } from '../actions'
 import { 
     Sun, Moon, Printer, LogOut, UploadCloud, FileText, 
-    CheckCircle2, MapPin, Store, ArrowRight, User, History, CreditCard, Clock 
+    CheckCircle2, MapPin, Store, ArrowRight, User, History, CreditCard, Clock, ChevronDown 
 } from 'lucide-react'
+import { useTheme } from '@/context/ThemeContext'
+
+// ============================================================================
+// CUSTOM DROP-DOWN COMPONENT
+// ============================================================================
+function CustomSelect({ label, value, options, onChange, isDark }: any) {
+    const [isOpen, setIsOpen] = useState(false)
+    const dropdownRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsOpen(false)
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [])
+
+    const selectedOption = options.find((o: any) => o.value === value)
+
+    return (
+        <div 
+            ref={dropdownRef}
+            className={`relative p-5 rounded-2xl border transition-all duration-300 ${
+                isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-white/20' : 'bg-stone-50 border-stone-200/60 hover:border-stone-300'
+            } ${isOpen ? (isDark ? 'ring-2 ring-white/20 border-white/20' : 'ring-2 ring-stone-900/20 border-stone-900') : ''}`}
+        >
+            <label className={`block text-[10px] font-bold mb-2 uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-stone-500'}`}>
+                {label}
+            </label>
+            <div 
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full bg-transparent font-black text-xl tracking-tight outline-none cursor-pointer flex justify-between items-center select-none"
+            >
+                {selectedOption?.label}
+                <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+            </div>
+
+            {/* THE DROPDOWN MENU */}
+            {isOpen && (
+                <div className={`absolute left-0 right-0 top-[calc(100%+12px)] z-[999] rounded-2xl overflow-hidden shadow-2xl border py-2 animate-in fade-in zoom-in-95 duration-200 ${
+                    isDark ? 'bg-[#18181b] border-white/10 shadow-black/80' : 'bg-white border-stone-200 shadow-stone-300/50'
+                }`}>
+                    {options.map((opt: any) => (
+                        <div 
+                            key={opt.value}
+                            onClick={() => { onChange(opt.value); setIsOpen(false); }}
+                            className={`px-5 py-3.5 font-bold cursor-pointer transition-all flex items-center justify-between ${
+                                value === opt.value 
+                                ? (isDark ? 'text-white bg-white/5' : 'text-stone-900 bg-stone-50') 
+                                : (isDark ? 'text-white/50 hover:bg-white/5 hover:text-white' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900')
+                            }`}
+                        >
+                            {opt.label}
+                            {/* Shows a checkmark on the currently selected item */}
+                            {value === opt.value && <CheckCircle2 className={`w-4 h-4 ${isDark ? 'text-white' : 'text-stone-900'}`} />}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
 
 export default function StudentDashboardPage() {
-    const [isDark, setIsDark] = useState(true)
     const [isProfileOpen, setIsProfileOpen] = useState(false)
-    
+    const { isDark, toggleTheme } = useTheme()
     const [step, setStep] = useState(1)
     const [file, setFile] = useState<File | null>(null)
     const [orders, setOrders] = useState<any[]>([])
     
+    const profileDropdownRef = useRef<HTMLDivElement>(null)
+    
+    // ====== MOBILE SWIPE NAVIGATION LOGIC ======
+    const mobileNavRef = useRef<HTMLDivElement>(null)
+    const [isDraggingNav, setIsDraggingNav] = useState(false)
+
+    const handleNavPointerMove = (e: React.PointerEvent) => {
+        if (!isDraggingNav || !mobileNavRef.current) return;
+        
+        const rect = mobileNavRef.current.getBoundingClientRect();
+        // Calculate where the finger is across the bar (0 to width)
+        const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width - 1)); 
+        const section = Math.floor((x / rect.width) * 3); // Evaluates to 0, 1, or 2
+
+        // Slide to the step ONLY if they have unlocked it!
+        if (section === 0 && step !== 1) {
+            setStep(1);
+        } else if (section === 1 && step !== 2 && file) {
+            setStep(2);
+        } else if (section === 2 && step !== 3 && file && selectedShopId) {
+            setStep(3);
+        }
+    };
+    // ===========================================
+
     const [printConfig, setPrintConfig] = useState<{
         print_type: 'BW' | 'COLOR';
         sided: 'SINGLE' | 'DOUBLE';
@@ -49,6 +137,16 @@ export default function StudentDashboardPage() {
             }
         }
         fetchUserOrders()
+    }, [])
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+                setIsProfileOpen(false)
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [])
 
     const approxPrice = (() => {
@@ -136,7 +234,6 @@ export default function StudentDashboardPage() {
         return new Date(dateString).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
     }
 
-    // Filter to show ONLY active orders (not completed) in the Recent Stack
     const activeOrders = orders.filter(order => order.status !== 'COMPLETED').slice(0, 2);
 
     return (
@@ -148,53 +245,81 @@ export default function StudentDashboardPage() {
             
             {/* ================= FLOATING MOBILE PROGRESS BAR ================= */}
             {step < 4 && (
-                <div className="fixed sm:hidden bottom-6 left-1/2 -translate-x-1/2 z-50">
-                    <div className={`flex items-center gap-1 p-1.5 rounded-[2rem] border backdrop-blur-xl shadow-2xl ${
-                        isDark ? 'bg-[#18181b]/80 border-white/10' : 'bg-white/90 border-stone-200'
-                    }`}>
-                        
-                        {/* Step 1: Upload */}
-                        <button 
-                            onClick={() => setStep(1)}
-                            className={`flex flex-col items-center justify-center w-[72px] py-2.5 rounded-[1.5rem] transition-all duration-200 ${
-                                step === 1 
-                                ? (isDark ? 'bg-white/15 text-white' : 'bg-stone-200 text-stone-900') 
-                                : (isDark ? 'text-white/50 hover:text-white' : 'text-stone-400 hover:text-stone-600')
+                <div className="fixed sm:hidden bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-[340px] z-[100] animate-in slide-in-from-bottom-10 duration-700">
+                    <div 
+                        ref={mobileNavRef}
+                        onPointerDown={(e) => { setIsDraggingNav(true); (e.target as HTMLElement).releasePointerCapture(e.pointerId); }}
+                        onPointerMove={handleNavPointerMove}
+                        onPointerUp={() => setIsDraggingNav(false)}
+                        onPointerLeave={() => setIsDraggingNav(false)}
+                        onPointerCancel={() => setIsDraggingNav(false)}
+                        className={`relative flex items-center p-1.5 rounded-[2.5rem] border backdrop-blur-2xl shadow-2xl transition-colors duration-500 touch-none select-none overflow-hidden cursor-pointer ${
+                            isDark ? 'bg-[#111111]/95 border-white/10 shadow-black/80' : 'bg-white/95 border-stone-200 shadow-stone-300/50'
+                        }`}
+                    >
+                        {/* The Sliding Active Pill */}
+                        <div 
+                            className={`absolute top-1.5 bottom-1.5 w-[calc(33.333%-4px)] rounded-[2rem] transition-all duration-300 ease-out shadow-sm pointer-events-none ${
+                                isDark ? 'bg-[#2a2a2a]' : 'bg-stone-100'
                             }`}
-                        >
-                            <UploadCloud className="w-5 h-5 mb-1" strokeWidth={step === 1 ? 2.5 : 2} />
-                            <span className="text-[11px] font-medium">Upload</span>
-                        </button>
+                            style={{
+                                left: step === 1 ? '6px' : step === 2 ? 'calc(33.333% + 2px)' : 'calc(66.666% - 2px)'
+                            }}
+                        />
 
-                        {/* Step 2: Shop */}
-                        <button 
-                            onClick={() => { if (file) setStep(2) }}
-                            className={`flex flex-col items-center justify-center w-[72px] py-2.5 rounded-[1.5rem] transition-all duration-200 ${!file && 'opacity-50'} ${
-                                step === 2 
-                                ? (isDark ? 'bg-white/15 text-white' : 'bg-stone-200 text-stone-900') 
-                                : (isDark ? 'text-white/50 hover:text-white' : 'text-stone-400 hover:text-stone-600')
-                            }`}
-                        >
-                            <Store className="w-5 h-5 mb-1" strokeWidth={step === 2 ? 2.5 : 2} />
-                            <span className="text-[11px] font-medium">Shop</span>
-                        </button>
+                        <div className="relative z-10 grid grid-cols-3 w-full">
+                            {/* Step 1: Upload */}
+                            <button 
+                                onClick={() => setStep(1)}
+                                className={`flex flex-col items-center justify-center w-full py-3.5 transition-all duration-300 ${
+                                    step === 1 
+                                    ? (isDark ? 'text-white' : 'text-stone-900') 
+                                    : (step > 1 ? (isDark ? 'text-white hover:text-white/80' : 'text-stone-900 hover:text-stone-700') : (isDark ? 'text-white/40' : 'text-stone-400'))
+                                }`}
+                            >
+                                {step > 1 ? (
+                                    <CheckCircle2 className="w-6 h-6 mb-1 text-green-500 animate-in zoom-in duration-300" />
+                                ) : (
+                                    <UploadCloud className={`w-6 h-6 mb-1 transition-transform duration-300 ${step === 1 ? 'scale-110' : ''}`} strokeWidth={step === 1 ? 2.5 : 2} />
+                                )}
+                                <span className="text-[10px] font-black tracking-widest uppercase">Upload</span>
+                            </button>
 
-                        {/* Step 3: Checkout */}
-                        <button 
-                            onClick={() => { if (file && selectedShopId) setStep(3) }}
-                            className={`flex flex-col items-center justify-center w-[72px] py-2.5 rounded-[1.5rem] transition-all duration-200 ${(!file || !selectedShopId) && 'opacity-50'} ${
-                                step === 3 
-                                ? (isDark ? 'bg-white/15 text-white' : 'bg-stone-200 text-stone-900') 
-                                : (isDark ? 'text-white/50 hover:text-white' : 'text-stone-400 hover:text-stone-600')
-                            }`}
-                        >
-                            <CreditCard className="w-5 h-5 mb-1" strokeWidth={step === 3 ? 2.5 : 2} />
-                            <span className="text-[11px] font-medium">Pay</span>
-                        </button>
+                            {/* Step 2: Shop */}
+                            <button 
+                                onClick={() => { if (file) setStep(2) }}
+                                className={`flex flex-col items-center justify-center w-full py-3.5 transition-all duration-300 ${
+                                    step === 2 
+                                    ? (isDark ? 'text-white' : 'text-stone-900') 
+                                    : (step > 2 ? (isDark ? 'text-white hover:text-white/80' : 'text-stone-900 hover:text-stone-700') : (isDark ? 'text-white/40' : 'text-stone-400'))
+                                } ${!file && step !== 2 ? 'opacity-40' : ''}`}
+                            >
+                                {step > 2 ? (
+                                    <CheckCircle2 className="w-6 h-6 mb-1 text-green-500 animate-in zoom-in duration-300" />
+                                ) : (
+                                    <Store className={`w-6 h-6 mb-1 transition-transform duration-300 ${step === 2 ? 'scale-110' : ''}`} strokeWidth={step === 2 ? 2.5 : 2} />
+                                )}
+                                <span className="text-[10px] font-black tracking-widest uppercase">Shop</span>
+                            </button>
+
+                            {/* Step 3: Checkout */}
+                            <button 
+                                onClick={() => { if (file && selectedShopId) setStep(3) }}
+                                className={`flex flex-col items-center justify-center w-full py-3.5 transition-all duration-300 ${
+                                    step === 3 
+                                    ? (isDark ? 'text-white' : 'text-stone-900') 
+                                    : (isDark ? 'text-white/40' : 'text-stone-400')
+                                } ${(!file || !selectedShopId) && step !== 3 ? 'opacity-40' : ''}`}
+                            >
+                                <CreditCard className={`w-6 h-6 mb-1 transition-transform duration-300 ${step === 3 ? 'scale-110' : ''}`} strokeWidth={step === 3 ? 2.5 : 2} />
+                                <span className="text-[10px] font-black tracking-widest uppercase">Pay</span>
+                            </button>
+                        </div>
 
                     </div>
                 </div>
             )}
+
             <div className="p-6 sm:p-8 max-w-5xl mx-auto relative">
                 
                 {/* ================= NAVBAR ================= */}
@@ -218,13 +343,13 @@ export default function StudentDashboardPage() {
                     </div>
 
                     <div className="flex items-center gap-3 sm:gap-5">
-                        <button onClick={() => setIsDark(!isDark)} className={`p-3 rounded-full transition-all duration-300 hover:scale-105 ${
+                        <button onClick={toggleTheme} className={`p-3 rounded-full transition-all duration-300 hover:scale-105 ${
                             isDark ? 'bg-white/5 hover:bg-white/10 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]' : 'bg-white hover:bg-stone-50 text-stone-900 shadow-sm border border-stone-200/50'
                         }`}>
                             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                         </button>
 
-                        <div className="relative">
+                        <div className="relative" ref={profileDropdownRef}>
                             <button onClick={() => setIsProfileOpen(!isProfileOpen)} className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 ${
                                 isDark ? 'bg-white/5 hover:bg-white/10 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] ring-1 ring-white/10' : 'bg-white hover:bg-stone-50 text-stone-900 shadow-sm border border-stone-200/50'
                             }`}>
@@ -236,7 +361,10 @@ export default function StudentDashboardPage() {
                                     isDark ? 'bg-[#111111]/90 border border-white/10 ring-1 ring-white/5' : 'bg-white/90 border border-stone-200/50 shadow-stone-300/50'
                                 }`}>
                                     <div className={`p-2 border-b ${isDark ? 'border-white/10' : 'border-stone-100'}`}>
-                                        <Link href="/student/orders" className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-sm font-bold transition-all ${
+                                        <Link 
+                                            href="/student/orders" 
+                                            onClick={() => setIsProfileOpen(false)}
+                                            className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-sm font-bold transition-all ${
                                             isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'
                                         }`}>
                                             <History className="w-4 h-4 opacity-70" /> Order History
@@ -259,21 +387,59 @@ export default function StudentDashboardPage() {
 
                 {/* ================= DESKTOP PROGRESS TRACKER ================= */}
                 {step < 4 && (
-                    <div className="hidden sm:flex items-center gap-5 mb-12 overflow-x-auto pb-4 no-scrollbar text-sm font-bold uppercase tracking-widest">
-                        <div className={`flex items-center gap-3 shrink-0 transition-colors duration-500 ${step >= 1 ? (isDark ? 'text-white' : 'text-stone-900') : (isDark ? 'text-white/30' : 'text-stone-400')}`}>
-                            <span className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all duration-500 ${step >= 1 ? (isDark ? 'border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'border-stone-900 bg-stone-900 text-white shadow-md') : ''}`}>1</span> UPLOAD
-                        </div>
-                        <div className={`h-[2px] w-20 shrink-0 rounded-full transition-colors duration-500 ${isDark ? 'bg-white/10' : 'bg-stone-200'}`}>
-                            <div className={`h-full bg-current transition-all duration-700 ease-in-out ${step >= 2 ? 'w-full' : 'w-0'} ${isDark ? 'text-white' : 'text-stone-900'}`} />
-                        </div>
-                        <div className={`flex items-center gap-3 shrink-0 transition-colors duration-500 ${step >= 2 ? (isDark ? 'text-white' : 'text-stone-900') : (isDark ? 'text-white/30' : 'text-stone-400')}`}>
-                            <span className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all duration-500 ${step >= 2 ? (isDark ? 'border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'border-stone-900 bg-stone-900 text-white shadow-md') : (isDark ? 'border-white/30' : 'border-stone-300')}`}>2</span> SELECT SHOP
-                        </div>
-                        <div className={`h-[2px] w-20 shrink-0 rounded-full transition-colors duration-500 ${isDark ? 'bg-white/10' : 'bg-stone-200'}`}>
-                            <div className={`h-full bg-current transition-all duration-700 ease-in-out ${step >= 3 ? 'w-full' : 'w-0'} ${isDark ? 'text-white' : 'text-stone-900'}`} />
-                        </div>
-                        <div className={`flex items-center gap-3 shrink-0 transition-colors duration-500 ${step >= 3 ? (isDark ? 'text-white' : 'text-stone-900') : (isDark ? 'text-white/30' : 'text-stone-400')}`}>
-                            <span className={`w-8 h-8 flex items-center justify-center rounded-full border transition-all duration-500 ${step >= 3 ? (isDark ? 'border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'border-stone-900 bg-stone-900 text-white shadow-md') : (isDark ? 'border-white/30' : 'border-stone-300')}`}>3</span> CHECKOUT
+                    <div className="hidden sm:flex justify-center mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
+                        <div className={`inline-flex items-center p-2 rounded-full border backdrop-blur-xl shadow-xl transition-all duration-500 ${
+                            isDark ? 'bg-[#111111]/80 border-white/10 ring-1 ring-white/5' : 'bg-white/90 border-stone-200 shadow-stone-200/50'
+                        }`}>
+                            <button 
+                                onClick={() => setStep(1)} 
+                                className={`flex items-center gap-3 px-6 py-3 rounded-full transition-all duration-300 ${
+                                    step === 1 
+                                    ? (isDark ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]' : 'bg-stone-900 text-white shadow-lg') 
+                                    : (step > 1 ? (isDark ? 'text-white hover:bg-white/10' : 'text-stone-900 hover:bg-stone-100') : (isDark ? 'text-white/40' : 'text-stone-400'))
+                                }`}
+                            >
+                                {step > 1 ? (
+                                    <CheckCircle2 className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
+                                ) : (
+                                    <UploadCloud className="w-5 h-5" />
+                                )}
+                                <span className="text-sm font-black tracking-widest uppercase">1. Upload</span>
+                            </button>
+
+                            <div className={`w-8 h-[2px] rounded-full mx-2 ${isDark ? 'bg-white/10' : 'bg-stone-200'}`} />
+
+                            <button 
+                                onClick={() => { if (file) setStep(2) }}
+                                disabled={!file}
+                                className={`flex items-center gap-3 px-6 py-3 rounded-full transition-all duration-300 disabled:cursor-not-allowed ${
+                                    step === 2 
+                                    ? (isDark ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]' : 'bg-stone-900 text-white shadow-lg') 
+                                    : (step > 2 ? (isDark ? 'text-white hover:bg-white/10' : 'text-stone-900 hover:bg-stone-100') : (isDark ? 'text-white/40' : 'text-stone-400'))
+                                }`}
+                            >
+                                {step > 2 ? (
+                                    <CheckCircle2 className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
+                                ) : (
+                                    <Store className="w-5 h-5" />
+                                )}
+                                <span className="text-sm font-black tracking-widest uppercase">2. Shop</span>
+                            </button>
+
+                            <div className={`w-8 h-[2px] rounded-full mx-2 ${isDark ? 'bg-white/10' : 'bg-stone-200'}`} />
+
+                            <button 
+                                onClick={() => { if (file && selectedShopId) setStep(3) }}
+                                disabled={!file || !selectedShopId}
+                                className={`flex items-center gap-3 px-6 py-3 rounded-full transition-all duration-300 disabled:cursor-not-allowed ${
+                                    step === 3 
+                                    ? (isDark ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]' : 'bg-stone-900 text-white shadow-lg') 
+                                    : (isDark ? 'text-white/40' : 'text-stone-400')
+                                }`}
+                            >
+                                <CreditCard className="w-5 h-5" />
+                                <span className="text-sm font-black tracking-widest uppercase">3. Pay</span>
+                            </button>
                         </div>
                     </div>
                 )}
@@ -281,8 +447,6 @@ export default function StudentDashboardPage() {
                 {/* ================= STEP 1: UPLOAD & SETTINGS ================= */}
                 {step === 1 && (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        
-                        {/* File Upload Dropzone */}
                         <div className={`border rounded-[2.5rem] p-6 sm:p-10 transition-all duration-500 backdrop-blur-xl ${
                             isDark 
                             ? 'bg-[#111111]/60 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/5' 
@@ -323,7 +487,6 @@ export default function StudentDashboardPage() {
                             </label>
                         </div>
 
-                        {/* Print Settings Cards */}
                         <div className={`border rounded-[2.5rem] p-6 sm:p-10 relative backdrop-blur-xl transition-all duration-500 ${
                             isDark 
                             ? 'bg-[#111111]/60 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/5' 
@@ -338,7 +501,6 @@ export default function StudentDashboardPage() {
                             
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                                 
-                                {/* Detail Block: Pages */}
                                 <div className={`p-5 rounded-2xl border transition-all duration-300 ${
                                     isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-white/20' : 'bg-stone-50 border-stone-200/60 hover:border-stone-300'
                                 }`}>
@@ -349,31 +511,28 @@ export default function StudentDashboardPage() {
                                     </div>
                                 </div>
                                 
-                                {/* Select Block: Color */}
-                                <div className={`p-5 rounded-2xl border transition-all duration-300 focus-within:ring-2 ${
-                                    isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-white/20 focus-within:ring-white/30' : 'bg-stone-50 border-stone-200/60 hover:border-stone-300 focus-within:ring-stone-900/20'
-                                }`}>
-                                    <label className={`block text-[10px] font-bold mb-2 uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-stone-500'}`}>Color Mode</label>
-                                    <select value={printConfig.print_type} onChange={(e) => setPrintConfig({ ...printConfig, print_type: e.target.value as 'BW' | 'COLOR' })} 
-                                        className="w-full bg-transparent font-black text-lg outline-none cursor-pointer appearance-none">
-                                        <option value="BW">Black & White</option>
-                                        <option value="COLOR">Full Color</option>
-                                    </select>
-                                </div>
+                                <CustomSelect 
+                                    label="Color Mode"
+                                    value={printConfig.print_type}
+                                    options={[
+                                        { label: "Black & White", value: "BW" },
+                                        { label: "Full Color", value: "COLOR" }
+                                    ]}
+                                    onChange={(val: any) => setPrintConfig({ ...printConfig, print_type: val })}
+                                    isDark={isDark}
+                                />
                                 
-                                {/* Select Block: Layout */}
-                                <div className={`p-5 rounded-2xl border transition-all duration-300 focus-within:ring-2 ${
-                                    isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-white/20 focus-within:ring-white/30' : 'bg-stone-50 border-stone-200/60 hover:border-stone-300 focus-within:ring-stone-900/20'
-                                }`}>
-                                    <label className={`block text-[10px] font-bold mb-2 uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-stone-500'}`}>Layout</label>
-                                    <select value={printConfig.sided} onChange={(e) => setPrintConfig({ ...printConfig, sided: e.target.value as 'SINGLE' | 'DOUBLE' })} 
-                                        className="w-full bg-transparent font-black text-lg outline-none cursor-pointer appearance-none">
-                                        <option value="SINGLE">Single-Sided</option>
-                                        <option value="DOUBLE">Double-Sided</option>
-                                    </select>
-                                </div>
+                                <CustomSelect 
+                                    label="Layout"
+                                    value={printConfig.sided}
+                                    options={[
+                                        { label: "Single-Sided", value: "SINGLE" },
+                                        { label: "Double-Sided", value: "DOUBLE" }
+                                    ]}
+                                    onChange={(val: any) => setPrintConfig({ ...printConfig, sided: val })}
+                                    isDark={isDark}
+                                />
 
-                                {/* Input Block: Copies */}
                                 <div className={`p-5 rounded-2xl border transition-all duration-300 focus-within:ring-2 ${
                                     isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-white/20 focus-within:ring-white/30' : 'bg-stone-50 border-stone-200/60 hover:border-stone-300 focus-within:ring-stone-900/20'
                                 }`}>
@@ -391,7 +550,6 @@ export default function StudentDashboardPage() {
                             </div>
                         </div>
 
-                        {/* CTA Button */}
                         <button onClick={handleNextStep} disabled={!file || locating} className={`relative w-full py-5 rounded-[2rem] font-black text-lg tracking-widest uppercase transition-all duration-500 flex items-center justify-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden ${
                             isDark 
                             ? 'bg-white text-black hover:bg-gray-200 shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.25)] hover:-translate-y-1' 
@@ -402,7 +560,6 @@ export default function StudentDashboardPage() {
                             </span>
                         </button>
 
-                        {/* Recent Orders Widget (Active Orders Only) */}
                         {activeOrders.length > 0 && (
                             <div className="pt-12">
                                 <div className="flex justify-between items-end mb-8 px-2">
@@ -419,44 +576,54 @@ export default function StudentDashboardPage() {
                                     </Link>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                    {activeOrders.map(order => (
-                                        <div key={order.id} className={`p-6 rounded-[2rem] border flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 ${
-                                            isDark ? 'bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10' : 'bg-white border-stone-200 shadow-sm hover:shadow-md'
-                                        }`}>
-                                            <div className="flex justify-between items-start mb-6">
-                                                <div>
-                                                    <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>
-                                                        <Clock className="w-3 h-3" /> {formatDate(order.created_at)}
-                                                    </p>
-                                                    <p className="font-black text-xl tracking-tight">{order.shops?.name || 'Print Shop'}</p>
-                                                </div>
-                                                <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border ${
-                                                    order.status === 'READY' ? (isDark ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-indigo-50 border-indigo-200 text-indigo-700') :
-                                                    (isDark ? 'bg-white/10 border-white/10 text-white' : 'bg-stone-100 border-stone-200 text-stone-700')
-                                                }`}>
-                                                    {order.status}
-                                                </span>
-                                            </div>
+                                    {activeOrders.map(order => {
+                                        const fileName = order.file_path 
+                                            ? order.file_path.split('-').slice(1).join('-') 
+                                            : 'Document.pdf';
 
-                                            {/* Show a prompt to check email instead of showing the OTP */}
-                                            {order.status === 'READY' && (
-                                                <div className={`mt-2 mb-6 p-4 rounded-xl text-center border ${
-                                                    isDark ? 'bg-indigo-500/5 border-indigo-500/20 text-indigo-400' : 'bg-indigo-50 border-indigo-200 text-indigo-700'
-                                                }`}>
-                                                    <p className="text-xs font-bold uppercase tracking-widest">
-                                                        Check your Email for Pickup Code
-                                                    </p>
+                                        return (
+                                            <div key={order.id} className={`p-6 rounded-[2rem] border flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 ${
+                                                isDark ? 'bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10' : 'bg-white border-stone-200 shadow-sm hover:shadow-md'
+                                            }`}>
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div>
+                                                        <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>
+                                                            <Clock className="w-3 h-3" /> {formatDate(order.created_at)}
+                                                        </p>
+                                                        <p className="font-black text-xl tracking-tight mb-1">{order.shops?.name || 'Print Shop'}</p>
+                                                        
+                                                        <div className={`flex items-center gap-2 text-sm font-bold truncate max-w-[200px] sm:max-w-[250px] ${isDark ? 'text-white/70' : 'text-stone-600'}`}>
+                                                            <FileText className="w-4 h-4 shrink-0" />
+                                                            <span className="truncate">{fileName}</span>
+                                                        </div>
+                                                    </div>
+                                                    <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border ${
+                                                        order.status === 'READY' ? (isDark ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-indigo-50 border-indigo-200 text-indigo-700') :
+                                                        (isDark ? 'bg-white/10 border-white/10 text-white' : 'bg-stone-100 border-stone-200 text-stone-700')
+                                                    }`}>
+                                                        {order.status}
+                                                    </span>
                                                 </div>
-                                            )}
 
-                                            <div className="flex justify-between items-end pt-4 border-t border-dashed border-current border-opacity-20">
-                                                <div className={`text-sm font-bold ${isDark ? 'text-white/60' : 'text-stone-500'}`}>
-                                                    {order.total_pages} Pg • {order.print_type}
+                                                {order.status === 'READY' && (
+                                                    <div className={`mt-2 mb-6 p-4 rounded-xl text-center border ${
+                                                        isDark ? 'bg-indigo-500/5 border-indigo-500/20 text-indigo-400' : 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                                                    }`}>
+                                                        <p className="text-xs font-bold uppercase tracking-widest">
+                                                            Check your Email for Pickup Code
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                <div className="flex justify-between items-end pt-4 border-t border-dashed border-current border-opacity-20">
+                                                    <div className={`text-sm font-bold ${isDark ? 'text-white/60' : 'text-stone-500'}`}>
+                                                        {order.total_pages} Pg • {order.print_type}
+                                                    </div>
+                                                    <div className="font-black text-2xl tracking-tighter">₹{order.total_price}</div>
                                                 </div>
-                                                <div className="font-black text-2xl tracking-tighter">₹{order.total_price}</div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        )
+                                    })}
                                 </div>
                             </div>
                         )}
@@ -532,7 +699,6 @@ export default function StudentDashboardPage() {
                             isDark ? 'bg-[#111111]/80 border-white/10 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/5' : 'bg-white border-stone-200/60 shadow-xl shadow-stone-200/40'
                         }`}>
                             
-                            {/* Receipt Details */}
                             <div className="space-y-6 border-b border-dashed border-current border-opacity-20 pb-8 mb-8">
                                 <div className="flex justify-between items-center">
                                     <span className={`text-sm font-bold uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-stone-500'}`}>Destination</span>
