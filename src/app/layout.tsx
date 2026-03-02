@@ -3,7 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext"; // <-- Import the provider
 
 export const metadata: Metadata = {
-  title: "PrintStack++ | Smart Print Shop Management",
+  title: "PrintStack | Smart Print Shop Management",
   description: "Join the paperless revolution and skip the printing queues forever.",
   icons: {
     icon: [

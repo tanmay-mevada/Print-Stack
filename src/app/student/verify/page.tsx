@@ -94,7 +94,7 @@ export default async function VerifyPaymentPage({
             <Receipt className="w-5 h-5" />
           </div>
           <span className="text-2xl font-semibold tracking-tight">
-            PrintStack++
+            PrintStack
           </span>
         </div>
       </div>
