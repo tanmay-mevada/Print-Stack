@@ -22,6 +22,7 @@ import {
   Moon,
   Github,
   ArrowUp,
+  
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import Link from "next/link";
@@ -152,7 +153,7 @@ export default function Home() {
 
       {/* ================= MONOCHROME POLYMORPHIC HERO ================= */}
       <section
-        className={`relative w-full min-h-screen flex flex-col items-center justify-center overflow-hidden pt-28 pb-20 transition-colors duration-500 ${isDark ? "bg-[#0A0A0A]" : "bg-[#faf9f6]"}`}
+        className={`relative w-full min-h-screen lg:min-h-[85vh] flex flex-col items-center justify-center overflow-hidden pt-28 lg:pt-24 pb-20 lg:pb-12 transition-colors duration-500 ${isDark ? "bg-[#0A0A0A]" : "bg-[#faf9f6]"}`}
       >
         {/* Soft radial light */}
         <div
@@ -161,7 +162,7 @@ export default function Home() {
 
         {/* Floating Card 1 */}
         <div
-          className={`hidden lg:block absolute top-[20%] left-[7%] backdrop-blur-xl border p-6 rounded-3xl w-72 -rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-500 ${isDark ? "bg-[#111111]/80 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.8)]" : "bg-white/80 border-black/10 shadow-[0_20px_60px_rgba(0,0,0,0.1)]"}`}
+          className={`hidden lg:block absolute top-[25%] left-[8%] xl:left-[12%] backdrop-blur-xl border p-6 rounded-3xl w-72 -rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-500 ${isDark ? "bg-[#111111]/80 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.8)]" : "bg-white/80 border-black/10 shadow-[0_20px_60px_rgba(0,0,0,0.1)]"}`}
         >
           <div className="flex items-center gap-4">
             <div
@@ -193,7 +194,7 @@ export default function Home() {
 
         {/* Floating OTP Card */}
         <div
-          className={`hidden lg:block absolute bottom-[22%] right-[8%] backdrop-blur-xl p-8 rounded-[2.5rem] w-64 rotate-6 hover:rotate-0 hover:scale-110 transition-all duration-500 border ${isDark ? "bg-[#111111]/90 border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.9)] text-white" : "bg-stone-900/90 border-stone-800 shadow-[0_30px_80px_rgba(0,0,0,0.2)] text-white"}`}
+          className={`hidden lg:block absolute bottom-[15%] right-[8%] xl:right-[12%] backdrop-blur-xl p-8 rounded-[2.5rem] w-64 rotate-6 hover:rotate-0 hover:scale-110 transition-all duration-500 border ${isDark ? "bg-[#111111]/90 border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.9)] text-white" : "bg-stone-900/90 border-stone-800 shadow-[0_30px_80px_rgba(0,0,0,0.2)] text-white"}`}
         >
           <div className="flex justify-between items-center mb-5">
             <p
@@ -215,7 +216,7 @@ export default function Home() {
 
         {/* Floating Payment Chip */}
         <div
-          className={`hidden lg:flex absolute top-[38%] right-[14%] border px-6 py-4 rounded-full items-center gap-3 hover:scale-110 transition-all duration-400 ${isDark ? "bg-[#1A1A1A] border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.8)]" : "bg-white border-black/10 shadow-[0_15px_40px_rgba(0,0,0,0.1)]"}`}
+          className={`hidden lg:flex absolute top-[35%] right-[16%] xl:right-[20%] border px-6 py-4 rounded-full items-center gap-3 hover:scale-110 transition-all duration-400 ${isDark ? "bg-[#1A1A1A] border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.8)]" : "bg-white border-black/10 shadow-[0_15px_40px_rgba(0,0,0,0.1)]"}`}
         >
           <MousePointer2
             className={`w-5 h-5 transition-colors ${isDark ? "text-white" : "text-stone-900"}`}
@@ -229,15 +230,17 @@ export default function Home() {
 
         {/* Core Content */}
         <div className="relative z-10 text-center px-4 lg:px-6 max-w-5xl">
+          {/* FIX: Kept mb-14 for mobile, reduced to lg:mb-10 for desktop */}
           <div
-            className={`inline-flex items-center gap-3 px-6 py-2 rounded-full border text-xs font-black uppercase tracking-widest mb-14 backdrop-blur-lg shadow-sm transition-colors duration-500 ${isDark ? "bg-white/5 border-white/10 text-white/70" : "bg-black/5 border-black/10 text-stone-600"}`}
+            className={`inline-flex items-center gap-3 px-6 py-2 rounded-full border text-xs font-black uppercase tracking-widest mb-14 lg:mb-10 backdrop-blur-lg shadow-sm transition-colors duration-500 ${isDark ? "bg-white/5 border-white/10 text-white/70" : "bg-black/5 border-black/10 text-stone-600"}`}
           >
             <Sparkles className="w-4 h-4" />
             CVM Hackathon 2026 • PS: 227
           </div>
 
+          {/* FIX: Kept text-4xl for mobile, reduced desktop from 13rem to 10rem/11.5rem to fit better */}
           <h1
-            className={`text-4xl lg:text-[13rem] leading-[0.85] font-black tracking-[-0.06em] transition-colors duration-500  lg:tracking-normal tracking-widest ${isDark ? "text-white" : "text-stone-900"}`}
+            className={`text-4xl lg:text-[10rem] xl:text-[11.5rem] leading-[0.85] font-black tracking-[-0.06em] transition-colors duration-500 lg:tracking-tight tracking-widest ${isDark ? "text-white" : "text-stone-900"}`}
           >
             QUEUE-FREE
             <br />
@@ -248,14 +251,16 @@ export default function Home() {
             </span>
           </h1>
 
+          {/* FIX: Kept mt-6 for mobile, reduced desktop from lg:mt-10 to lg:mt-8 */}
           <p
-            className={`mt-6 md:mt-8 lg:mt-10 lg:text-xl sm:text-2xl font-medium max-w-3xl mx-auto leading-relaxed transition-colors duration-500 ${isDark ? "text-white/60" : "text-stone-600"}`}
+            className={`mt-6 md:mt-8 lg:mt-8 lg:text-xl sm:text-2xl font-medium max-w-3xl mx-auto leading-relaxed transition-colors duration-500 ${isDark ? "text-white/60" : "text-stone-600"}`}
           >
             Upload once. Compare prices. Pay instantly. Pick up securely. No
             noise. No chaos.
           </p>
 
-          <div className="mt-10 lg:mt-14 flex flex-col sm:flex-row justify-center items-center gap-6">
+          {/* FIX: Kept mt-10 for mobile, reduced desktop from lg:mt-14 to lg:mt-10 */}
+          <div className="mt-10 lg:mt-10 flex flex-col sm:flex-row justify-center items-center gap-6">
             <Link
               href="https://github.com/Aum-Ghodasara/PrintStack"
               target="_blank"
@@ -268,9 +273,9 @@ export default function Home() {
                               : "bg-stone-900 text-white hover:shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
                           }`}
               >
-                Explore Prototype <ArrowRight className="w-5 h-5" />
+                Explore More<ArrowRight className="w-5 h-5" />
               </button>
-              {/* Mobile Auth Buttons */}
+              {/* Mobile Auth Buttons (Completely Unchanged) */}
               <div className="flex sm:hidden gap-3 mt-4">
                 <Link href="/login">
                   <button
@@ -414,15 +419,15 @@ export default function Home() {
       {/* ================= FEATURES GRID ================= */}
       <section
         id="features"
-        className={`py-20 md:py-32 px-5 md:px-6 transition-colors duration-500 ${
+        className={`py-16 md:py-20 px-5 md:px-6 transition-colors duration-500 ${
           isDark ? "bg-[#0A0A0A]" : "bg-[#faf9f6]"
         }`}
       >
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-6">
             {/* Large Feature - Shop Ecosystem */}
             <div
-              className={`md:col-span-8 group rounded-2xl md:rounded-[2.5rem] p-6 md:p-12 border transition-all duration-500 overflow-hidden relative ${
+              className={`md:col-span-8 group rounded-2xl md:rounded-3xl p-6 md:p-8 border transition-all duration-500 overflow-hidden relative flex flex-col ${
                 isDark
                   ? "bg-[#111111] border-white/10 hover:border-white/30"
                   : "bg-white border-black/10 hover:border-black/30"
@@ -434,16 +439,17 @@ export default function Home() {
                 }`}
               />
 
-              <div className="h-full flex flex-col justify-between min-h-[240px] md:min-h-[360px]">
+              {/* FIX: Drastically reduced min-h from 360px to 240px */}
+              <div className="h-full flex flex-col justify-between min-h-[180px] md:min-h-[240px]">
                 <div
-                  className={`w-14 h-14 md:w-16 md:h-16 border rounded-2xl md:rounded-3xl flex items-center justify-center mb-5 md:mb-6 transition-all duration-500 group-hover:rotate-6 ${
+                  className={`w-12 h-12 md:w-14 md:h-14 border rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:rotate-6 ${
                     isDark
                       ? "bg-white/10 border-white/10 group-hover:bg-white"
                       : "bg-black/5 border-black/10 group-hover:bg-stone-900"
                   }`}
                 >
                   <Store
-                    className={`w-6 h-6 md:w-8 md:h-8 transition-colors ${
+                    className={`w-5 h-5 md:w-6 md:h-6 transition-colors ${
                       isDark
                         ? "text-white group-hover:text-black"
                         : "text-stone-900 group-hover:text-white"
@@ -451,16 +457,16 @@ export default function Home() {
                   />
                 </div>
 
-                <div>
+                <div className="mt-6 md:mt-8">
                   <h3
-                    className={`text-2xl md:text-4xl font-black tracking-tight mb-3 md:mb-4 transition-colors ${
+                    className={`text-2xl md:text-3xl font-black tracking-tight mb-2 transition-colors ${
                       isDark ? "text-white" : "text-stone-900"
                     }`}
                   >
                     Multi-Shop Ecosystem
                   </h3>
                   <p
-                    className={`text-sm md:text-lg font-medium leading-relaxed max-w-lg transition-colors ${
+                    className={`text-sm md:text-base font-medium leading-relaxed max-w-lg transition-colors ${
                       isDark ? "text-white/60" : "text-stone-600"
                     }`}
                   >
@@ -473,7 +479,7 @@ export default function Home() {
 
             {/* Security Card */}
             <div
-              className={`md:col-span-4 group rounded-2xl md:rounded-[2.5rem] p-6 md:p-12 text-white border relative overflow-hidden transition-colors duration-500 ${
+              className={`md:col-span-4 group rounded-2xl md:rounded-3xl p-6 md:p-8 text-white border relative overflow-hidden transition-colors duration-500 flex flex-col ${
                 isDark
                   ? "bg-[#1A1A1A] border-white/10"
                   : "bg-stone-900 border-stone-800"
@@ -485,23 +491,23 @@ export default function Home() {
                 }`}
               />
 
-              <div className="relative z-10 flex flex-col justify-between min-h-[240px] md:min-h-[360px]">
+              <div className="relative z-10 h-full flex flex-col justify-between min-h-[180px] md:min-h-[240px]">
                 <div
-                  className={`w-14 h-14 md:w-16 md:h-16 border rounded-2xl md:rounded-3xl flex items-center justify-center mb-5 md:mb-6 ${
+                  className={`w-12 h-12 md:w-14 md:h-14 border rounded-xl md:rounded-2xl flex items-center justify-center ${
                     isDark
                       ? "bg-white/5 border-white/10"
                       : "bg-white/10 border-white/20"
                   }`}
                 >
-                  <ShieldCheck className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                  <ShieldCheck className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 </div>
 
-                <div>
-                  <h3 className="text-2xl md:text-3xl font-black tracking-tight mb-3 md:mb-4 text-white">
+                <div className="mt-6 md:mt-8">
+                  <h3 className="text-2xl md:text-3xl font-black tracking-tight mb-2 text-white">
                     Secure Handover
                   </h3>
                   <p
-                    className={`text-sm md:text-base font-medium leading-relaxed ${
+                    className={`text-sm font-medium leading-relaxed ${
                       isDark ? "text-white/60" : "text-stone-300"
                     }`}
                   >
@@ -511,28 +517,31 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Shopkeeper Analytics */}
+            {/* Shop Analytics */}
             <div
-              className={`md:col-span-4 rounded-2xl md:rounded-[2.5rem] p-6 md:p-12 hover:scale-[1.02] transition-all duration-500 border ${
+              className={`md:col-span-4 rounded-2xl md:rounded-3xl p-6 md:p-8 hover:scale-[1.02] transition-all duration-500 border flex flex-col ${
                 isDark
                   ? "bg-white text-black border-transparent"
                   : "bg-stone-900 text-white border-stone-800"
               }`}
             >
-              <div className="h-full flex flex-col justify-center">
-                <Layers
-                  className={`w-10 md:w-12 h-10 md:h-12 mb-5 md:mb-6 ${
-                    isDark ? "text-black/80" : "text-white/80"
-                  }`}
-                />
-                <h3 className="text-2xl md:text-3xl font-black tracking-tight mb-2">
-                  Shop Analytics
-                </h3>
-                <p className="text-sm md:text-lg font-bold tracking-wide opacity-70">
-                  Real-time tracking
-                </p>
+              {/* FIX: Reduced min-h to 220px to keep bottom row compact */}
+              <div className="h-full flex flex-col justify-between min-h-[200px] md:min-h-[220px]">
+                <div>
+                  <Layers
+                    className={`w-8 md:w-10 h-8 md:h-10 mb-4 ${
+                      isDark ? "text-black/80" : "text-white/80"
+                    }`}
+                  />
+                  <h3 className="text-2xl md:text-3xl font-black tracking-tight mb-1">
+                    Shop Analytics
+                  </h3>
+                  <p className="text-sm font-bold tracking-wide opacity-70">
+                    Real-time tracking
+                  </p>
+                </div>
 
-                <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-black/10">
+                <div className="mt-5 pt-5 border-t border-black/10">
                   <p className="text-xs md:text-sm font-semibold leading-relaxed opacity-70">
                     Daily revenue insights and digital workflow management.
                   </p>
@@ -540,18 +549,18 @@ export default function Home() {
               </div>
             </div>
 
-            {/* CTA Card */}
+            {/* CTA Card (Bulk Orders) */}
             <div
-              className={`md:col-span-8 group rounded-2xl md:rounded-[2.5rem] p-6 md:p-12 border transition-all duration-500 cursor-pointer ${
+              className={`md:col-span-8 group rounded-2xl md:rounded-3xl p-6 md:p-8 border transition-all duration-500 cursor-pointer flex flex-col ${
                 isDark
                   ? "bg-[#111111] border-white/10 hover:bg-white"
                   : "bg-white border-black/10 hover:bg-stone-900"
               }`}
             >
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                <div className="space-y-3 md:space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 h-full min-h-[200px] md:min-h-[220px]">
+                <div className="space-y-2 md:space-y-3 max-w-xl">
                   <h3
-                    className={`text-2xl md:text-4xl font-black tracking-tight transition-colors ${
+                    className={`text-2xl md:text-3xl font-black tracking-tight transition-colors ${
                       isDark
                         ? "text-white group-hover:text-black"
                         : "text-stone-900 group-hover:text-white"
@@ -560,7 +569,7 @@ export default function Home() {
                     Bulk & Urgent Orders
                   </h3>
                   <p
-                    className={`text-sm md:text-lg font-medium transition-colors ${
+                    className={`text-sm md:text-base font-medium transition-colors ${
                       isDark
                         ? "text-white/60 group-hover:text-black/60"
                         : "text-stone-600 group-hover:text-white/60"
@@ -568,32 +577,32 @@ export default function Home() {
                   >
                     Manage peak loads efficiently for thesis and lab records.
                   </p>
-                </div>
 
-                {/* Mobile Description (same style as other cards) */}
-                <div className="md:hidden mt-4">
-                  <p
-                    className={`text-sm font-medium leading-relaxed ${
-                      isDark
-                        ? "text-white/60 group-hover:text-black/60"
-                        : "text-stone-600 group-hover:text-white/60"
-                    }`}
-                  >
-                    Manage high-volume academic printing with streamlined
-                    digital workflow and priority handling.
-                  </p>
+                  {/* Mobile Description */}
+                  <div className="md:hidden mt-3">
+                    <p
+                      className={`text-sm font-medium leading-relaxed ${
+                        isDark
+                          ? "text-white/60 group-hover:text-black/60"
+                          : "text-stone-600 group-hover:text-white/60"
+                      }`}
+                    >
+                      Manage high-volume academic printing with streamlined
+                      digital workflow and priority handling.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Desktop Arrow */}
                 <div
-                  className={`hidden md:flex w-20 h-20 border rounded-full items-center justify-center transition-all duration-500 shrink-0 ${
+                  className={`hidden md:flex w-16 h-16 border rounded-full items-center justify-center transition-all duration-500 shrink-0 ${
                     isDark
                       ? "bg-white/10 border-white/20 group-hover:bg-black"
                       : "bg-black/5 border-black/10 group-hover:bg-white"
                   }`}
                 >
                   <ChevronRight
-                    className={`w-10 h-10 transition-colors ${
+                    className={`w-8 h-8 transition-colors ${
                       isDark ? "text-white" : "text-stone-900"
                     }`}
                   />
@@ -603,10 +612,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* ================= TECH STACK ================= */}
       <section
-        id="tech-stack"
         className={`py-20 md:py-24 px-5 md:px-6 border-t transition-colors duration-500 ${
           isDark
             ? "bg-[#0A0A0A] border-white/10"
@@ -615,7 +621,7 @@ export default function Home() {
       >
         <div className="max-w-5xl mx-auto text-center">
           <p
-            className={`font-bold uppercase tracking-widest text-sm md:text-lg lg:text-xl mb-10 md:mb-12 transition-colors ${
+            className={`font-bold uppercase tracking-widest text-xs md:text-sm mb-10 md:mb-12 transition-colors ${
               isDark ? "text-white/40" : "text-stone-400"
             }`}
           >
@@ -678,19 +684,7 @@ export default function Home() {
               </span>
             </div>
 
-            {/* PhonePe */}
-            <div className="flex flex-col items-center gap-3">
-              {" "}
-              <CreditCard
-                className={`w-8 h-8 ${isDark ? "text-white" : "text-stone-800"}`}
-              />{" "}
-              <span
-                className={`font-bold ${isDark ? "text-white/80" : "text-stone-700"}`}
-              >
-                {" "}
-                Razorpay{" "}
-              </span>{" "}
-            </div>
+           <div className="flex flex-col items-center gap-3"> <CreditCard className={`w-8 h-8 ${isDark ? "text-white" : "text-stone-800"}`} />{" "} <span className={`font-bold ${isDark ? "text-white/80" : "text-stone-700"}`}> Razorpay </span> </div>
 
             {/* Tailwind */}
             <div className="flex flex-col items-center justify-center text-center min-w-[110px]">
@@ -726,7 +720,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* ================= FOOTER ================= */}
       <footer
         className={`py-16 px-6 border-t transition-colors duration-500 ${
