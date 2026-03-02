@@ -7,11 +7,11 @@ import { toggleShopActiveStatus } from '../actions'
 import { createClient } from '@/lib/supabase/client'
 import OrderRow from '@/components/OrderRow'
 import { Sun, Moon, LogOut, Store, Settings, Printer, Zap, PauseCircle } from 'lucide-react'
+import { useTheme } from '@/context/ThemeContext'
 
 export default function ShopDashboardPage() {
-  const [isDark, setIsDark] = useState(true)
   const [isOpen, setIsOpen] = useState(false) 
-  
+  const { isDark, toggleTheme } = useTheme()
   const [shop, setShop] = useState<any>(null)
   const [activeOrders, setActiveOrders] = useState<any[]>([])
   const [completedOrders, setCompletedOrders] = useState<any[]>([])
@@ -74,7 +74,7 @@ export default function ShopDashboardPage() {
             </h1>
           </div>
           <div className="flex items-center gap-3 sm:gap-5">
-            <button onClick={() => setIsDark(!isDark)} className={`p-3 rounded-full transition-all duration-300 hover:scale-105 ${isDark ? 'bg-white/5 hover:bg-white/10 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]' : 'bg-white hover:bg-stone-50 text-stone-900 shadow-sm border border-stone-200/50'}`}>
+            <button onClick={toggleTheme} className={`p-3 rounded-full transition-all duration-300 hover:scale-105 ${isDark ? 'bg-white/5 hover:bg-white/10 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]' : 'bg-white hover:bg-stone-50 text-stone-900 shadow-sm border border-stone-200/50'}`}>
                 {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             <form action={logoutAction}>

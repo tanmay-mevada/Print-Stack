@@ -5,10 +5,11 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { loginAction, signInWithGoogleAction } from '../actions'
 import { Printer, Mail, Lock, ArrowRight, CheckCircle2, ShieldCheck, Sun, Moon } from 'lucide-react'
+import { useTheme } from '@/context/ThemeContext'
 
 export default function LoginPage() {
     const router = useRouter()
-    const [isDark, setIsDark] = useState(true) // Theme state
+    const { isDark, toggleTheme } = useTheme()
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
     const [googleState, googleFormAction] = useActionState(signInWithGoogleAction, null)
@@ -56,7 +57,7 @@ export default function LoginPage() {
                     
                     <button 
                         type="button"
-                        onClick={() => setIsDark(!isDark)}
+                      onClick={toggleTheme}
                         className={`p-2 rounded-full transition-all duration-300 ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-black/5 hover:bg-black/10 text-stone-900'}`}
                         aria-label="Toggle Theme"
                     >
