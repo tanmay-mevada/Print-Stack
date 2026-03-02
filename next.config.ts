@@ -4,10 +4,9 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // This prevents Vercel from crashing by keeping heavy libraries out of the main bundle
-  experimental: {
-    serverComponentsExternalPackages: ['pdf-lib', 'leaflet'],
-  },
+  // CORRECTED FOR NEXT.JS 16: Moved out of "experimental"
+  // Removed 'leaflet' because its CSS breaks Vercel's server bundler
+  serverExternalPackages: ['pdf-lib'],
 };
 
 export default nextConfig;
