@@ -10,11 +10,11 @@ import {
     Sun, Moon, Printer, LogOut, UploadCloud, FileText, 
     CheckCircle2, MapPin, Store, ArrowRight, User, History, CreditCard, Clock 
 } from 'lucide-react'
+import { useTheme } from '@/context/ThemeContext'
 
 export default function StudentDashboardPage() {
-    const [isDark, setIsDark] = useState(true)
     const [isProfileOpen, setIsProfileOpen] = useState(false)
-    
+    const { isDark, toggleTheme } = useTheme()
     const [step, setStep] = useState(1)
     const [file, setFile] = useState<File | null>(null)
     const [orders, setOrders] = useState<any[]>([])
@@ -218,7 +218,7 @@ export default function StudentDashboardPage() {
                     </div>
 
                     <div className="flex items-center gap-3 sm:gap-5">
-                        <button onClick={() => setIsDark(!isDark)} className={`p-3 rounded-full transition-all duration-300 hover:scale-105 ${
+                        <button onClick={toggleTheme} className={`p-3 rounded-full transition-all duration-300 hover:scale-105 ${
                             isDark ? 'bg-white/5 hover:bg-white/10 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]' : 'bg-white hover:bg-stone-50 text-stone-900 shadow-sm border border-stone-200/50'
                         }`}>
                             {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
