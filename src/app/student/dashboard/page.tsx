@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { logoutAction } from "@/app/(auth)/actions";
 import { createClient } from "@/lib/supabase/client";
@@ -22,6 +22,8 @@ import {
   CreditCard,
   Clock,
   ChevronDown,
+  Timer,
+  Activity
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -71,7 +73,6 @@ function CustomSelect({ label, value, options, onChange, isDark }: any) {
         />
       </div>
 
-      {/* THE DROPDOWN MENU */}
       {isOpen && (
         <div
           className={`absolute left-0 right-0 top-[calc(100%+12px)] z-[999] rounded-2xl overflow-hidden shadow-2xl border py-2 animate-in fade-in zoom-in-95 duration-200 ${
@@ -98,7 +99,6 @@ function CustomSelect({ label, value, options, onChange, isDark }: any) {
               }`}
             >
               {opt.label}
-              {/* Shows a checkmark on the currently selected item */}
               {value === opt.value && (
                 <CheckCircle2
                   className={`w-4 h-4 ${isDark ? "text-white" : "text-stone-900"}`}
@@ -119,6 +119,9 @@ export default function StudentDashboardPage() {
   const [file, setFile] = useState<File | null>(null);
   const [orders, setOrders] = useState<any[]>([]);
 
+  // NEW: Live Shop Queue Tracking Data
+  const [shopQueues, setShopQueues] = useState<Record<string, number>>({});
+
   const profileDropdownRef = useRef<HTMLDivElement>(null);
 
   // ====== MOBILE SWIPE NAVIGATION LOGIC ======
@@ -129,11 +132,9 @@ export default function StudentDashboardPage() {
     if (!isDraggingNav || !mobileNavRef.current) return;
 
     const rect = mobileNavRef.current.getBoundingClientRect();
-    // Calculate where the finger is across the bar (0 to width)
     const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width - 1));
-    const section = Math.floor((x / rect.width) * 3); // Evaluates to 0, 1, or 2
+    const section = Math.floor((x / rect.width) * 3); 
 
-    // Slide to the step ONLY if they have unlocked it!
     if (section === 0 && step !== 1) {
       setStep(1);
     } else if (section === 1 && step !== 2 && file) {
@@ -162,24 +163,94 @@ export default function StudentDashboardPage() {
   const [selectedShopId, setSelectedShopId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  // We use a ref to hold shops so our realtime listener always has the latest array
+  const shopsRef = useRef(shops);
   useEffect(() => {
-    async function fetchUserOrders() {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    shopsRef.current = shops;
+  }, [shops]);
 
-      if (user) {
-        const { data } = await supabase
-          .from("orders")
-          .select("*, shops(name)")
-          .eq("student_id", user.id)
-          .order("created_at", { ascending: false });
-        if (data) setOrders(data);
+  const supabase = createClient();
+
+  // ==========================================================================
+  // HYPER-DETAILED REAL-TIME FETCHING (Zomato/Swiggy Style)
+  // ==========================================================================
+  
+  const fetchUserOrders = useCallback(async () => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      const { data: myOrders } = await supabase
+        .from("orders")
+        .select("*, shops(name)")
+        .eq("student_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (myOrders) {
+        // ENHANCEMENT: Calculate exact position in queue for active orders!
+        const enhancedOrders = await Promise.all(myOrders.map(async (order) => {
+          if (['PAID', 'PRINTING'].includes(order.status)) {
+             // Find how many orders are in the same shop, currently processing, that were placed BEFORE this order
+             const { count } = await supabase
+               .from('orders')
+               .select('*', { count: 'exact', head: true })
+               .eq('shop_id', order.shop_id)
+               .in('status', ['PAID', 'PRINTING'])
+               .lt('created_at', order.created_at); // Older orders = ahead in line
+             
+             return { ...order, queue_position: count || 0 };
+          }
+          return order;
+        }));
+        
+        setOrders(enhancedOrders);
       }
     }
-    fetchUserOrders();
   }, []);
+
+  const fetchShopQueues = useCallback(async (availableShops: any[]) => {
+    if (availableShops.length === 0) return;
+    const shopIds = availableShops.map((s: any) => s.id);
+    const supabase = createClient();
+    
+    // Count active orders for these shops
+    const { data } = await supabase
+      .from("orders")
+      .select("shop_id")
+      .in("shop_id", shopIds)
+      .in("status", ["PAID", "PRINTING"]);
+
+    if (data) {
+      const counts: Record<string, number> = {};
+      data.forEach(order => {
+        counts[order.shop_id] = (counts[order.shop_id] || 0) + 1;
+      });
+      setShopQueues(counts);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUserOrders();
+    const supabase = createClient();
+
+    // Subscribe to ANY changes in the orders table
+    // If User 1 gets their order, User 2's position updates automatically!
+    const channel = supabase.channel('live-student-tracker')
+      .on(
+        'postgres_changes', 
+        { event: '*', schema: 'public', table: 'orders' }, 
+        () => {
+          fetchUserOrders(); // Updates the user's specific queue position
+          if (shopsRef.current.length > 0) fetchShopQueues(shopsRef.current); // Updates general shop waits
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchUserOrders, fetchShopQueues]);
+  // ==========================================================================
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -249,6 +320,7 @@ export default function StudentDashboardPage() {
     if (res.shops) {
       setShops(res.shops);
       setSearchType(res.type as "nearby" | "all");
+      fetchShopQueues(res.shops);
     }
     setLocating(false);
     setStep(2);
@@ -312,6 +384,20 @@ export default function StudentDashboardPage() {
   const activeOrders = orders
     .filter((order) => order.status !== "COMPLETED")
     .slice(0, 2);
+
+  // Helper for dynamic status progress text
+  const getStatusProgress = (status: string, position?: number) => {
+    switch (status) {
+      case 'CREATED': case 'PENDING': return { width: '25%', text: 'Awaiting Payment' };
+      case 'PAID': 
+      case 'PRINTING': 
+          if (position === 0) return { width: '80%', text: 'Printing Now' };
+          if (position === 1) return { width: '60%', text: 'Next in Line' };
+          return { width: '45%', text: 'In Queue' };
+      case 'READY': return { width: '100%', text: 'Ready for Pickup!' };
+      default: return { width: '0%', text: status };
+    }
+  }
 
   return (
     <div
@@ -464,8 +550,6 @@ export default function StudentDashboardPage() {
                 PrintStack
               </span>
             </Link>
-
-            
           </div>
 
           <div className="flex items-center gap-3 sm:gap-5">
@@ -831,13 +915,20 @@ export default function StudentDashboardPage() {
               </span>
             </button>
 
+            {/* RESTORED: ZOMATO-STYLE LIVE ORDER TRACKER IN ORIGINAL LAYOUT */}
             {activeOrders.length > 0 && (
               <div className="pt-12">
                 <div className="flex justify-between items-end mb-8 px-2">
                   <div>
-                    <h3 className="text-2xl font-black tracking-tight mb-1">
-                      Active Stack
-                    </h3>
+                    <div className="flex items-center gap-3 mb-1">
+                        <div className="relative flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                        </div>
+                        <h3 className="text-2xl font-black tracking-tight">
+                          Active Stack
+                        </h3>
+                    </div>
                     <p
                       className={`text-xs font-bold uppercase tracking-widest ${isDark ? "text-white/40" : "text-stone-400"}`}
                     >
@@ -855,11 +946,14 @@ export default function StudentDashboardPage() {
                     View History
                   </Link>
                 </div>
+                
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   {activeOrders.map((order) => {
                     const fileName = order.file_path
                       ? order.file_path.split("-").slice(1).join("-")
                       : "Document.pdf";
+                    // Dynamic math for queue progress
+                    const progress = getStatusProgress(order.status, order.queue_position);
 
                     return (
                       <div
@@ -870,6 +964,7 @@ export default function StudentDashboardPage() {
                             : "bg-white border-stone-200 shadow-sm hover:shadow-md"
                         }`}
                       >
+                        {/* RESTORED: EXACT TOP LAYOUT WITH CLOCK DATE */}
                         <div className="flex justify-between items-start mb-4">
                           <div>
                             <p
@@ -889,35 +984,47 @@ export default function StudentDashboardPage() {
                               <span className="truncate">{fileName}</span>
                             </div>
                           </div>
+                          
+                          {/* Original Top Right Status Badge */}
                           <span
                             className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border ${
                               order.status === "READY"
                                 ? isDark
-                                  ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400"
-                                  : "bg-indigo-50 border-indigo-200 text-indigo-700"
+                                  ? "bg-green-500/10 border-green-500/20 text-green-400"
+                                  : "bg-green-50 border-green-200 text-green-700"
                                 : isDark
                                   ? "bg-white/10 border-white/10 text-white"
                                   : "bg-stone-100 border-stone-200 text-stone-700"
                             }`}
                           >
-                            {order.status}
+                            {order.status === 'READY' ? 'READY' : progress.text}
                           </span>
                         </div>
 
-                        {order.status === "READY" && (
-                          <div
-                            className={`mt-2 mb-6 p-4 rounded-xl text-center border ${
-                              isDark
-                                ? "bg-indigo-500/5 border-indigo-500/20 text-indigo-400"
-                                : "bg-indigo-50 border-indigo-200 text-indigo-700"
-                            }`}
-                          >
-                            <p className="text-xs font-bold uppercase tracking-widest">
-                              Check your Email for Pickup Code
-                            </p>
-                          </div>
-                        )}
+                        {/* NEW: INJECTED ANIMATED PROGRESS BAR */}
+                        <div className="space-y-3 mb-6">
+                            <div className="flex justify-between items-end">
+                                {order.status === 'READY' ? (
+                                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest animate-pulse border ${isDark ? "bg-green-500/10 border-green-500/30 text-green-400" : "bg-green-50 border-green-200 text-green-600"}`}>OTP: {order.otp || 'Check Email'}</span>
+                                ) : (
+                                    <span className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 opacity-80 ${isDark ? 'text-white' : 'text-stone-900'}`}>
+                                        <Activity className="w-3 h-3 animate-spin"/> 
+                                        {/* DETAILED QUEUE INFO RIGHT HERE */}
+                                        {order.queue_position === 0 
+                                          ? "Printing Now" 
+                                          : `${order.queue_position} Ahead (~${order.queue_position * 3} min)`}
+                                    </span>
+                                )}
+                            </div>
+                            <div className={`h-2 w-full rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-stone-100'}`}>
+                                <div 
+                                    className={`h-full transition-all duration-1000 ease-out ${order.status === 'READY' ? 'bg-green-500' : isDark ? 'bg-indigo-500' : 'bg-indigo-500'}`} 
+                                    style={{ width: progress.width }} 
+                                />
+                            </div>
+                        </div>
 
+                        {/* RESTORED: EXACT BOTTOM FOOTER (Total Pages / Total Price) */}
                         <div className="flex justify-between items-end pt-4 border-t border-dashed border-current border-opacity-20">
                           <div
                             className={`text-sm font-bold ${isDark ? "text-white/60" : "text-stone-500"}`}
@@ -928,6 +1035,7 @@ export default function StudentDashboardPage() {
                             ₹{order.total_price}
                           </div>
                         </div>
+
                       </div>
                     );
                   })}
@@ -962,11 +1070,15 @@ export default function StudentDashboardPage() {
                 const isConfigured = exactPrice !== null;
                 const isSelected = selectedShopId === shop.id;
 
+                // NEW: Read the live queue data
+                const queueCount = shopQueues[shop.id] || 0;
+                const waitMins = queueCount * 3; 
+
                 return (
                   <div
                     key={shop.id}
                     onClick={() => isConfigured && setSelectedShopId(shop.id)}
-                    className={`relative overflow-hidden border rounded-[2rem] p-8 transition-all duration-300 ${
+                    className={`relative overflow-hidden border rounded-[2rem] p-8 transition-all duration-300 flex flex-col justify-between ${
                       !isConfigured
                         ? "opacity-40 cursor-not-allowed grayscale"
                         : isSelected
@@ -978,7 +1090,7 @@ export default function StudentDashboardPage() {
                             : "border-stone-200 bg-white hover:border-stone-300 hover:shadow-md hover:-translate-y-1 cursor-pointer"
                     }`}
                   >
-                    <div className="flex justify-between items-start gap-4">
+                    <div className="flex justify-between items-start gap-4 mb-6">
                       <div className="z-10">
                         <h3 className="font-black text-2xl tracking-tight mb-2">
                           {shop.name}
@@ -1003,6 +1115,25 @@ export default function StudentDashboardPage() {
                         </div>
                       )}
                     </div>
+
+                    {/* NEW: LIVE QUEUE BADGE IN SHOP SELECTION */}
+                    {isConfigured && (
+                        <div className="mt-auto pt-2">
+                            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${
+                                queueCount === 0 
+                                ? isDark ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-green-50 border-green-200 text-green-700'
+                                : queueCount > 5
+                                ? isDark ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-700'
+                                : isDark ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-700'
+                            }`}>
+                                {queueCount === 0 ? (
+                                    <><CheckCircle2 className="w-3.5 h-3.5" /> No Wait Time</>
+                                ) : (
+                                    <><Timer className="w-3.5 h-3.5" /> {queueCount} Orders Ahead (~{waitMins} min)</>
+                                )}
+                            </div>
+                        </div>
+                    )}
                   </div>
                 );
               })}
