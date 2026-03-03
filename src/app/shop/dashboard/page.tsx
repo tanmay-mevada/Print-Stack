@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { logoutAction } from '@/app/(auth)/actions'
@@ -23,26 +23,31 @@ export default function ShopDashboardPage() {
   const [shop, setShop] = useState<any>(null)
   
   // Order States
-  const [allOrders, setAllOrders] = useState<any[]>([]) // Kept for analytics calculation
+  const [allOrders, setAllOrders] = useState<any[]>([]) 
   const [activeOrders, setActiveOrders] = useState<any[]>([])
   const [completedOrders, setCompletedOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   
-  // Analytics Filter State
-  const [filter, setFilter] = useState<TimeFilter>('week')
+  // Default Analytics Filter set to 'today'
+  const [filter, setFilter] = useState<TimeFilter>('today')
 
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    async function fetchDashboardData() {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+  // ==========================================================================
+  // REAL-TIME AUTO-REFRESH LOGIC (Shopkeeper Side)
+  // ==========================================================================
+  const fetchDashboardData = useCallback(async (isInitialLoad = false) => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-      if (!user) {
-        router.push('/login')
-        return 
-      }
+    if (!user) {
+      if (isInitialLoad) router.push('/login')
+      return 
+    }
 
+    // Only fetch shop details if we don't have them yet
+    let currentShop = shop;
+    if (!currentShop) {
       const { data: shopData, error: shopError } = await supabase
         .from('shops')
         .select('*')
@@ -50,28 +55,55 @@ export default function ShopDashboardPage() {
         .maybeSingle()
 
       if (shopError) console.error("Database Error fetching shop:", shopError)
-
       setShop(shopData)
+      currentShop = shopData;
+    }
 
-      if (shopData) {
-        const { data: ordersData } = await supabase
-          .from('orders')
-          .select('*, profiles:student_id(name)')
-          .eq('shop_id', shopData.id)
-          .order('created_at', { ascending: false })
+    if (currentShop) {
+      const { data: ordersData } = await supabase
+        .from('orders')
+        .select('*, profiles:student_id(name)')
+        .eq('shop_id', currentShop.id)
+        .order('created_at', { ascending: false })
 
-        if (ordersData) {
-          setAllOrders(ordersData) // Store all orders for analytics
-          setActiveOrders(ordersData.filter(o => ['PENDING', 'PAID', 'PRINTING', 'READY'].includes(o.status)))
-          setCompletedOrders(ordersData.filter(o => ['COMPLETED', 'CANCELLED'].includes(o.status)))
-        }
+      if (ordersData) {
+        setAllOrders(ordersData) 
+        setActiveOrders(ordersData.filter(o => ['PENDING', 'PAID', 'PRINTING', 'READY'].includes(o.status)))
+        setCompletedOrders(ordersData.filter(o => ['COMPLETED', 'CANCELLED'].includes(o.status)))
       }
-      
-      setLoading(false)
     }
     
-    fetchDashboardData()
-  }, [router])
+    if (isInitialLoad) setLoading(false)
+  }, [router, shop])
+
+  useEffect(() => {
+    // 1. Initial Load
+    fetchDashboardData(true);
+
+    const supabase = createClient();
+
+    // 2. Realtime WebSockets Listener
+    const channel = supabase.channel('shop-orders-tracker')
+      .on(
+        'postgres_changes', 
+        { event: '*', schema: 'public', table: 'orders' }, 
+        () => {
+          fetchDashboardData(false); // Instantly refresh queues without showing loading screen
+        }
+      )
+      .subscribe();
+
+    // 3. Bulletproof Auto-Refresh Fallback (Runs silently every 8 seconds)
+    const intervalId = setInterval(() => {
+      fetchDashboardData(false);
+    }, 8000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(intervalId);
+    }
+  }, [fetchDashboardData])
+  // ==========================================================================
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -91,10 +123,8 @@ export default function ShopDashboardPage() {
   }
 
   // ================= ANALYTICS LOGIC =================
-  // ================= ANALYTICS LOGIC =================
   const filteredAnalyticsOrders = useMemo(() => {
     const now = new Date()
-    // Only count paid/successful orders towards revenue & print counts
     const validOrders = allOrders.filter(o => ['PAID', 'PRINTING', 'READY', 'COMPLETED'].includes(o.status))
 
     return validOrders.filter(order => {
@@ -110,7 +140,7 @@ export default function ShopDashboardPage() {
         monthAgo.setMonth(now.getMonth() - 1)
         return orderDate >= monthAgo
       }
-      return true // 'all'
+      return true 
     })
   }, [allOrders, filter])
 
@@ -121,16 +151,12 @@ export default function ShopDashboardPage() {
     let bwCount = 0
 
     filteredAnalyticsOrders.forEach(order => {
-      // 1. Mapped exactly to your schema: total_price
       const orderRevenue = Number(order.total_price || 0)
       totalRevenue += orderRevenue
       
-      // 2. Mapped exactly to your schema: total_pages and copies
       const pages = Number(order.total_pages || 1)
       const copies = Number(order.copies || 1)
       
-      // 3. Mapped exactly to your schema: print_type
-      // Normalizing to uppercase to catch 'Color', 'color', or 'COLOR'
       const isColor = String(order.print_type).toUpperCase() === 'COLOR'
 
       const orderTotalPages = pages * copies
@@ -164,7 +190,6 @@ export default function ShopDashboardPage() {
         const orderDate = new Date(order.created_at).toDateString()
         const dayIndex = last7Days.findIndex(d => d.date === orderDate)
         if(dayIndex !== -1) {
-            // Mapped exactly to your schema: total_price
             const orderRevenue = Number(order.total_price || 0)
             last7Days[dayIndex].revenue += orderRevenue
         }
@@ -173,6 +198,7 @@ export default function ShopDashboardPage() {
     const maxRev = Math.max(...last7Days.map(d => d.revenue), 1) 
     return last7Days.map(d => ({ ...d, height: (d.revenue / maxRev) * 100 }))
   }, [filteredAnalyticsOrders])
+
   if (loading) return <LoadingScreen isDark={isDark} />
 
   return (
@@ -183,16 +209,23 @@ export default function ShopDashboardPage() {
         
         {/* ================= NAVBAR ================= */}
         <div className={`flex justify-between items-center pb-6 mb-8 relative transition-colors duration-500 border-b ${isDark ? 'border-white/10' : 'border-stone-200/60'}`}>
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shadow-lg transition-colors duration-300 ${isDark ? 'bg-gradient-to-br from-white to-gray-300 text-black' : 'bg-gradient-to-br from-stone-800 to-black text-white'}`}>
-                <Printer className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight">
-                <span className={`bg-clip-text text-transparent ${isDark ? 'bg-gradient-to-r from-white to-gray-400' : 'bg-gradient-to-r from-stone-900 to-stone-500'}`}>
+        <div className="flex items-center gap-3 sm:gap-4">
+            <Link href="/" className="flex items-center gap-3 sm:gap-4 group">
+              {/* Custom Image Logo (from Code 2) */}
+              <img
+                src={isDark ? "/pblackx.png" : "/pwhitex.png"}
+                alt="PrintStack Logo"
+                className="w-9 h-9 sm:w-10 sm:h-10 object-contain"
+              />
+              
+              {/* Dynamic Shop Name with Gradient (from Code 1) */}
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+                <span className={`bg-clip-text text-transparent transition-colors duration-300 ${isDark ? 'bg-gradient-to-r from-white to-gray-400' : 'bg-gradient-to-r from-stone-900 to-stone-500'}`}>
                     {shop?.name ? `${shop.name} ` : 'PrintStack '}
                 </span>
-                <span className={`hidden sm:inline-block ml-2 text-sm font-bold uppercase tracking-widest px-2 py-1 rounded-md ${isDark ? 'bg-white/10 text-white/60' : 'bg-stone-200/50 text-stone-500'}`}>Workspace</span>
-            </h1>
+               
+              </h1>
+            </Link>
           </div>
           
           <div className="flex items-center gap-2 sm:gap-5">
@@ -290,70 +323,7 @@ export default function ShopDashboardPage() {
             </div>
 
             {/* ================= INJECTED ANALYTICS DASHBOARD ================= */}
-           
-            {/* ================= ACTIVE ORDERS SECTION ================= */}
             <div className="pt-4 sm:pt-6">
-              <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 px-2">
-                  <div className="relative flex h-3 w-3 sm:h-4 sm:w-4">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 sm:h-4 sm:w-4 bg-green-500"></span>
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight">Active Queue</h2>
-              </div>
-              <div className={`border rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden backdrop-blur-xl transition-all duration-500 ${isDark ? 'bg-[#111111]/80 border-white/10 ring-1 ring-white/5' : 'bg-white border-stone-200/60 shadow-xl shadow-stone-200/30'}`}>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[800px] sm:min-w-[900px]">
-                    <thead>
-                        <tr className={`border-b text-[10px] uppercase tracking-widest font-black ${isDark ? 'bg-white/5 border-white/10 text-white/50' : 'bg-stone-50 border-stone-200 text-stone-500'}`}>
-                        <th className="p-4 sm:p-6 border-r border-inherit w-32 sm:w-40">Time</th>
-                        <th className="p-4 sm:p-6 border-r border-inherit">Student</th>
-                        <th className="p-4 sm:p-6 border-r border-inherit">Document</th>
-                        <th className="p-4 sm:p-6 border-r border-inherit">Specs</th>
-                        <th className="p-4 sm:p-6 text-right">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody className={`divide-y transition-colors ${isDark ? 'divide-white/10' : 'divide-stone-200'}`}>
-                        {activeOrders.length === 0 ? (
-                        <tr><td colSpan={5} className={`p-12 sm:p-16 text-center text-xs sm:text-sm font-bold uppercase tracking-widest ${isDark ? 'text-white/30' : 'text-stone-400'}`}>Queue is empty. Waiting for students.</td></tr>
-                        ) : (
-                        activeOrders.map(order => <OrderRow key={order.id} order={order} isDark={isDark} />)
-                        )}
-                    </tbody>
-                    </table>
-                </div>
-              </div>
-            </div>
-
-            {/* ================= COMPLETED ORDERS SECTION ================= */}
-            {completedOrders.length > 0 && (
-                <div className="pt-4 sm:pt-6">
-                <h2 className={`text-xl sm:text-2xl font-black tracking-tight mb-4 sm:mb-6 px-2 ${isDark ? 'text-white/50' : 'text-stone-400'}`}>Order History</h2>
-                <div className={`border rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden backdrop-blur-xl transition-all duration-500 opacity-60 hover:opacity-100 ${isDark ? 'bg-[#111111]/40 border-white/10 ring-1 ring-white/5' : 'bg-stone-50 border-stone-200/60 shadow-sm'}`}>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse min-w-[800px] sm:min-w-[900px]">
-                        <thead>
-                            <tr className={`border-b text-[10px] uppercase tracking-widest font-black ${isDark ? 'bg-white/5 border-white/10 text-white/50' : 'bg-stone-100 border-stone-200 text-stone-500'}`}>
-                            <th className="p-4 sm:p-6 border-r border-inherit w-32 sm:w-40">Date</th>
-                            <th className="p-4 sm:p-6 border-r border-inherit">Student</th>
-                            <th className="p-4 sm:p-6 border-r border-inherit">Document</th>
-                            <th className="p-4 sm:p-6 border-r border-inherit">Specs</th>
-                            <th className="p-4 sm:p-6 text-right">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className={`divide-y transition-colors ${isDark ? 'divide-white/10' : 'divide-stone-200'}`}>
-                            {completedOrders.map(order => <OrderRow key={order.id} order={order} isDark={isDark} />)}
-                        </tbody>
-                        </table>
-                    </div>
-                </div>
-                </div>
-            )}
-
-          </div>
-          
-        )}
-
-         <div className="lg:pt-20 pt-12">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 px-2">
                     <h2 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-3">
                         <BarChart3 className={isDark ? 'text-indigo-400' : 'text-indigo-600'} /> 
@@ -496,6 +466,66 @@ export default function ShopDashboardPage() {
                 </div>
             </div>
 
+            {/* ================= ACTIVE ORDERS SECTION ================= */}
+            <div className="pt-4 sm:pt-6">
+              <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 px-2">
+                  <div className="relative flex h-3 w-3 sm:h-4 sm:w-4">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 sm:h-4 sm:w-4 bg-green-500"></span>
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight">Active Queue</h2>
+              </div>
+              <div className={`border rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden backdrop-blur-xl transition-all duration-500 ${isDark ? 'bg-[#111111]/80 border-white/10 ring-1 ring-white/5' : 'bg-white border-stone-200/60 shadow-xl shadow-stone-200/30'}`}>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[800px] sm:min-w-[900px]">
+                    <thead>
+                        <tr className={`border-b text-[10px] uppercase tracking-widest font-black ${isDark ? 'bg-white/5 border-white/10 text-white/50' : 'bg-stone-50 border-stone-200 text-stone-500'}`}>
+                        <th className="p-4 sm:p-6 border-r border-inherit w-32 sm:w-40">Time</th>
+                        <th className="p-4 sm:p-6 border-r border-inherit">Student</th>
+                        <th className="p-4 sm:p-6 border-r border-inherit">Document</th>
+                        <th className="p-4 sm:p-6 border-r border-inherit">Specs</th>
+                        <th className="p-4 sm:p-6 text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody className={`divide-y transition-colors ${isDark ? 'divide-white/10' : 'divide-stone-200'}`}>
+                        {activeOrders.length === 0 ? (
+                        <tr><td colSpan={5} className={`p-12 sm:p-16 text-center text-xs sm:text-sm font-bold uppercase tracking-widest ${isDark ? 'text-white/30' : 'text-stone-400'}`}>Queue is empty. Waiting for students.</td></tr>
+                        ) : (
+                        activeOrders.map(order => <OrderRow key={order.id} order={order} isDark={isDark} />)
+                        )}
+                    </tbody>
+                    </table>
+                </div>
+              </div>
+            </div>
+
+            {/* ================= COMPLETED ORDERS SECTION ================= */}
+            {completedOrders.length > 0 && (
+                <div className="pt-4 sm:pt-6">
+                <h2 className={`text-xl sm:text-2xl font-black tracking-tight mb-4 sm:mb-6 px-2 ${isDark ? 'text-white/50' : 'text-stone-400'}`}>Order History</h2>
+                <div className={`border rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden backdrop-blur-xl transition-all duration-500 opacity-60 hover:opacity-100 ${isDark ? 'bg-[#111111]/40 border-white/10 ring-1 ring-white/5' : 'bg-stone-50 border-stone-200/60 shadow-sm'}`}>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse min-w-[800px] sm:min-w-[900px]">
+                        <thead>
+                            <tr className={`border-b text-[10px] uppercase tracking-widest font-black ${isDark ? 'bg-white/5 border-white/10 text-white/50' : 'bg-stone-100 border-stone-200 text-stone-500'}`}>
+                            <th className="p-4 sm:p-6 border-r border-inherit w-32 sm:w-40">Date</th>
+                            <th className="p-4 sm:p-6 border-r border-inherit">Student</th>
+                            <th className="p-4 sm:p-6 border-r border-inherit">Document</th>
+                            <th className="p-4 sm:p-6 border-r border-inherit">Specs</th>
+                            <th className="p-4 sm:p-6 text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className={`divide-y transition-colors ${isDark ? 'divide-white/10' : 'divide-stone-200'}`}>
+                            {completedOrders.map(order => <OrderRow key={order.id} order={order} isDark={isDark} />)}
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+                </div>
+            )}
+
+          </div>
+        )}
       </div>
     </div>
   )
