@@ -12,6 +12,7 @@
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.98.0",
     "bcrypt": "^6.0.0",
+    "framer-motion": "^12.34.4",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.575.0",
     "mapbox-gl": "^3.19.0",

@@ -102,7 +102,6 @@ export default function Home() {
           </div>
 
           {/* ================= RIGHT SIDE ================= */}
-          {/* ================= RIGHT SIDE ================= */}
           <div className="flex items-center gap-3 sm:gap-4">
             {/* Theme Toggle (Always Visible) */}
             <button
@@ -152,19 +151,37 @@ export default function Home() {
       </nav>
 
       {/* ================= MONOCHROME POLYMORPHIC HERO ================= */}
+     {/* ================= MONOCHROME POLYMORPHIC HERO ================= */}
       <section
-        className={`relative w-full min-h-screen lg:min-h-[85vh] flex flex-col items-center justify-center overflow-hidden pt-28 lg:pt-24 pb-20 lg:pb-12 transition-colors duration-500 ${isDark ? "bg-[#0A0A0A]" : "bg-[#faf9f6]"}`}
+        className={`relative w-full min-h-[95svh] lg:min-h-[85vh] flex flex-col items-center justify-center overflow-hidden pt-28 lg:pt-24 pb-16 lg:pb-12 transition-colors duration-500 ${isDark ? "bg-[#0A0A0A]" : "bg-[#faf9f6]"}`}
       >
-        {/* Soft radial light */}
-        <div
-          className={`absolute inset-0 transition-colors duration-500 ${isDark ? "bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.08),transparent_60%)]" : "bg-[radial-gradient(circle_at_50%_40%,rgba(0,0,0,0.05),transparent_60%)]"}`}
+        {/* --- 1. MODERN TECH GRID BACKGROUND (Fixed for Light Mode) --- */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div 
+            className={`absolute inset-0 bg-[size:24px_24px] sm:bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,#000_70%,transparent_100%)] transition-all duration-500 ${
+              isDark 
+                ? "bg-[linear-gradient(to_right,#ffffff0f_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0f_1px,transparent_1px)] opacity-100" 
+                : "bg-[linear-gradient(to_right,#00000014_1px,transparent_1px),linear-gradient(to_bottom,#00000014_1px,transparent_1px)] opacity-100"
+            }`}
+          ></div>
+        </div>
+
+        {/* --- 2. AMBIENT GLOWING ORB (Fixed for Light Mode) --- */}
+        <div 
+          className={`absolute top-0 -translate-y-12 left-1/2 -translate-x-1/2 w-[120vw] h-[40vh] md:w-[60vw] md:h-[50vh] rounded-[100%] blur-[80px] md:blur-[120px] transition-all duration-700 pointer-events-none ${
+            isDark 
+              ? "bg-indigo-600/40 opacity-40 md:opacity-30" 
+              : "bg-indigo-500/30 opacity-80 md:opacity-60"
+          }`}
         ></div>
 
-        {/* Floating Card 1 */}
+        {/* ------------------------------------------------------------- */}
+
+        {/* Floating Card 1 (Desktop) */}
         <div
           className={`hidden lg:block absolute top-[25%] left-[8%] xl:left-[12%] backdrop-blur-xl border p-6 rounded-3xl w-72 -rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-500 ${isDark ? "bg-[#111111]/80 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.8)]" : "bg-white/80 border-black/10 shadow-[0_20px_60px_rgba(0,0,0,0.1)]"}`}
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 ">
             <div
               className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-colors ${isDark ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"}`}
             >
@@ -192,7 +209,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Floating OTP Card */}
+        {/* Floating OTP Card (Desktop) */}
         <div
           className={`hidden lg:block absolute bottom-[15%] right-[8%] xl:right-[12%] backdrop-blur-xl p-8 rounded-[2.5rem] w-64 rotate-6 hover:rotate-0 hover:scale-110 transition-all duration-500 border ${isDark ? "bg-[#111111]/90 border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.9)] text-white" : "bg-stone-900/90 border-stone-800 shadow-[0_30px_80px_rgba(0,0,0,0.2)] text-white"}`}
         >
@@ -214,7 +231,7 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Floating Payment Chip */}
+        {/* Floating Payment Chip (Desktop) */}
         <div
           className={`hidden lg:flex absolute top-[35%] right-[16%] xl:right-[20%] border px-6 py-4 rounded-full items-center gap-3 hover:scale-110 transition-all duration-400 ${isDark ? "bg-[#1A1A1A] border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.8)]" : "bg-white border-black/10 shadow-[0_15px_40px_rgba(0,0,0,0.1)]"}`}
         >
@@ -229,186 +246,110 @@ export default function Home() {
         </div>
 
         {/* Core Content */}
-        <div className="relative z-10 text-center px-4 lg:px-6 max-w-5xl">
-          {/* FIX: Kept mb-14 for mobile, reduced to lg:mb-10 for desktop */}
+        <div className="relative z-10 text-center px-4 lg:px-6 max-w-5xl mt-6 sm:mt-0">
           <div
-            className={`inline-flex items-center gap-3 px-6 py-2 rounded-full border text-xs font-black uppercase tracking-widest mb-14 lg:mb-10 backdrop-blur-lg shadow-sm transition-colors duration-500 ${isDark ? "bg-white/5 border-white/10 text-white/70" : "bg-black/5 border-black/10 text-stone-600"}`}
+            className={`inline-flex items-center gap-2 sm:gap-3 px-5 py-2 rounded-full border text-[10px] sm:text-xs font-black uppercase tracking-widest mb-8 sm:mb-14 lg:mb-10 backdrop-blur-lg shadow-sm transition-colors duration-500 ${isDark ? "bg-white/5 border-white/10 text-white/70" : "bg-black/5 border-black/10 text-stone-600"}`}
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             CVM Hackathon 2026 • PS: 227
           </div>
 
-          {/* FIX: Kept text-4xl for mobile, reduced desktop from 13rem to 10rem/11.5rem to fit better */}
           <h1
-            className={`text-4xl lg:text-[10rem] xl:text-[11.5rem] leading-[0.85] font-black tracking-[-0.06em] transition-colors duration-500 lg:tracking-tight tracking-widest ${isDark ? "text-white" : "text-stone-900"}`}
+            className={`text-[14vw] sm:text-7xl lg:text-[10rem] xl:text-[11.5rem] leading-[0.85] lg:leading-[0.85] font-black tracking-tighter lg:tracking-tight transition-colors duration-500 ${isDark ? "text-white" : "text-stone-900"}`}
           >
             QUEUE-FREE
             <br />
             <span
-              className={`lg:mt-0 mt-3 block ${isDark ? "text-white/40" : "text-black/20"}`}
+              className={`lg:mt-0 mt-2 block tracking-tight ${isDark ? "text-white/40" : "text-black/20"}`}
             >
               PRINTING
             </span>
           </h1>
 
-          {/* FIX: Kept mt-6 for mobile, reduced desktop from lg:mt-10 to lg:mt-8 */}
           <p
-            className={`mt-6 md:mt-8 lg:mt-8 lg:text-xl sm:text-2xl font-medium max-w-3xl mx-auto leading-relaxed transition-colors duration-500 ${isDark ? "text-white/60" : "text-stone-600"}`}
+            className={`mt-6 lg:mt-8 text-base sm:text-xl md:text-2xl font-medium max-w-[20rem] sm:max-w-3xl mx-auto leading-relaxed transition-colors duration-500 ${isDark ? "text-white/60" : "text-stone-600"}`}
           >
             Upload once. Compare prices. Pay instantly. Pick up securely. No
             noise. No chaos.
           </p>
 
-          {/* FIX: Kept mt-10 for mobile, reduced desktop from lg:mt-14 to lg:mt-10 */}
-          <div className="mt-10 lg:mt-10 flex flex-col sm:flex-row justify-center items-center gap-6">
+          <div className="mt-8 lg:mt-10 flex flex-col justify-center items-center gap-6">
+            
+            {/* Desktop Explore Button */}
             <Link
               href="https://github.com/Aum-Ghodasara/PrintStack"
               target="_blank"
+              className="hidden lg:flex w-auto px-12 py-5 font-black rounded-2xl text-lg hover:scale-105 transition-all duration-300 items-center justify-center gap-2 whitespace-nowrap"
             >
-              <button
-                className={`hidden w-auto lg:px-12 px-8 py-4 lg:py-5 font-black rounded-xl lg:rounded-2xl text-md lg:text-lg hover:scale-105 transition-all duration-300 lg:flex items-center justify-center gap-2 whitespace-nowrap
-                          ${
-                            isDark
-                              ? "bg-white text-black hover:shadow-[0_20px_60px_rgba(255,255,255,0.2)]"
-                              : "bg-stone-900 text-white hover:shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
-                          }`}
+              <span
+                className={`flex items-center gap-2 ${
+                  isDark
+                    ? "bg-white text-black hover:shadow-[0_20px_60px_rgba(255,255,255,0.2)]"
+                    : "bg-stone-900 text-white hover:shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
+                } px-6 py-3 rounded-2xl`}
               >
-                Explore More<ArrowRight className="w-5 h-5" />
-              </button>
-              {/* Mobile Auth Buttons (Completely Unchanged) */}
-              <div className="flex sm:hidden gap-3 mt-4">
-                <Link href="/login">
-                  <button
-                    className={`px-6 py-2.5 text-lg font-bold rounded-full transition-all duration-300 ${
-                      isDark
-                        ? "bg-white/10 text-white hover:bg-white/20"
-                        : "bg-black/5 text-stone-900 hover:bg-black/10"
-                    }`}
-                  >
-                    Log in
-                  </button>
-                </Link>
-
-                <Link href="/signup">
-                  <button
-                    className={`px-6 py-2.5 text-md font-bold rounded-full transition-all duration-300 ${
-                      isDark
-                        ? "bg-white text-black hover:bg-gray-200"
-                        : "bg-stone-900 text-white hover:bg-stone-800"
-                    }`}
-                  >
-                    Sign up
-                  </button>
-                </Link>
-              </div>
+                Explore More
+                <ArrowRight className="w-5 h-5" />
+              </span>
             </Link>
+
+            {/* NEW MOBILE BUTTONS (Side-by-side, perfectly sized) */}
+            <div className="flex lg:hidden flex-row items-center justify-center gap-3 mt-10 lg:mt-2 w-full max-w-sm mx-auto px-2">
+              <Link href="/signup" className="flex-1">
+                <div
+                  className={`w-full py-3.5 text-sm sm:text-base font-black rounded-xl transition-all duration-300 flex justify-center items-center gap-2 ${
+                    isDark
+                      ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.15)]"
+                      : "bg-stone-900 text-white shadow-[0_0_20px_rgba(0,0,0,0.15)]"
+                  }`}
+                >
+                  Get Started <ArrowRight className="w-4 h-4" />
+                </div>
+              </Link>
+
+              <Link href="/login" className="flex-1">
+                <div
+                  className={`w-full py-3.5 text-sm sm:text-base font-bold rounded-xl transition-all duration-300 flex justify-center items-center border ${
+                    isDark
+                      ? "bg-transparent border-white/20 text-white hover:bg-white/5"
+                      : "bg-transparent border-black/20 text-stone-900 hover:bg-black/5"
+                  }`}
+                >
+                  Log in
+                </div>
+              </Link>
+            </div>
+
           </div>
         </div>
       </section>
 
       {/* ================= HOW IT WORKS ================= */}
-      <section
-        id="how-it-works"
-        className={`py-20 md:py-32 px-5 md:px-6 border-y relative z-10 transition-colors duration-500 ${
-          isDark ? "bg-[#0A0A0A] border-white/10" : "bg-white border-black/10"
-        }`}
-      >
+      <section id="how-it-works" className={`py-20 md:py-32 px-5 md:px-6 border-y relative z-10 transition-colors duration-500 ${isDark ? "bg-[#0A0A0A] border-white/10" : "bg-white border-black/10"}`}>
         <div className="max-w-7xl mx-auto">
-          {/* Heading */}
           <div className="text-center mb-14 md:mb-24 space-y-3 md:space-y-4">
-            <h2
-              className={`text-3xl sm:text-4xl md:text-6xl font-black tracking-tight transition-colors duration-500 ${
-                isDark ? "text-white" : "text-stone-900"
-              }`}
-            >
-              Digital Workflow
-            </h2>
-            <p
-              className={`max-w-xl md:max-w-2xl mx-auto text-base sm:text-lg md:text-xl font-medium transition-colors duration-500 ${
-                isDark ? "text-white/60" : "text-stone-600"
-              }`}
-            >
-              We solve manual printing delays. Upload, pay online, and skip the
-              queue entirely.
+            <h2 className={`text-3xl sm:text-4xl md:text-6xl font-black tracking-tight transition-colors duration-500 ${isDark ? "text-white" : "text-stone-900"}`}>Digital Workflow</h2>
+            <p className={`max-w-xl md:max-w-2xl mx-auto text-base sm:text-lg md:text-xl font-medium transition-colors duration-500 ${isDark ? "text-white/60" : "text-stone-600"}`}>
+              We solve manual printing delays. Upload, pay online, and skip the queue entirely.
             </p>
           </div>
 
-          {/* Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {[
-              {
-                step: "01",
-                title: "Upload & Detect",
-                desc: "Upload assignments or reports. Auto page detection instantly calculates your exact price.",
-                icon: Upload,
-              },
-              {
-                step: "02",
-                title: "Compare & Pay",
-                desc: "Compare nearby shop availability. Make a secure, cashless payment via Razorpay.",
-                icon: CreditCard,
-              },
-              {
-                step: "03",
-                title: "Secure Pickup",
-                desc: "Provide your OTP at the shop. Collect your printed documents without waiting in line.",
-                icon: ShieldCheck,
-              },
+              { step: "01", title: "Upload & Detect", desc: "Upload assignments or reports. Auto page detection instantly calculates your exact price.", icon: Upload },
+              { step: "02", title: "Compare & Pay", desc: "Compare nearby shop availability. Make a secure, cashless payment via Razorpay.", icon: CreditCard },
+              { step: "03", title: "Secure Pickup", desc: "Provide your OTP at the shop. Collect your printed documents without waiting in line.", icon: ShieldCheck },
             ].map((item, idx) => (
               <div key={idx} className="relative group">
-                {/* Step Number */}
-                <div
-                  className={`text-6xl md:text-8xl font-black absolute -top-6 md:-top-10 -left-4 md:-left-6 select-none z-20 transition-colors duration-500 ${
-                    isDark
-                      ? "text-white/5 group-hover:text-white/10"
-                      : "text-black/5 group-hover:text-black/10"
-                  }`}
-                >
+                <div className={`text-6xl md:text-8xl font-black absolute -top-6 md:-top-10 -left-4 md:-left-6 select-none z-20 transition-colors duration-500 ${isDark ? "text-white/5 group-hover:text-white/10" : "text-black/5 group-hover:text-black/10"}`}>
                   {item.step}
                 </div>
-
-                {/* Card */}
-                <div
-                  className={`relative rounded-2xl md:rounded-3xl p-6 md:p-10 h-full border hover:-translate-y-2 transition-all duration-500 ${
-                    isDark
-                      ? "bg-[#111111] border-white/10 hover:border-white/30 hover:shadow-[0_0_40px_rgba(255,255,255,0.05)]"
-                      : "bg-[#faf9f6] border-black/5 hover:border-black/20 hover:shadow-[0_0_40px_rgba(0,0,0,0.05)]"
-                  }`}
-                >
-                  {/* Icon */}
-                  <div
-                    className={`w-14 h-14 md:w-16 md:h-16 border rounded-xl md:rounded-2xl flex items-center justify-center mb-6 md:mb-8 transition-all duration-500 ${
-                      isDark
-                        ? "bg-white/5 border-white/10 group-hover:bg-white"
-                        : "bg-black/5 border-black/10 group-hover:bg-stone-900"
-                    }`}
-                  >
-                    <item.icon
-                      className={`w-6 h-6 md:w-8 md:h-8 transition-colors ${
-                        isDark
-                          ? "text-white group-hover:text-black"
-                          : "text-stone-900 group-hover:text-white"
-                      }`}
-                    />
+                <div className={`relative rounded-2xl md:rounded-3xl p-6 md:p-10 h-full border hover:-translate-y-2 transition-all duration-500 ${isDark ? "bg-[#111111] border-white/10 hover:border-white/30 hover:shadow-[0_0_40px_rgba(255,255,255,0.05)]" : "bg-[#faf9f6] border-black/5 hover:border-black/20 hover:shadow-[0_0_40px_rgba(0,0,0,0.05)]"}`}>
+                  <div className={`w-14 h-14 md:w-16 md:h-16 border rounded-xl md:rounded-2xl flex items-center justify-center mb-6 md:mb-8 transition-all duration-500 ${isDark ? "bg-white/5 border-white/10 group-hover:bg-white" : "bg-black/5 border-black/10 group-hover:bg-stone-900"}`}>
+                    <item.icon className={`w-6 h-6 md:w-8 h-8 transition-colors ${isDark ? "text-white group-hover:text-black" : "text-stone-900 group-hover:text-white"}`} />
                   </div>
-
-                  {/* Title */}
-                  <h3
-                    className={`text-xl md:text-2xl font-bold mb-3 md:mb-4 transition-colors ${
-                      isDark ? "text-white" : "text-stone-900"
-                    }`}
-                  >
-                    {item.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p
-                    className={`text-sm md:text-base font-medium leading-relaxed transition-colors ${
-                      isDark ? "text-white/60" : "text-stone-600"
-                    }`}
-                  >
-                    {item.desc}
-                  </p>
+                  <h3 className={`text-xl md:text-2xl font-bold mb-3 md:mb-4 transition-colors ${isDark ? "text-white" : "text-stone-900"}`}>{item.title}</h3>
+                  <p className={`text-sm md:text-base font-medium leading-relaxed transition-colors ${isDark ? "text-white/60" : "text-stone-600"}`}>{item.desc}</p>
                 </div>
               </div>
             ))}
@@ -814,7 +755,7 @@ export default function Home() {
           </p>
 
           <Link
-            href="https://github.com/Aum-Ghodasara/PrintStack"
+            href="https://github.com/tanmay-mevada/Print-Stack"
             target="_blank"
             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
               isDark
