@@ -7,7 +7,7 @@ import { toggleShopActiveStatus } from '../actions'
 import { createClient } from '@/lib/supabase/client'
 import OrderRow from '@/components/OrderRow'
 import LoadingScreen from '@/components/LoadingScreen'
-import { Sun, Moon, LogOut, Store, Settings, Printer, Zap, PauseCircle } from 'lucide-react'
+import { Sun, Moon, LogOut, Store, Settings, Zap, PauseCircle } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
 
 export default function ShopDashboardPage() {
@@ -54,14 +54,11 @@ export default function ShopDashboardPage() {
     function handleClickOutside(event: MouseEvent) {
         // If the dropdown is open AND the click happened outside the referenced div, close it!
         if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-            setIsOpen(false) // Fixed to match your state variable name
+            setIsOpen(false) 
         }
     }
 
-    // Attach the listener to the whole document
     document.addEventListener("mousedown", handleClickOutside)
-    
-    // Cleanup the listener when the component unmounts
     return () => {
         document.removeEventListener("mousedown", handleClickOutside)
     }
@@ -74,43 +71,49 @@ export default function ShopDashboardPage() {
     await toggleShopActiveStatus(shop.id, shop.is_active);
   }
 
-  // Use the premium loading screen instead of plain text!
   if (loading) return <LoadingScreen isDark={isDark} />
 
   return (
-    <div className={`min-h-screen font-sans transition-all duration-700 pb-20 ${
-        isDark ? 'bg-[#050505] text-white selection:bg-white/20' : 'bg-[#f4f4f0] text-stone-900 selection:bg-stone-900/20'
+    <div className={`min-h-screen font-sans transition-colors duration-500 ${
+        isDark ? 'bg-[#0A0A0A] text-white selection:bg-white/30 selection:text-white' : 'bg-[#faf9f6] text-stone-900 selection:bg-black/20 selection:text-black'
     }`}>
-      <div className="p-6 sm:p-8 max-w-6xl mx-auto relative">
-        
-        {/* NAVBAR */}
-        <div className={`flex justify-between items-center pb-6 mb-10 relative transition-colors duration-500 border-b ${isDark ? 'border-white/10' : 'border-stone-200/60'}`}>
-          <div className="flex items-center gap-4">
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center shadow-lg transition-colors duration-300 ${isDark ? 'bg-gradient-to-br from-white to-gray-300 text-black' : 'bg-gradient-to-br from-stone-800 to-black text-white'}`}>
-                <Printer className="w-5 h-5" />
-            </div>
-            <h1 className="text-2xl font-black tracking-tight">
-                <span className={`bg-clip-text text-transparent ${isDark ? 'bg-gradient-to-r from-white to-gray-400' : 'bg-gradient-to-r from-stone-900 to-stone-500'}`}>
-                    {shop?.name ? `${shop.name} ` : 'PrintStack '}
-                </span>
-                <span className={`hidden sm:inline-block ml-2 text-sm font-bold uppercase tracking-widest px-2 py-1 rounded-md ${isDark ? 'bg-white/10 text-white/60' : 'bg-stone-200/50 text-stone-500'}`}>Workspace</span>
-            </h1>
-          </div>
-          <div className="flex items-center gap-3 sm:gap-5">
-            <button onClick={toggleTheme} className={`p-3 rounded-full transition-all duration-300 hover:scale-105 ${isDark ? 'bg-white/5 hover:bg-white/10 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]' : 'bg-white hover:bg-stone-50 text-stone-900 shadow-sm border border-stone-200/50'}`}>
-                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-            <form action={logoutAction}>
-              <button type="submit" className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-bold transition-all duration-300 hover:scale-105 ${isDark ? 'bg-white/5 hover:bg-red-500/20 text-white hover:text-red-400 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] ring-1 ring-white/10' : 'bg-white hover:bg-red-50 text-stone-900 hover:text-red-600 shadow-sm border border-stone-200/50'}`}>
-                <LogOut className="w-4 h-4" /> <span className="hidden sm:inline">Log Out</span>
-              </button>
-            </form>
+      
+      {/* ================= NAVIGATION ================= */}
+      <nav className={`fixed top-0 w-full z-50 backdrop-blur-xl border-b transition-colors duration-500 ${isDark ? "bg-[#0A0A0A]/80 border-white/10" : "bg-[#faf9f6]/80 border-black/10"}`}>
+        <div className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
 
-            {/* RESTORED: Profile Circle & Dropdown WITH REF ATTACHED */}
-            <div className="relative hidden sm:block" ref={dropdownRef}>
+          {/* ================= LOGO & TITLE ================= */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-9 h-9 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+              <img src={isDark ? "/pwhitex.png" : "/pblackx.png"} alt="PrintStack Logo" className="w-9 h-9 object-contain" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`font-bold text-xl tracking-tight transition-colors ${isDark ? "text-white" : "text-stone-900"}`}>
+                PrintStack
+              </span>
+              <span className={`hidden sm:inline-block text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-md transition-colors ${isDark ? 'bg-white/10 text-white/60' : 'bg-stone-200/50 text-stone-500'}`}>
+                {shop?.name || 'Workspace'}
+              </span>
+            </div>
+          </Link>
+
+          {/* ================= RIGHT SIDE ================= */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-full transition-all duration-300 ${isDark ? "bg-white/10 hover:bg-white/20 text-white" : "bg-black/5 hover:bg-black/10 text-stone-900"}`}
+              aria-label="Toggle Theme"
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+
+            {/* Profile Dropdown */}
+            <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-11 h-11 border rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                className={`w-10 h-10 border rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
                   isDark 
                   ? 'border-white/20 bg-[#111111] hover:bg-white/10 text-white' 
                   : 'border-stone-300 bg-white hover:bg-stone-100 text-stone-900 shadow-sm'
@@ -119,6 +122,7 @@ export default function ShopDashboardPage() {
                 {shop?.name ? shop.name.charAt(0).toUpperCase() : 'S'}
               </button>
 
+              {/* Dropdown Menu */}
               {isOpen && (
                 <div className={`absolute right-0 mt-3 w-56 border rounded-2xl shadow-xl z-50 overflow-hidden transition-colors duration-300 animate-in fade-in slide-in-from-top-2 ${
                   isDark ? 'bg-[#111111] border-white/10 shadow-black' : 'bg-white border-stone-200 shadow-stone-200/50'
@@ -126,28 +130,37 @@ export default function ShopDashboardPage() {
                   <div className={`p-2 border-b ${isDark ? 'border-white/10' : 'border-stone-100'}`}>
                     <Link 
                         href="/shop/profile" 
-                        onClick={() => setIsOpen(false)} // Closes menu when clicked
+                        onClick={() => setIsOpen(false)}
                         className={`block p-3 rounded-xl text-sm font-bold transition-colors ${isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'}`}
                     >
                       Edit Shop Details
                     </Link>
-                  </div>
-                  <div className="p-2">
                     <Link 
                         href="/shop/pricing" 
-                        onClick={() => setIsOpen(false)} // Closes menu when clicked
-                        className={`block p-3 rounded-xl text-sm font-bold transition-colors ${isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'}`}
+                        onClick={() => setIsOpen(false)}
+                        className={`block p-3 rounded-xl text-sm font-bold transition-colors mt-1 ${isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'}`}
                     >
                       Edit Prices
                     </Link>
+                  </div>
+                  <div className="p-2">
+                    <form action={logoutAction}>
+                      <button type="submit" className={`w-full flex items-center gap-2 p-3 rounded-xl text-sm font-bold transition-colors text-left ${isDark ? 'hover:bg-red-500/10 text-red-400 hover:text-red-300' : 'hover:bg-red-50 text-red-600 hover:text-red-700'}`}>
+                        <LogOut className="w-4 h-4" /> Log out
+                      </button>
+                    </form>
                   </div>
                 </div>
               )}
             </div>
           </div>
         </div>
+      </nav>
 
-        {/* ================= DASHBOARD CONTENT ================= */}
+      {/* ================= MAIN DASHBOARD CONTENT ================= */}
+      {/* pt-28 ensures the content is pushed down below the fixed navbar */}
+      <div className="p-6 sm:p-8 pt-28 sm:pt-32 max-w-6xl mx-auto relative pb-20">
+        
         {!shop ? (
            <div className={`border rounded-[3rem] p-16 text-center backdrop-blur-xl max-w-2xl mx-auto mt-12 transition-all duration-500 ${isDark ? 'bg-[#111111]/80 border-white/10 shadow-[0_20px_60px_-15px_rgba(255,255,255,0.05)] ring-1 ring-white/5' : 'bg-white border-stone-200 shadow-2xl shadow-stone-200/50'}`}>
              <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl ${isDark ? 'bg-white/5 text-white/50 ring-1 ring-white/10' : 'bg-stone-100 text-stone-400 ring-1 ring-stone-200'}`}><Store className="w-12 h-12" /></div>
@@ -158,8 +171,7 @@ export default function ShopDashboardPage() {
            </div>
         ) : (
           <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            
-            {/* STATUS TOGGLE */}
+          
            {/* STATUS TOGGLE */}
             <div className={`relative overflow-hidden border rounded-[2.5rem] p-8 sm:p-12 flex flex-col md:flex-row justify-between items-center gap-8 backdrop-blur-xl transition-all duration-500 ${isDark ? 'bg-[#111111]/60 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/5' : 'bg-white border-stone-200/60 shadow-xl shadow-stone-200/40'}`}>
               {shop.is_active && isDark && <div className="absolute inset-0 bg-green-500/5 blur-3xl rounded-[2.5rem] pointer-events-none" />}
@@ -170,7 +182,6 @@ export default function ShopDashboardPage() {
                 </p>
               </div>
               
-              {/* THE CORRECTED TOGGLE BUTTON */}
               <button 
                   onClick={handleToggleStatus} 
                   className={`relative z-10 w-full md:w-auto min-w-[280px] sm:min-w-[320px] h-[72px] rounded-full transition-all duration-500 overflow-hidden ${
@@ -198,7 +209,6 @@ export default function ShopDashboardPage() {
                       <div className={`w-3 h-3 rounded-full ${shop.is_active ? 'bg-white animate-pulse' : (isDark ? 'bg-white/50' : 'bg-stone-300')}`} />
                   </div>
               </button>
-
             </div>
 
             {/* ACTIVE ORDERS SECTION */}
