@@ -159,16 +159,43 @@ export default function Home() {
       </nav>
 
       {/* ================= MONOCHROME POLYMORPHIC HERO ================= */}
-      <section className={`relative w-full min-h-screen lg:min-h-[85vh] flex flex-col items-center justify-center overflow-hidden pt-28 lg:pt-24 pb-20 lg:pb-12 transition-colors duration-500 ${isDark ? "bg-[#0A0A0A]" : "bg-[#faf9f6]"}`}>
+     {/* ================= MONOCHROME POLYMORPHIC HERO ================= */}
+      <section
+        className={`relative w-full min-h-[95svh] lg:min-h-[85vh] flex flex-col items-center justify-center overflow-hidden pt-28 lg:pt-24 pb-16 lg:pb-12 transition-colors duration-500 ${isDark ? "bg-[#0A0A0A]" : "bg-[#faf9f6]"}`}
+      >
+        {/* --- 1. MODERN TECH GRID BACKGROUND (Fixed for Light Mode) --- */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div 
+            className={`absolute inset-0 bg-[size:24px_24px] sm:bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,#000_70%,transparent_100%)] transition-all duration-500 ${
+              isDark 
+                ? "bg-[linear-gradient(to_right,#ffffff0f_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0f_1px,transparent_1px)] opacity-100" 
+                : "bg-[linear-gradient(to_right,#00000014_1px,transparent_1px),linear-gradient(to_bottom,#00000014_1px,transparent_1px)] opacity-100"
+            }`}
+          ></div>
+        </div>
 
-        {/* Soft radial light */}
-        <div className={`absolute inset-0 transition-colors duration-500 ${isDark ? "bg-[radial-gradient(circle_at_50%_40%,rgba(255,255,255,0.08),transparent_60%)]" : "bg-[radial-gradient(circle_at_50%_40%,rgba(0,0,0,0.05),transparent_60%)]"}`}></div>
+        {/* --- 2. AMBIENT GLOWING ORB (Fixed for Light Mode) --- */}
+        <div 
+          className={`absolute top-0 -translate-y-12 left-1/2 -translate-x-1/2 w-[120vw] h-[40vh] md:w-[60vw] md:h-[50vh] rounded-[100%] blur-[80px] md:blur-[120px] transition-all duration-700 pointer-events-none ${
+            isDark 
+              ? "bg-indigo-600/40 opacity-40 md:opacity-30" 
+              : "bg-indigo-500/30 opacity-80 md:opacity-60"
+          }`}
+        ></div>
 
-        {/* Floating Card 1 */}
-        <div className={`hidden lg:block absolute top-[25%] left-[8%] xl:left-[12%] backdrop-blur-xl border p-6 rounded-3xl w-72 -rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-500 ${isDark ? "bg-[#111111]/80 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.8)]" : "bg-white/80 border-black/10 shadow-[0_20px_60px_rgba(0,0,0,0.1)]"}`}>
-          <div className="flex items-center gap-4">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-colors ${isDark ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"}`}>
-              <FileText className={`w-7 h-7 transition-colors ${isDark ? "text-white" : "text-stone-900"}`} />
+        {/* ------------------------------------------------------------- */}
+
+        {/* Floating Card 1 (Desktop) */}
+        <div
+          className={`hidden lg:block absolute top-[25%] left-[8%] xl:left-[12%] backdrop-blur-xl border p-6 rounded-3xl w-72 -rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-500 ${isDark ? "bg-[#111111]/80 border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.8)]" : "bg-white/80 border-black/10 shadow-[0_20px_60px_rgba(0,0,0,0.1)]"}`}
+        >
+          <div className="flex items-center gap-4 ">
+            <div
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-colors ${isDark ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"}`}
+            >
+              <FileText
+                className={`w-7 h-7 transition-colors ${isDark ? "text-white" : "text-stone-900"}`}
+              />
             </div>
             <div>
               <p className={`text-base font-bold truncate transition-colors ${isDark ? "text-white" : "text-stone-900"}`}>Project_Thesis.pdf</p>
@@ -180,8 +207,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Floating OTP Card */}
-        <div className={`hidden lg:block absolute bottom-[15%] right-[8%] xl:right-[12%] backdrop-blur-xl p-8 rounded-[2.5rem] w-64 rotate-6 hover:rotate-0 hover:scale-110 transition-all duration-500 border ${isDark ? "bg-[#111111]/90 border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.9)] text-white" : "bg-stone-900/90 border-stone-800 shadow-[0_30px_80px_rgba(0,0,0,0.2)] text-white"}`}>
+        {/* Floating OTP Card (Desktop) */}
+        <div
+          className={`hidden lg:block absolute bottom-[15%] right-[8%] xl:right-[12%] backdrop-blur-xl p-8 rounded-[2.5rem] w-64 rotate-6 hover:rotate-0 hover:scale-110 transition-all duration-500 border ${isDark ? "bg-[#111111]/90 border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.9)] text-white" : "bg-stone-900/90 border-stone-800 shadow-[0_30px_80px_rgba(0,0,0,0.2)] text-white"}`}
+        >
           <div className="flex justify-between items-center mb-5">
             <p className={`text-xs uppercase tracking-widest font-bold transition-colors ${isDark ? "text-white/50" : "text-white/60"}`}>Secure OTP</p>
             <ShieldCheck className="w-6 h-6 text-white" />
@@ -415,9 +444,27 @@ export default function Home() {
             </ul>
           </div>
         </div>
-        <div className={`max-w-7xl mx-auto pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-6 text-xs md:text-sm font-medium ${isDark ? "border-white/10" : "border-black/10"}`}>
-          <p className="text-center md:text-left opacity-70">© 2026 PrintStack • Built for Innovation in Engineering & Technology.</p>
-          <Link href="https://github.com/tanmay-mevada/Print-Stack" target="_blank" className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${isDark ? "bg-white/5 hover:bg-white/10 text-white/70 hover:text-white" : "bg-black/5 hover:bg-black/10 text-stone-700 hover:text-stone-900"}`}>
+
+        {/* Bottom Bar */}
+        <div
+          className={`max-w-7xl mx-auto pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-6 text-xs md:text-sm font-medium ${
+            isDark ? "border-white/10" : "border-black/10"
+          }`}
+        >
+          <p className="text-center md:text-left opacity-70">
+            © 2026 PrintStack • Built for Innovation in Engineering &
+            Technology.
+          </p>
+
+          <Link
+            href="https://github.com/tanmay-mevada/Print-Stack"
+            target="_blank"
+            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
+              isDark
+                ? "bg-white/5 hover:bg-white/10 text-white/70 hover:text-white"
+                : "bg-black/5 hover:bg-black/10 text-stone-700 hover:text-stone-900"
+            }`}
+          >
             <Github className="w-4 h-4" />
             <span className="hidden sm:inline">View Source on GitHub</span>
             <span className="sm:hidden">GitHub Repo</span>
