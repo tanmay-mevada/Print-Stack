@@ -285,70 +285,24 @@ export default function LoginPage() {
 
       {/* ================= RIGHT COLUMN: VISUAL / IMAGE ================= */}
       {/* The background here dynamically shifts opposite to the main theme for a striking split-screen effect */}
-      <div
+       <div
         className={`hidden lg:flex w-1/2 relative overflow-hidden items-center justify-center transition-colors duration-500 ${isDark ? "bg-[#faf9f6]" : "bg-[#050505]"}`}
       >
         {/* Image adjusts blending and opacity based on theme */}
         <div
-          className={`absolute inset-0 bg-cover bg-center transition-all duration-500 ${isDark ? "mix-blend-multiply opacity-[0.07]" : "mix-blend-luminosity opacity-30"}`}
+          className={`absolute inset-0 bg-cover bg-center transition-all duration-500 ${isDark ? "mix-blend-multiply opacity-[0.20]" : "mix-blend-luminosity opacity-30"}`}
           style={{
             backgroundImage:
-              "url('https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=2070&auto=format&fit=crop')",
+              "url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2064&auto=format&fit=crop')",
           }}
         />
 
-        {/* Gradient Overlay dynamically shifts to match background */}
         <div
           className={`absolute inset-0 bg-gradient-to-t transition-colors duration-500 ${isDark ? "from-[#faf9f6] via-[#faf9f6]/40 to-transparent" : "from-[#0A0A0A] via-[#0A0A0A]/60 to-transparent"}`}
         />
 
         {/* Floating Feature Highlight */}
-        <div className="relative z-10 p-12 max-w-lg mt-auto mb-12 w-full">
-          {/* Glass card dynamically shifts colors in strict opposition to the left side */}
-          <div
-            className={`backdrop-blur-xl border p-8 rounded-[2rem] shadow-2xl transition-all duration-500 ${isDark ? "bg-white/60 border-stone-200 shadow-stone-200/50" : "bg-white/10 border-white/20 shadow-black"}`}
-          >
-            <div
-              className={`w-12 h-12 rounded-xl flex items-center justify-center mb-6 transition-colors duration-500 ${isDark ? "bg-stone-900" : "bg-white"}`}
-            >
-              <ShieldCheck
-                className={`w-6 h-6 ${isDark ? "text-white" : "text-black"}`}
-              />
-            </div>
-
-            <h3
-              className={`text-2xl font-black tracking-tight mb-3 transition-colors ${isDark ? "text-stone-900" : "text-white"}`}
-            >
-              Secure Document Handover
-            </h3>
-
-            <p
-              className={`font-medium leading-relaxed mb-6 transition-colors ${isDark ? "text-stone-600" : "text-white/80"}`}
-            >
-              Upload from your hostel, pay securely, and collect exactly when
-              you need it using your private OTP. No more waiting in long lines.
-            </p>
-
-            <div className="space-y-3">
-              <div
-                className={`flex items-center gap-3 font-medium text-sm transition-colors ${isDark ? "text-stone-800" : "text-white/90"}`}
-              >
-                <CheckCircle2
-                  className={`w-5 h-5 ${isDark ? "text-stone-900" : "text-white"}`}
-                />
-                Auto Page & Cost Detection
-              </div>
-              <div
-                className={`flex items-center gap-3 font-medium text-sm transition-colors ${isDark ? "text-stone-800" : "text-white/90"}`}
-              >
-                <CheckCircle2
-                  className={`w-5 h-5 ${isDark ? "text-stone-900" : "text-white"}`}
-                />
-                Zero Cost Ambiguity
-              </div>
-            </div>
-          </div>
-        </div>
+        
       </div>
     </div>
   );
