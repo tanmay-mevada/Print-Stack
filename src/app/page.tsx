@@ -382,7 +382,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={`py-20 md:py-24 px-5 md:px-6 border-t transition-colors duration-500 ${isDark ? "bg-[#0A0A0A] border-white/10" : "bg-[#faf9f6] border-black/10"}`}>
+      <section id="tech-stack" className={`py-20 md:py-24 px-5 md:px-6 border-t transition-colors duration-500 ${isDark ? "bg-[#0A0A0A] border-white/10" : "bg-[#faf9f6] border-black/10"}`}>
         <div className="max-w-5xl mx-auto text-center">
           <p className={`font-bold uppercase tracking-widest text-xs md:text-sm mb-10 md:mb-12 transition-colors ${isDark ? "text-white/40" : "text-stone-400"}`}>Powered By Modern Tech Stack</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-10 gap-x-6 md:flex md:flex-wrap md:justify-center md:gap-x-16 md:gap-y-12 items-center transition-opacity duration-700">
@@ -400,7 +400,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col items-center gap-3 min-w-[110px]">
               <CreditCard className={`w-8 h-8 ${isDark ? "text-white" : "text-stone-800"}`} />
-              <span className={`font-bold text-sm md:text-base mt-2 ${isDark ? "text-white/80" : "text-stone-700"}`}>Razorpay</span>
+              <span className={`font-bold text-sm md:text-base  ${isDark ? "text-white/80" : "text-stone-700"}`}>Razorpay</span>
             </div>
             <div className="flex flex-col items-center justify-center text-center min-w-[110px]">
               <Zap className={`w-7 h-7 md:w-8 md:h-8 ${isDark ? "text-white" : "text-stone-800"}`} />
