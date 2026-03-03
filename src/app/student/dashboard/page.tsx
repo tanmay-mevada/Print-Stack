@@ -196,7 +196,7 @@ export default function StudentDashboardPage() {
                .select('*', { count: 'exact', head: true })
                .eq('shop_id', order.shop_id)
                .in('status', ['PAID', 'PRINTING'])
-               .lt('created_at', order.created_at); // Older orders = ahead in line
+               .lt('created_at', order.created_at); 
              
              return { ...order, queue_position: count || 0 };
           }
@@ -213,7 +213,6 @@ export default function StudentDashboardPage() {
     const shopIds = availableShops.map((s: any) => s.id);
     const supabase = createClient();
     
-    // Count active orders for these shops
     const { data } = await supabase
       .from("orders")
       .select("shop_id")
@@ -230,11 +229,11 @@ export default function StudentDashboardPage() {
   }, []);
 
   useEffect(() => {
+    // Initial fetch on mount
     fetchUserOrders();
     const supabase = createClient();
 
-    // Subscribe to ANY changes in the orders table
-    // If User 1 gets their order, User 2's position updates automatically!
+    // 1. SUPABASE REALTIME LISTENER
     const channel = supabase.channel('live-student-tracker')
       .on(
         'postgres_changes', 
@@ -246,8 +245,17 @@ export default function StudentDashboardPage() {
       )
       .subscribe();
 
+    // 2. BULLETPROOF AUTO-REFRESH FALLBACK 
+    // This runs silently every 8 seconds to ensure the UI updates even if WebSockets fail
+    const intervalId = setInterval(() => {
+      fetchUserOrders();
+      if (shopsRef.current.length > 0) fetchShopQueues(shopsRef.current);
+    }, 8000);
+
+    // Cleanup on unmount
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(intervalId);
     };
   }, [fetchUserOrders, fetchShopQueues]);
   // ==========================================================================
@@ -915,7 +923,7 @@ export default function StudentDashboardPage() {
               </span>
             </button>
 
-            {/* RESTORED: ZOMATO-STYLE LIVE ORDER TRACKER IN ORIGINAL LAYOUT */}
+            {/* RESTORED & UPGRADED: ZOMATO-STYLE LIVE ORDER TRACKER IN ORIGINAL LAYOUT */}
             {activeOrders.length > 0 && (
               <div className="pt-12">
                 <div className="flex justify-between items-end mb-8 px-2">
@@ -1001,7 +1009,7 @@ export default function StudentDashboardPage() {
                           </span>
                         </div>
 
-                        {/* NEW: INJECTED ANIMATED PROGRESS BAR */}
+                        {/* NEW: INJECTED ANIMATED PROGRESS BAR (Auto-Updates) */}
                         <div className="space-y-3 mb-6">
                             <div className="flex justify-between items-end">
                                 {order.status === 'READY' ? (
@@ -1103,7 +1111,7 @@ export default function StudentDashboardPage() {
                         </p>
                       </div>
                       {isConfigured && (
-                        <div className="text-right z-10">
+                        <div className="text-right z-10 shrink-0">
                           <span
                             className={`text-[10px] font-bold uppercase tracking-widest block mb-1 ${isDark ? "text-white/40" : "text-stone-400"}`}
                           >
