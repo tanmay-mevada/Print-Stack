@@ -387,16 +387,12 @@ export async function forgotPasswordAction(formData: FormData) {
   const email = formData.get('email') as string
   const supabase = await createClient()
 
-  // Supabase automatically sends the reset email using its built-in templates
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    // This tells Supabase where to send the user AFTER they click the email link
-    redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback?next=/reset-password`,
+    // CHANGED: Point to our new human verification page
+    redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/verify-reset`,
   })
 
-  if (error) {
-    return { error: error.message }
-  }
-
+  if (error) return { error: error.message }
   return { success: true }
 }
 
@@ -414,4 +410,18 @@ export async function updatePasswordAction(formData: FormData) {
   }
 
   redirect('/login?message=Password updated successfully')
+}
+
+export async function consumeResetCodeAction(code: string) {
+  const supabase = await createClient()
+  
+  // This is the function that actually consumes the token securely
+  const { error } = await supabase.auth.exchangeCodeForSession(code)
+  
+  if (error) {
+    return { error: error.message }
+  }
+
+  // If successful, push them to the final password reset form
+  redirect('/reset-password')
 }
