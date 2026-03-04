@@ -202,8 +202,8 @@ export default function ShopDashboardPage() {
   if (loading) return <LoadingScreen isDark={isDark} />
 
   return (
-    <div className={`min-h-screen font-sans transition-all duration-700 pb-20 ${
-        isDark ? 'bg-[#050505] text-white selection:bg-white/20' : 'bg-[#f4f4f0] text-stone-900 selection:bg-stone-900/20'
+    <div className={`min-h-screen font-sans transition-colors duration-500 ${
+        isDark ? 'bg-[#0A0A0A] text-white selection:bg-white/30 selection:text-white' : 'bg-[#faf9f6] text-stone-900 selection:bg-black/20 selection:text-black'
     }`}>
       <div className="p-6 sm:p-8 max-w-6xl mx-auto relative z-10">
         
@@ -249,6 +249,7 @@ export default function ShopDashboardPage() {
                 {shop?.name ? shop.name.charAt(0).toUpperCase() : 'S'}
               </button>
 
+              {/* Dropdown Menu */}
               {isOpen && (
                 <div className={`absolute right-0 mt-3 w-56 border rounded-2xl shadow-xl z-50 overflow-hidden transition-colors duration-300 animate-in fade-in slide-in-from-top-2 ${
                   isDark ? 'bg-[#111111] border-white/10 shadow-black' : 'bg-white border-stone-200 shadow-stone-200/50'
@@ -261,8 +262,6 @@ export default function ShopDashboardPage() {
                     >
                       Edit Shop Details
                     </Link>
-                  </div>
-                  <div className="p-2">
                     <Link 
                         href="/shop/pricing" 
                         onClick={() => setIsOpen(false)}
@@ -271,13 +270,24 @@ export default function ShopDashboardPage() {
                       Edit Prices
                     </Link>
                   </div>
+                  <div className="p-2">
+                    <form action={logoutAction}>
+                      <button type="submit" className={`w-full flex items-center gap-2 p-3 rounded-xl text-sm font-bold transition-colors text-left ${isDark ? 'hover:bg-red-500/10 text-red-400 hover:text-red-300' : 'hover:bg-red-50 text-red-600 hover:text-red-700'}`}>
+                        <LogOut className="w-4 h-4" /> Log out
+                      </button>
+                    </form>
+                  </div>
                 </div>
               )}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* ================= DASHBOARD CONTENT ================= */}
+      {/* ================= MAIN DASHBOARD CONTENT ================= */}
+      {/* pt-28 ensures the content is pushed down below the fixed navbar */}
+      <div className="p-6 sm:p-8 pt-28 sm:pt-32 max-w-6xl mx-auto relative pb-20">
+        
         {!shop ? (
            <div className={`border rounded-[2rem] sm:rounded-[3rem] p-8 sm:p-16 text-center backdrop-blur-xl max-w-2xl mx-auto mt-12 transition-all duration-500 ${isDark ? 'bg-[#111111]/80 border-white/10 shadow-[0_20px_60px_-15px_rgba(255,255,255,0.05)] ring-1 ring-white/5' : 'bg-white border-stone-200 shadow-2xl shadow-stone-200/50'}`}>
              <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl ${isDark ? 'bg-white/5 text-white/50 ring-1 ring-white/10' : 'bg-stone-100 text-stone-400 ring-1 ring-stone-200'}`}><Store className="w-10 h-10 sm:w-12 sm:h-12" /></div>
