@@ -2,13 +2,14 @@
 
 import { createClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
+import { revalidatePath } from 'next/cache'
 
 export async function fetchAvailableShopsAction(lat?: number, lng?: number) {
   const supabase = await createClient()
   let shopsResult: any[] = []
   let type = 'all'
 
-  // 1. Try Nearby Shops (Uses the SQL function we updated earlier)
+  // 1. Try Nearby Shops
   if (lat && lng) {
     const { data: nearbyShops, error: rpcError } = await supabase.rpc('get_nearby_shops', {
       user_lat: lat, user_lon: lng, radius_meters: 5000
@@ -19,32 +20,36 @@ export async function fetchAvailableShopsAction(lat?: number, lng?: number) {
     }
   }
 
-  // 2. Fallback to All Shops
+  // 2. Fallback to All Shops (FIXED: Removed deleted image columns, added owner_id)
   if (shopsResult.length === 0) {
-    // 👇 WE ADDED image_1, image_2, image_3 HERE 👇
     const { data: allShops } = await supabase
       .from('shops')
-      .select('id, name, address, phone, latitude, longitude, image_1, image_2, image_3') 
+      .select('id, name, address, phone, latitude, longitude, map_link, owner_id') 
       .eq('is_active', true)
       
     shopsResult = allShops || []
   }
 
-  // 3. FETCH PRICING FOR THESE SHOPS
-  // 3. FETCH PRICING FOR THESE SHOPS
+  // 3. FETCH PRICING & PROFILE PICS
   if (shopsResult.length > 0) {
     const shopIds = shopsResult.map((s: any) => s.id)
-    const { data: pricingData } = await supabase.from('pricing_configs').select('*').in('shop_id', shopIds)
     
-    // Merge pricing into the shop objects
+    // Extract unique owner IDs to fetch their profile pictures
+    const ownerIds = [...new Set(shopsResult.map((s: any) => s.owner_id).filter(Boolean))]
+
+    // Run both queries in parallel for speed
+    const [pricingRes, profilesRes] = await Promise.all([
+      supabase.from('pricing_configs').select('*').in('shop_id', shopIds),
+      ownerIds.length > 0 ? supabase.from('profiles').select('id, profile_pic').in('id', ownerIds) : { data: [] }
+    ])
+    
+    // Merge pricing and profile_pic into the shop objects
     shopsResult = shopsResult.map((shop: any) => ({
       ...shop,
-      pricing: pricingData?.find((p: any) => p.shop_id === shop.id) || null
+      pricing: pricingRes.data?.find((p: any) => p.shop_id === shop.id) || null,
+      profile_pic: profilesRes.data?.find((p: any) => p.id === shop.owner_id)?.profile_pic || null
     }))
   }
-
-  // 👇 ADD THIS EXACT LINE 👇
-  console.log("SERVER CHECK - Data from DB:", JSON.stringify(shopsResult[0], null, 2));
 
   return { type, shops: shopsResult }
 }
@@ -130,4 +135,43 @@ export async function submitOrderAction(payload: {
     console.error(err)
     return { error: "Payment gateway error." }
   }
+}
+
+// ============================================================================
+// STUDENT PROFILE ACTIONS
+// ============================================================================
+
+export async function updateStudentProfileAction(formData: FormData) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { error: 'Not authenticated' }
+
+    // Extract fields
+    const name = formData.get('name') as string
+    const phone = formData.get('phone') as string
+    const profile_pic = formData.get('profile_pic') as string | null
+
+    // Prepare update payload
+    const updates: any = { name, phone }
+    if (profile_pic) {
+        updates.profile_pic = profile_pic
+    }
+
+    // Update the profiles table
+    const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id)
+
+    if (error) {
+        console.error("Error updating student profile:", error)
+        return { error: error.message }
+    }
+
+    // Force Next.js to refresh the UI with new data
+    revalidatePath('/student/dashboard')
+    revalidatePath('/student/profile')
+    
+    return { success: true }
 }
