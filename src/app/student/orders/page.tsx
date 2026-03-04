@@ -85,7 +85,7 @@ export default function OrderHistoryPage() {
                             </div>
                             <h2 className="text-2xl font-black uppercase tracking-widest mb-4">No Orders Yet</h2>
                             <p className={`font-medium ${isDark ? 'text-white/60' : 'text-stone-500'}`}>
-                                You haven't printed anything yet. Once you do, it will appear here.
+                                You have not printed anything yet. Once you do, it will appear here.
                             </p>
                         </div>
                     ) : (
