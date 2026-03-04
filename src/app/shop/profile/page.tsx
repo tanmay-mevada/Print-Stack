@@ -5,8 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { updateShopProfileAction, resolveGoogleMapsLinkAction } from '../actions'
 import SmartLocationPicker from '@/components/SmartLocationPicker'
-import LoadingScreen from '@/components/LoadingScreen'
-import { MapPin, Link2, Loader2, CheckCircle2, ImagePlus, X } from 'lucide-react'
+import { MapPin, Link2, Loader2, CheckCircle2, ImagePlus, X, Store } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
 import toast, { Toaster } from 'react-hot-toast'
 
@@ -24,35 +23,39 @@ export default function ShopProfilePage() {
   const [parsingLink, setParsingLink] = useState(false)
   const [linkSuccess, setLinkSuccess] = useState(false)
 
-  // NEW: Image Upload State
-  // Holds either the existing URL string (from DB) or a new File object
-  const [images, setImages] = useState<[File | string | null, File | string | null, File | string | null]>([null, null, null]);
+  // NEW: Single Profile Picture State
+  const [profilePic, setProfilePic] = useState<File | string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const generatedMapLink = `https://www.google.com/maps?q=${coords.lat},${coords.lng}`
 
   useEffect(() => {
-    async function fetchShop() {
+    async function fetchShopAndProfile() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
+      
       if (user) {
-        const { data } = await supabase.from('shops').select('*').eq('owner_id', user.id).single()
-        if (data) {
-          setShop(data)
-          setCoords({ lat: data.latitude, lng: data.longitude })
-          if (data.map_link) {
-            setMapsInput(data.map_link)
+        setUserId(user.id);
+        
+        // Fetch Shop Data
+        const { data: shopData } = await supabase.from('shops').select('*').eq('owner_id', user.id).single()
+        if (shopData) {
+          setShop(shopData)
+          setCoords({ lat: shopData.latitude, lng: shopData.longitude })
+          if (shopData.map_link) {
+            setMapsInput(shopData.map_link)
           }
-          // Load existing images if they exist
-          setImages([
-            data.image_1 || null,
-            data.image_2 || null,
-            data.image_3 || null
-          ])
+        }
+
+        // NEW: Fetch Profile Data (for the profile picture)
+        const { data: profileData } = await supabase.from('profiles').select('profile_pic').eq('id', user.id).single()
+        if (profileData?.profile_pic) {
+          setProfilePic(profileData.profile_pic)
         }
       }
       setLoading(false)
     }
-    fetchShop()
+    fetchShopAndProfile()
   }, [])
 
   const handleLocationChange = useCallback((lat: number, lng: number) => {
@@ -84,66 +87,28 @@ export default function ShopProfilePage() {
     setParsingLink(false)
   }
 
-  // Handle Image Selection
-  const handleImageSelect = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Single Image Selection
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
           const newFile = e.target.files[0];
           
-          // Basic validation
           if (!newFile.type.startsWith('image/')) {
               toast.error("Please upload an image file.");
               return;
           }
-          if (newFile.size > 5 * 1024 * 1024) { // 5MB limit
+          if (newFile.size > 5 * 1024 * 1024) { 
               toast.error("Image must be less than 5MB.");
               return;
           }
-
-          const newImages = [...images] as typeof images;
-          newImages[index] = newFile;
-          setImages(newImages);
+          setProfilePic(newFile);
       }
-  }
-
-  // Remove Image
-  const removeImage = (index: number) => {
-      const newImages = [...images] as typeof images;
-      newImages[index] = null;
-      setImages(newImages);
-  }
-
-  // Upload an individual file to Supabase Storage
-  const uploadImageToStorage = async (file: File, index: number, supabase: any): Promise<string | null> => {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `shop_${shop?.id}_img${index + 1}_${Date.now()}.${fileExt}`;
-      const filePath = `shop_images/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-          .from('shop_images')
-          .upload(filePath, file, { upsert: true });
-
-      if (uploadError) {
-          console.error("Upload Error:", uploadError);
-          return null;
-      }
-
-      const { data: publicUrlData } = supabase.storage
-          .from('shop_images')
-          .getPublicUrl(filePath);
-
-      return publicUrlData.publicUrl;
   }
 
  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     
-    if (images.some(img => img === null)) {
-        toast.error("You must upload exactly 3 photos of your shop.");
-        return;
-    }
-
     setSaving(true)
-    const savingToast = toast.loading('Saving shop profile & uploading images...')
+    const savingToast = toast.loading('Saving shop profile & uploading image...')
 
     const supabase = createClient()
     const formData = new FormData(e.currentTarget)
@@ -154,72 +119,61 @@ export default function ShopProfilePage() {
     formData.set('map_link', finalMapLink)
 
     try {
-        console.log("--- STARTING UPLOAD PROCESS ---");
-        const finalImageUrls: string[] = [];
+        let finalImageUrl: string | null = null;
         
-        for (let i = 0; i < 3; i++) {
-            const img = images[i];
-            if (img instanceof File) {
-                console.log(`Uploading Image ${i+1}...`);
-                const fileExt = img.name.split('.').pop();
-                const fileName = `shop_${shop?.id}_img${i + 1}_${Date.now()}.${fileExt}`;
-                
-                // Upload to Supabase Storage
-                const { error: uploadError } = await supabase.storage
-                    .from('shop_images')
-                    .upload(fileName, img, { upsert: true });
+        // 1. Upload the image to Supabase Storage if it's a new File
+        if (profilePic instanceof File && userId) {
+            const fileExt = profilePic.name.split('.').pop();
+            const fileName = `profile_${userId}_${Date.now()}.${fileExt}`;
+            
+            const { error: uploadError } = await supabase.storage
+                .from('profile_pics')
+                .upload(fileName, profilePic, { upsert: true });
 
-                if (uploadError) {
-                    console.error(`Supabase Storage Error for Image ${i+1}:`, uploadError);
-                    throw new Error(`Storage Error: ${uploadError.message}`);
-                }
+            if (uploadError) throw new Error(`Storage Error: ${uploadError.message}`);
 
-                // Get Public URL
-                const { data: publicUrlData } = supabase.storage
-                    .from('shop_images')
-                    .getPublicUrl(fileName);
+            const { data: publicUrlData } = supabase.storage
+                .from('profile_pics')
+                .getPublicUrl(fileName);
 
-                console.log(`Image ${i+1} Uploaded! URL:`, publicUrlData.publicUrl);
-                finalImageUrls.push(publicUrlData.publicUrl);
-            } else if (typeof img === 'string') {
-                finalImageUrls.push(img);
-            }
+            finalImageUrl = publicUrlData.publicUrl;
+        } else if (typeof profilePic === 'string') {
+            finalImageUrl = profilePic; // Keep existing URL
         }
 
-        console.log("All 3 URLs generated:", finalImageUrls);
+        // 2. Attach the final URL to the formData so actions.ts can grab it
+        if (finalImageUrl) {
+            formData.set('profile_pic', finalImageUrl);
+        }
 
-        formData.set('image_1', finalImageUrls[0]);
-        formData.set('image_2', finalImageUrls[1]);
-        formData.set('image_3', finalImageUrls[2]);
-
-        console.log("Sending to actions.ts...");
+        // 3. Send everything to the Server Action
         const res = await updateShopProfileAction(formData)
         
         toast.dismiss(savingToast)
 
         if (res?.error) {
-            console.error("Database Update Error:", res.error);
-            toast.error(`Database Error: ${res.error}`)
+            toast.error(`Error: ${res.error}`)
         } else if (res?.success) {
-            console.log("--- SUCCESS! Profile Saved ---");
             toast.success("Profile saved successfully!")
         }
     } catch (error: any) {
-        console.error("Caught Error in handleSubmit:", error);
         toast.dismiss(savingToast)
         toast.error(error.message || "An error occurred while saving.");
     } finally {
         setSaving(false)
     }
   }
-  if (loading) return <LoadingScreen isDark={isDark} />
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center font-bold tracking-widest uppercase">Loading...</div>
+
+  // Determine what to show in the preview circle
+  const previewUrl = profilePic instanceof File ? URL.createObjectURL(profilePic) : profilePic;
 
   return (
   <div className={`min-h-screen flex items-center justify-center px-4 py-12 font-sans transition-colors duration-700 ${
       isDark ? 'bg-[#050505] text-white selection:bg-white/20' : 'bg-[#faf9f6] text-stone-900 selection:bg-stone-900/20'
   }`}>
     
-    {/* ================= TOASTER CONFIGURATION ================= */}
     <Toaster 
         position="top-center"
         toastOptions={{
@@ -231,14 +185,7 @@ export default function ShopProfilePage() {
                 padding: '16px 24px',
                 fontSize: '14px',
                 fontWeight: 'bold',
-                letterSpacing: '0.05em',
                 boxShadow: isDark ? '0 20px 40px rgba(0,0,0,0.5)' : '0 20px 40px rgba(0,0,0,0.1)',
-            },
-            success: {
-                iconTheme: { primary: '#22c55e', secondary: isDark ? '#050505' : '#ffffff' },
-            },
-            error: {
-                iconTheme: { primary: '#ef4444', secondary: isDark ? '#050505' : '#ffffff' },
             },
         }}
     />
@@ -278,9 +225,7 @@ export default function ShopProfilePage() {
                     required 
                     defaultValue={shop?.name} 
                     className={`w-full rounded-xl border px-4 py-3 outline-none transition-all font-bold ${
-                        isDark 
-                        ? 'bg-[#0A0A0A] border-white/10 text-white focus:border-white/30 focus:ring-1 focus:ring-white/30' 
-                        : 'bg-white border-stone-300 text-stone-900 focus:border-stone-900 focus:ring-1 focus:ring-stone-900/20'
+                        isDark ? 'bg-[#0A0A0A] border-white/10 text-white focus:border-white/30 focus:ring-1 focus:ring-white/30' : 'bg-white border-stone-300 text-stone-900 focus:border-stone-900 focus:ring-1 focus:ring-stone-900/20'
                     }`} 
                 />
               </div>
@@ -294,9 +239,7 @@ export default function ShopProfilePage() {
                     pattern="[0-9]{10}" 
                     placeholder="10-digit number" 
                     className={`w-full rounded-xl border px-4 py-3 outline-none transition-all font-bold ${
-                        isDark 
-                        ? 'bg-[#0A0A0A] border-white/10 text-white placeholder:text-white/20 focus:border-white/30 focus:ring-1 focus:ring-white/30' 
-                        : 'bg-white border-stone-300 text-stone-900 placeholder:text-stone-300 focus:border-stone-900 focus:ring-1 focus:ring-stone-900/20'
+                        isDark ? 'bg-[#0A0A0A] border-white/10 text-white placeholder:text-white/20 focus:border-white/30 focus:ring-1 focus:ring-white/30' : 'bg-white border-stone-300 text-stone-900 placeholder:text-stone-300 focus:border-stone-900 focus:ring-1 focus:ring-stone-900/20'
                     }`} 
                 />
               </div>
@@ -310,65 +253,59 @@ export default function ShopProfilePage() {
                   defaultValue={shop?.address} 
                   placeholder="Full address for students to find you..." 
                   className={`w-full rounded-xl border px-4 py-3 outline-none transition-all font-bold ${
-                      isDark 
-                      ? 'bg-[#0A0A0A] border-white/10 text-white placeholder:text-white/20 focus:border-white/30 focus:ring-1 focus:ring-white/30' 
-                      : 'bg-white border-stone-300 text-stone-900 placeholder:text-stone-300 focus:border-stone-900 focus:ring-1 focus:ring-stone-900/20'
+                      isDark ? 'bg-[#0A0A0A] border-white/10 text-white placeholder:text-white/20 focus:border-white/30 focus:ring-1 focus:ring-white/30' : 'bg-white border-stone-300 text-stone-900 placeholder:text-stone-300 focus:border-stone-900 focus:ring-1 focus:ring-stone-900/20'
                   }`} 
               />
             </div>
           </div>
 
-          {/* SECTION 2: Shop Images (COMPULSORY) */}
+          {/* SECTION 2: Shop Profile Picture */}
           <div>
             <div className="flex justify-between items-end mb-6 pb-2 border-b border-current border-opacity-10">
-              <h2 className={`text-sm font-black uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-stone-400'}`}>2. Shop Photos</h2>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-red-500">* Required (3/3)</span>
+              <h2 className={`text-sm font-black uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-stone-400'}`}>2. Store Logo / Profile Pic</h2>
             </div>
             
-            <p className={`text-xs mb-4 font-medium ${isDark ? 'text-white/50' : 'text-stone-500'}`}>
-                Upload exactly 3 clear photos of your storefront and printers. This helps students verify they are at the correct location.
+            <p className={`text-xs mb-6 font-medium ${isDark ? 'text-white/50' : 'text-stone-500'}`}>
+                Upload a recognizable logo or photo of your storefront so students can easily identify you on the map.
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {[0, 1, 2].map((index) => {
-                  const img = images[index];
-                  // Determine preview URL based on if it's a new File or existing string
-                  const previewUrl = img instanceof File ? URL.createObjectURL(img) : img;
+            <div className="flex items-center gap-8">
+              <div className={`relative w-32 h-32 rounded-full border-4 overflow-hidden flex items-center justify-center transition-all ${
+                  previewUrl 
+                  ? (isDark ? 'border-white/20 shadow-xl' : 'border-stone-300 shadow-lg') 
+                  : (isDark ? 'border-white/10 border-dashed bg-white/5' : 'border-stone-200 border-dashed bg-stone-50')
+              }`}>
+                  {previewUrl ? (
+                      <>
+                          <img src={previewUrl} alt="Profile Preview" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                              <button 
+                                  type="button"
+                                  onClick={() => setProfilePic(null)}
+                                  className="p-2 bg-red-500 text-white rounded-full hover:scale-110 transition-transform shadow-xl"
+                              >
+                                  <X className="w-5 h-5" />
+                              </button>
+                          </div>
+                      </>
+                  ) : (
+                      <Store className={`w-10 h-10 ${isDark ? 'text-white/20' : 'text-stone-300'}`} />
+                  )}
+              </div>
 
-                  return (
-                      <div key={index} className={`relative aspect-square rounded-2xl border-2 border-dashed overflow-hidden flex flex-col items-center justify-center transition-all ${
-                          previewUrl 
-                          ? (isDark ? 'border-white/20' : 'border-stone-300') 
-                          : (isDark ? 'border-white/10 hover:border-white/30 bg-white/5' : 'border-stone-200 hover:border-stone-400 bg-stone-50')
-                      }`}>
-                          {previewUrl ? (
-                              <>
-                                  <img src={previewUrl} alt={`Shop ${index + 1}`} className="absolute inset-0 w-full h-full object-cover" />
-                                  <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                                      <button 
-                                          type="button"
-                                          onClick={() => removeImage(index)}
-                                          className="p-3 bg-red-500 text-white rounded-full hover:scale-110 transition-transform shadow-xl"
-                                      >
-                                          <X className="w-5 h-5" />
-                                      </button>
-                                  </div>
-                              </>
-                          ) : (
-                              <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer p-4 text-center">
-                                  <input 
-                                      type="file" 
-                                      accept="image/*" 
-                                      className="hidden" 
-                                      onChange={(e) => handleImageSelect(index, e)} 
-                                  />
-                                  <ImagePlus className={`w-8 h-8 mb-2 ${isDark ? 'text-white/30' : 'text-stone-400'}`} />
-                                  <span className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-stone-500'}`}>Upload Photo {index + 1}</span>
-                              </label>
-                          )}
-                      </div>
-                  );
-              })}
+              {!previewUrl && (
+                  <label className={`cursor-pointer inline-flex items-center gap-2 px-6 py-3 rounded-xl border text-xs font-bold uppercase tracking-widest transition-all ${
+                      isDark ? 'border-white/20 bg-[#0A0A0A] hover:bg-white/10 text-white' : 'border-stone-300 bg-white hover:bg-stone-100 text-stone-900 shadow-sm'
+                  }`}>
+                      <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={handleImageSelect} 
+                      />
+                      <ImagePlus className="w-4 h-4" /> Upload Image
+                  </label>
+              )}
             </div>
           </div>
 

@@ -5,14 +5,13 @@ import { revalidatePath } from 'next/cache'
 import nodemailer from 'nodemailer'
 import crypto from 'crypto'
 
-// --- EXISTING SHOP SETUP ACTIONS ---
 export async function updateShopProfileAction(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) return { error: 'Not authenticated' }
 
-  // Extract ALL fields, INCLUDING the 3 new images!
+  // 1. Extract the Shop Data
   const updates = {
     name: formData.get('name') as string,
     phone: formData.get('phone') as string,
@@ -20,23 +19,36 @@ export async function updateShopProfileAction(formData: FormData) {
     latitude: parseFloat(formData.get('latitude') as string),
     longitude: parseFloat(formData.get('longitude') as string),
     map_link: formData.get('map_link') as string,
-    // 👇 THESE ARE THE MISSING LINES 👇
-    image_1: formData.get('image_1') as string | null,
-    image_2: formData.get('image_2') as string | null,
-    image_3: formData.get('image_3') as string | null,
   }
 
-  // Save to the shops table
-  const { error } = await supabase
-    .from('shops')
-    .update(updates)
-    .eq('owner_id', user.id)
+  // 2. Update the Shops Table
+  const { data: existingShop } = await supabase.from('shops').select('id').eq('owner_id', user.id).single()
 
-  if (error) {
-    console.error("Error updating shop profile:", error)
-    return { error: error.message }
+  if (existingShop) {
+    const { error } = await supabase.from('shops').update(updates).eq('id', existingShop.id)
+    if (error) return { error: error.message }
+  } else {
+    const { error } = await supabase.from('shops').insert({ ...updates, owner_id: user.id })
+    if (error) return { error: error.message }
   }
 
+  // 3. Extract and Update the Profile Picture in the Profiles Table
+  const profile_pic = formData.get('profile_pic') as string | null
+  
+  if (profile_pic) {
+      const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ profile_pic })
+          .eq('id', user.id)
+          
+      if (profileError) {
+          console.error("Error saving profile pic:", profileError)
+          // We won't crash the whole function if just the image fails, but we'll log it.
+      }
+  }
+
+  revalidatePath('/shop')
+  revalidatePath('/shop/profile')
   return { success: true }
 }
 
