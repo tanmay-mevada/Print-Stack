@@ -142,11 +142,10 @@ function CustomSelect({ label, value, options, onChange, isDark }: CustomSelectP
                 onChange(opt.value);
                 setIsOpen(false);
               }}
-              className={`px-5 py-3.5 font-bold cursor-pointer transition-all flex items-center justify-between ${
-                value === opt.value
+              className={`px-5 py-3.5 font-bold cursor-pointer transition-all flex items-center justify-between ${value === opt.value
                   ? isDark ? "text-white bg-white/5" : "text-stone-900 bg-stone-50"
                   : isDark ? "text-white/50 hover:bg-white/5 hover:text-white" : "text-stone-500 hover:bg-stone-50 hover:text-stone-900"
-              }`}
+                }`}
             >
               {opt.label}
               {value === opt.value && <CheckCircle2 className={`w-4 h-4 ${isDark ? "text-white" : "text-stone-900"}`} />}
@@ -165,7 +164,7 @@ export default function StudentDashboardPage() {
   const [file, setFile] = useState<File | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [shopQueues, setShopQueues] = useState<Record<string, number>>({});
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
 
   // Sorting State
   const [sortBy, setSortBy] = useState<"distance" | "price">("price");
@@ -178,7 +177,7 @@ export default function StudentDashboardPage() {
     if (!isDraggingNav || !mobileNavRef.current) return;
     const rect = mobileNavRef.current.getBoundingClientRect();
     const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width - 1));
-    const section = Math.floor((x / rect.width) * 3); 
+    const section = Math.floor((x / rect.width) * 3);
 
     if (section === 0 && step !== 1) setStep(1);
     else if (section === 1 && step !== 2 && file) setStep(2);
@@ -211,8 +210,8 @@ export default function StudentDashboardPage() {
       if (myOrders) {
         const enhancedOrders: Order[] = await Promise.all(myOrders.map(async (order: Order) => {
           if (['PAID', 'PRINTING'].includes(order.status)) {
-             const { count } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('shop_id', order.shop_id).in('status', ['PAID', 'PRINTING']).lt('created_at', order.created_at); 
-             return { ...order, queue_position: count || 0 };
+            const { count } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('shop_id', order.shop_id).in('status', ['PAID', 'PRINTING']).lt('created_at', order.created_at);
+            return { ...order, queue_position: count || 0 };
           }
           return order;
         }));
@@ -225,7 +224,7 @@ export default function StudentDashboardPage() {
     if (availableShops.length === 0) return;
     const shopIds = availableShops.map((s: Shop) => s.id);
     const supabase = createClient();
-    
+
     const { data } = await supabase.from("orders").select("shop_id").in("shop_id", shopIds).in("status", ["PAID", "PRINTING"]);
 
     if (data) {
@@ -238,12 +237,12 @@ export default function StudentDashboardPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchUserOrders();
-    
+
     const supabase = createClient();
     const channel = supabase.channel('live-student-tracker')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-          void fetchUserOrders(); 
-          if (shopsRef.current.length > 0) void fetchShopQueues(shopsRef.current); 
+        void fetchUserOrders();
+        if (shopsRef.current.length > 0) void fetchShopQueues(shopsRef.current);
       }).subscribe();
 
     const intervalId = setInterval(() => {
@@ -290,13 +289,13 @@ export default function StudentDashboardPage() {
   function handleNextStep() {
     if (!file) return alert("Please upload a file first!");
     setLocating(true);
-    
+
     const getLocation = () => new Promise<GeolocationPosition>((resolve, reject) => {
       if (!navigator.geolocation) return reject("No Geolocation Support");
-      navigator.geolocation.getCurrentPosition(resolve, reject, { 
-        enableHighAccuracy: true, 
-        timeout: 10000, 
-        maximumAge: 0 
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
       });
     });
 
@@ -339,7 +338,7 @@ export default function StudentDashboardPage() {
 
     if (res.success && res.paymentUrl) window.location.href = res.paymentUrl;
     else setStep(4);
-    
+
     setUploading(false);
   }
 
@@ -348,11 +347,11 @@ export default function StudentDashboardPage() {
   const getStatusProgress = (status: string, position?: number) => {
     switch (status) {
       case 'CREATED': case 'PENDING': return { width: '25%', text: 'Awaiting Payment' };
-      case 'PAID': 
-      case 'PRINTING': 
-          if (position === 0) return { width: '80%', text: 'Printing Now' };
-          if (position === 1) return { width: '60%', text: 'Next in Line' };
-          return { width: '45%', text: 'In Queue' };
+      case 'PAID':
+      case 'PRINTING':
+        if (position === 0) return { width: '80%', text: 'Printing Now' };
+        if (position === 1) return { width: '60%', text: 'Next in Line' };
+        return { width: '45%', text: 'In Queue' };
       case 'READY': return { width: '100%', text: 'Ready for Pickup!' };
       default: return { width: '0%', text: status };
     }
@@ -363,25 +362,25 @@ export default function StudentDashboardPage() {
   // ============================================================================
   const sortedShops = [...shops]
     .map((shop: Shop) => {
-        const priceStr = getExactShopPrice(shop);
-        const distStr = userLocation ? calculateDistance(userLocation.lat, userLocation.lng, shop.latitude, shop.longitude) : null;
-        return {
-            ...shop,
-            exactPriceNum: priceStr ? parseFloat(priceStr) : Infinity,
-            exactPriceStr: priceStr,
-            distanceNum: distStr ? parseFloat(distStr) : Infinity,
-            distanceStr: distStr
-        };
+      const priceStr = getExactShopPrice(shop);
+      const distStr = userLocation ? calculateDistance(userLocation.lat, userLocation.lng, shop.latitude, shop.longitude) : null;
+      return {
+        ...shop,
+        exactPriceNum: priceStr ? parseFloat(priceStr) : Infinity,
+        exactPriceStr: priceStr,
+        distanceNum: distStr ? parseFloat(distStr) : Infinity,
+        distanceStr: distStr
+      };
     })
     .sort((a, b) => {
-        if (sortBy === "distance") return a.distanceNum - b.distanceNum;
-        return a.exactPriceNum - b.exactPriceNum;
+      if (sortBy === "distance") return a.distanceNum - b.distanceNum;
+      return a.exactPriceNum - b.exactPriceNum;
     });
 
 
   return (
     <div className={`min-h-screen font-sans transition-all duration-700 pb-32 sm:pb-20 ${isDark ? "bg-[#050505] text-white selection:bg-white/20" : "bg-[#f4f4f0] text-stone-900 selection:bg-stone-900/20"}`}>
-      
+
       {/* ================= FLOATING MOBILE PROGRESS BAR ================= */}
       {step < 4 && (
         <div className="fixed sm:hidden bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-[340px] z-[100] animate-in slide-in-from-bottom-10 duration-700">
@@ -542,7 +541,7 @@ export default function StudentDashboardPage() {
                   </div>
                   <Link href="/student/orders" className={`text-xs font-bold uppercase tracking-widest border-b transition-colors ${isDark ? "border-white/30 text-white/60 hover:text-white hover:border-white" : "border-stone-300 text-stone-500 hover:text-stone-900 hover:border-stone-900"}`}>View History</Link>
                 </div>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   {activeOrders.map((order) => {
                     const fileName = order.file_path ? order.file_path.split("-").slice(1).join("-") : "Document.pdf";
@@ -569,16 +568,16 @@ export default function StudentDashboardPage() {
                         <div className="space-y-3 mb-6">
                           <div className="flex justify-between items-end">
                             {order.status === 'READY' ? (
-                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest animate-pulse border ${isDark ? "bg-green-500/10 border-green-500/30 text-green-400" : "bg-green-50 border-green-200 text-green-600"}`}>OTP: {order.otp || 'Check Email'}</span>
+                              <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest animate-pulse border ${isDark ? "bg-green-500/10 border-green-500/30 text-green-400" : "bg-green-50 border-green-200 text-green-600"}`}>OTP: {order.otp || 'Check Email'}</span>
                             ) : (
-                                <span className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 opacity-80 ${isDark ? 'text-white' : 'text-stone-900'}`}>
-                                    <Activity className="w-3 h-3 animate-spin"/> 
-                                    {order.queue_position === 0 ? "Printing Now" : `${order.queue_position} Ahead (~${(order.queue_position || 0) * 3} min)`}
-                                </span>
+                              <span className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 opacity-80 ${isDark ? 'text-white' : 'text-stone-900'}`}>
+                                <Activity className="w-3 h-3 animate-spin" />
+                                {order.queue_position === 0 ? "Printing Now" : `${order.queue_position} Ahead (~${(order.queue_position || 0) * 3} min)`}
+                              </span>
                             )}
                           </div>
                           <div className={`h-2 w-full rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-stone-100'}`}>
-                              <div className={`h-full transition-all duration-1000 ease-out ${order.status === 'READY' ? 'bg-green-500' : isDark ? 'bg-indigo-500' : 'bg-indigo-500'}`} style={{ width: progress.width }} />
+                            <div className={`h-full transition-all duration-1000 ease-out ${order.status === 'READY' ? 'bg-green-500' : isDark ? 'bg-indigo-500' : 'bg-indigo-500'}`} style={{ width: progress.width }} />
                           </div>
                         </div>
 
@@ -598,7 +597,7 @@ export default function StudentDashboardPage() {
         {/* ================= STEP 2: SHOP SELECTION ================= */}
         {step === 2 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-700">
-            
+
             {/* Header & Sorting Controls */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2 px-2">
               <div>
@@ -607,27 +606,25 @@ export default function StudentDashboardPage() {
                   {searchType === 'nearby' ? 'Showing shops near you' : 'Showing all available shops'}
                 </p>
               </div>
-              
+
               <div className="flex items-center gap-4 w-full sm:w-auto">
                 <div className={`flex items-center p-1 rounded-xl border w-full sm:w-auto ${isDark ? 'bg-[#111111]/80 border-white/10' : 'bg-white border-stone-200'}`}>
-                  <button 
+                  <button
                     onClick={() => userLocation && setSortBy('distance')}
                     disabled={!userLocation}
-                    className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${
-                      sortBy === 'distance' 
-                        ? isDark ? 'bg-white/10 text-white' : 'bg-stone-100 text-stone-900' 
+                    className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${sortBy === 'distance'
+                        ? isDark ? 'bg-white/10 text-white' : 'bg-stone-100 text-stone-900'
                         : isDark ? 'text-white/40 hover:text-white/80' : 'text-stone-400 hover:text-stone-600'
-                    } ${!userLocation && 'opacity-30 cursor-not-allowed'}`}
+                      } ${!userLocation && 'opacity-30 cursor-not-allowed'}`}
                   >
                     Distance
                   </button>
-                  <button 
+                  <button
                     onClick={() => setSortBy('price')}
-                    className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${
-                      sortBy === 'price' 
-                        ? isDark ? 'bg-white/10 text-white' : 'bg-stone-100 text-stone-900' 
+                    className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${sortBy === 'price'
+                        ? isDark ? 'bg-white/10 text-white' : 'bg-stone-100 text-stone-900'
                         : isDark ? 'text-white/40 hover:text-white/80' : 'text-stone-400 hover:text-stone-600'
-                    }`}
+                      }`}
                   >
                     Price
                   </button>
@@ -638,7 +635,7 @@ export default function StudentDashboardPage() {
 
             {/* Split Screen Layout for Map and List */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-300px)] min-h-[600px]">
-              
+
               {/* LEFT: Scrollable List of Shops */}
               <div className="lg:col-span-5 flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar pb-24 lg:pb-0">
                 {sortedShops.map((shop: Shop) => {
@@ -646,21 +643,26 @@ export default function StudentDashboardPage() {
                   const isSelected = selectedShopId === shop.id;
 
                   const queueCount = shopQueues[shop.id] || 0;
-                  const waitMins = queueCount * 3; 
-                  const mapUrl = shop.map_link || `http://googleusercontent.com/maps.google.com/?q=${shop.latitude},${shop.longitude}`;
+                  const waitMins = queueCount * 3;
+                  // 1. Use the official Google Maps Directions format as the fallback
+                  let mapUrl = shop.map_link || `https://www.google.com/maps/dir/?api=1&destination=${shop.latitude},${shop.longitude}`;
+
+                  // 2. Safety Check: If the shop owner pasted a link like "www.google.com" without https://, fix it so it doesn't break
+                  if (shop.map_link && !shop.map_link.startsWith('http')) {
+                    mapUrl = `https://${shop.map_link}`;
+                  }
 
                   return (
                     <div
                       key={shop.id}
                       onClick={() => {
-                        if(isConfigured) setSelectedShopId(shop.id);
+                        if (isConfigured) setSelectedShopId(shop.id);
                         // Note: The map will automatically fly to this shop via the useEffect in ShopDisplayMap
                       }}
-                      className={`relative overflow-hidden border rounded-3xl p-5 transition-all duration-300 flex flex-col justify-between shrink-0 ${
-                        !isConfigured ? "opacity-40 cursor-not-allowed grayscale"
-                        : isSelected ? isDark ? "bg-white/10 border-white shadow-[0_0_30px_rgba(255,255,255,0.1)] ring-1 ring-white/50" : "border-stone-900 ring-2 ring-stone-900 bg-stone-50 shadow-lg"
-                        : isDark ? "border-white/10 bg-[#111111]/80 hover:border-white/30 hover:bg-white/5 cursor-pointer" : "border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm cursor-pointer"
-                      }`}
+                      className={`relative overflow-hidden border rounded-3xl p-5 transition-all duration-300 flex flex-col justify-between shrink-0 ${!isConfigured ? "opacity-40 cursor-not-allowed grayscale"
+                          : isSelected ? isDark ? "bg-white/10 border-white shadow-[0_0_30px_rgba(255,255,255,0.1)] ring-1 ring-white/50" : "border-stone-900 ring-2 ring-stone-900 bg-stone-50 shadow-lg"
+                            : isDark ? "border-white/10 bg-[#111111]/80 hover:border-white/30 hover:bg-white/5 cursor-pointer" : "border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm cursor-pointer"
+                        }`}
                     >
                       <div className="flex justify-between items-start gap-4 mb-4">
                         <div className="flex-1 min-w-0 z-10">
@@ -669,18 +671,18 @@ export default function StudentDashboardPage() {
                             <MapPin className="w-3.5 h-3.5 mt-0.5 opacity-70 shrink-0" />
                             <span className="truncate">{shop.address}</span>
                           </p>
-                          
+
                           <div className="flex items-center flex-wrap gap-2 mt-3">
                             {shop.distanceStr && (
                               <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border ${isDark ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-700'}`}>
                                 {shop.distanceStr} km
                               </span>
                             )}
-                            <a 
-                              href={mapUrl} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
-                              onClick={(e) => e.stopPropagation()} 
+                            <a
+                              href={mapUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
                               className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border flex items-center gap-1 transition-colors ${isDark ? 'bg-white/5 border-white/10 text-white/70 hover:text-white hover:bg-white/10' : 'bg-stone-100 border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-200'}`}
                             >
                               Directions <ExternalLink className="w-3 h-3" />
@@ -698,22 +700,21 @@ export default function StudentDashboardPage() {
 
                       {isConfigured && (
                         <div className="border-t border-dashed border-current border-opacity-20 pt-3 flex justify-between items-center z-10">
-                          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[10px] font-bold uppercase tracking-widest transition-colors ${
-                              queueCount === 0 ? isDark ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-green-50 border-green-200 text-green-700'
+                          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[10px] font-bold uppercase tracking-widest transition-colors ${queueCount === 0 ? isDark ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-green-50 border-green-200 text-green-700'
                               : queueCount > 5 ? isDark ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-700'
-                              : isDark ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-700'
-                          }`}>
-                              {queueCount === 0 ? (
-                                  <><CheckCircle2 className="w-3 h-3" /> No Wait</>
-                              ) : (
-                                  <><Timer className="w-3 h-3" /> ~{waitMins} min wait</>
-                              )}
+                                : isDark ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-700'
+                            }`}>
+                            {queueCount === 0 ? (
+                              <><CheckCircle2 className="w-3 h-3" /> No Wait</>
+                            ) : (
+                              <><Timer className="w-3 h-3" /> ~{waitMins} min wait</>
+                            )}
                           </div>
-                          
+
                           {/* Inline proceed button directly inside the selected card on desktop */}
                           {isSelected && (
-                            <button 
-                              onClick={(e) => { e.stopPropagation(); setStep(3); }} 
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setStep(3); }}
                               className={`hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-widest transition-all ${isDark ? "bg-white text-black hover:bg-gray-200" : "bg-stone-900 text-white hover:bg-black"}`}
                             >
                               Proceed <ArrowRight className="w-3 h-3" />
@@ -728,7 +729,7 @@ export default function StudentDashboardPage() {
 
               {/* RIGHT: The Interactive Map */}
               <div className={`lg:col-span-7 rounded-[2rem] overflow-hidden border shadow-inner relative h-[300px] lg:h-full shrink-0 ${isDark ? "border-white/10" : "border-stone-200"}`}>
-                <ShopDisplayMap 
+                <ShopDisplayMap
                   userLat={userLocation?.lat}
                   userLng={userLocation?.lng}
                   shops={shops as Shop[]}
@@ -746,7 +747,7 @@ export default function StudentDashboardPage() {
                 Proceed to Checkout <ArrowRight className="w-4 h-4" />
               </button>
             </div>
-            
+
           </div>
         )}
 
