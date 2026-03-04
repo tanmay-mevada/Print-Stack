@@ -382,3 +382,36 @@ export async function verifyPickupOTPAction(orderId: string, inputOtp: string) {
     return { success: false, error: "Invalid OTP. Please check your email and try again." }
   }
 }
+
+export async function forgotPasswordAction(formData: FormData) {
+  const email = formData.get('email') as string
+  const supabase = await createClient()
+
+  // Supabase automatically sends the reset email using its built-in templates
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    // This tells Supabase where to send the user AFTER they click the email link
+    redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback?next=/reset-password`,
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return { success: true }
+}
+
+export async function updatePasswordAction(formData: FormData) {
+  const password = formData.get('password') as string
+  const supabase = await createClient()
+
+  // Updates the password for the currently logged-in/verified session
+  const { error } = await supabase.auth.updateUser({
+    password: password
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  redirect('/login?message=Password updated successfully')
+}
