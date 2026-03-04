@@ -3,6 +3,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext"; // <-- Import the provider
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import AuthErrorCatcher from '@/components/AuthErrorCatcher'
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: "PrintStack | Smart Print Shop Management",
@@ -33,6 +35,8 @@ export default function RootLayout({
       <body className="antialiased">
         <Analytics/>
         <SpeedInsights/>
+        <Toaster position="top-center" />
+        <AuthErrorCatcher />
         {/* Wrap children in the ThemeProvider */}
         <ThemeProvider>
           {children}
