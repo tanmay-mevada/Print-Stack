@@ -29,12 +29,15 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const path = request.nextUrl.pathname
 
-  // 2. If no user and trying to access a protected route, send to login
-  if (!user && (path.startsWith('/student') || path.startsWith('/shop') || path.startsWith('/admin'))) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  // 2. Protect Authenticated Routes from Logged-Out Users
+  if (!user) {
+    if (path.startsWith('/student') || path.startsWith('/shop') || path.startsWith('/admin') || path === '/reset-password') {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+    return response // Let them access public pages (like /, /login, /forgot-password)
   }
 
-  // 3. If user is logged in, fetch their role and route them
+  // 3. If user IS logged in, fetch their role and route them appropriately
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
@@ -44,14 +47,14 @@ export async function middleware(request: NextRequest) {
 
     const role = profile?.role
 
-    // Redirect logic based on role
-    if (path.startsWith('/login')) {
+    // Prevent logged-in users from seeing Auth pages (but ALLOW them to see /reset-password)
+    if (path === '/login' || path === '/forgot-password' || path === '/signup') {
       if (role === 'STUDENT') return NextResponse.redirect(new URL('/student/dashboard', request.url))
       if (role === 'SHOP') return NextResponse.redirect(new URL('/shop/dashboard', request.url))
       if (role === 'ADMIN') return NextResponse.redirect(new URL('/admin', request.url))
     }
 
-    // Prevent cross-role access
+    // Prevent cross-role access (e.g., a Student trying to visit /shop)
     if (path.startsWith('/student') && role !== 'STUDENT') return NextResponse.redirect(new URL('/login', request.url))
     if (path.startsWith('/shop') && role !== 'SHOP') return NextResponse.redirect(new URL('/login', request.url))
     if (path.startsWith('/admin') && role !== 'ADMIN') return NextResponse.redirect(new URL('/login', request.url))
