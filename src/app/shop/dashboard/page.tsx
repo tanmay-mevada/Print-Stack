@@ -7,6 +7,8 @@ import { logoutAction } from '@/app/(auth)/actions'
 import { toggleShopActiveStatus } from '../actions'
 import { createClient } from '@/lib/supabase/client'
 import OrderRow from '@/components/OrderRow'
+import NotificationListener from '@/components/NotificationListener'
+import { Toaster } from 'react-hot-toast' // If not already imported
 import LoadingScreen from '@/components/LoadingScreen'
 import { 
   Sun, Moon, LogOut, Store, Settings, Zap, PauseCircle,
@@ -20,10 +22,13 @@ export default function ShopDashboardPage() {
   const { isDark, toggleTheme } = useTheme()
   const [shop, setShop] = useState<any>(null)
   
-  // Order States
+  // Order & Profile States
   const [activeOrders, setActiveOrders] = useState<any[]>([])
   const [completedOrders, setCompletedOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // NEW: State to hold the shop owner's profile picture
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
 
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -37,6 +42,12 @@ export default function ShopDashboardPage() {
     if (!user) {
       if (isInitialLoad) router.push('/login')
       return 
+    }
+
+    // NEW: Fetch Profile Picture
+    const { data: profile } = await supabase.from('profiles').select('profile_pic').eq('id', user.id).single()
+    if (profile?.profile_pic) {
+        setUserAvatar(profile.profile_pic)
     }
 
     let currentShop = shop;
@@ -101,10 +112,8 @@ export default function ShopDashboardPage() {
     <div className={`min-h-screen font-sans transition-colors duration-500 pb-20 ${
         isDark ? 'bg-[#0A0A0A] text-white selection:bg-white/30' : 'bg-[#faf9f6] text-stone-900 selection:bg-black/20'
     }`}>
-      {/* FIXED LAYOUT: 
-        One single wrapper for both Navbar and Content. 
-        Removed the extra pt-28 that was causing the massive gap.
-      */}
+      <Toaster /> 
+      <NotificationListener />
       <div className="p-6 sm:p-8 max-w-6xl mx-auto space-y-8 relative z-10">
         
         {/* ================= NAVBAR ================= */}
@@ -126,13 +135,19 @@ export default function ShopDashboardPage() {
             </button>
             
             <div className="relative block" ref={dropdownRef}>
+              
+              {/* UPDATED: Profile Picture Icon */}
               <button 
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-10 h-10 sm:w-11 sm:h-11 border rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                className={`w-10 h-10 sm:w-11 sm:h-11 border rounded-full overflow-hidden flex items-center justify-center text-sm font-bold transition-all duration-300 ${
                   isDark ? 'border-white/20 bg-[#111111] hover:bg-white/10 text-white' : 'border-stone-300 bg-white hover:bg-stone-100 text-stone-900 shadow-sm'
                 }`}
               >
-                {shop?.name ? shop.name.charAt(0).toUpperCase() : 'S'}
+                {userAvatar ? (
+                    <img src={userAvatar} alt="Shop Profile" className="w-full h-full object-cover" />
+                ) : (
+                    shop?.name ? shop.name.charAt(0).toUpperCase() : 'S'
+                )}
               </button>
 
               {/* Dropdown Menu */}
@@ -141,7 +156,6 @@ export default function ShopDashboardPage() {
                   isDark ? 'bg-[#111111] border-white/10 shadow-black' : 'bg-white border-stone-200 shadow-stone-200/50'
                 }`}>
                   <div className={`p-2 border-b ${isDark ? 'border-white/10' : 'border-stone-100'}`}>
-                    {/* NEW: Analytics Link inside dropdown */}
                     <Link href="/shop/analytics" onClick={() => setIsOpen(false)} className={`flex items-center gap-3 p-3 rounded-xl text-sm font-bold transition-colors ${isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'}`}>
                       <BarChart3 className="w-4 h-4 opacity-70" /> Analytics
                     </Link>
