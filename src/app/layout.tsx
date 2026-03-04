@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext"; // <-- Import the provider
+import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata: Metadata = {
   title: "PrintStack | Smart Print Shop Management",
@@ -29,6 +31,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
+        <Analytics/>
+        <SpeedInsights/>
         {/* Wrap children in the ThemeProvider */}
         <ThemeProvider>
           {children}
