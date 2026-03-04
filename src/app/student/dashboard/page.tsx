@@ -29,6 +29,8 @@ import {
   ArrowUpDown
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
+import dynamic from 'next/dynamic'
+const ShopDisplayMap = dynamic(() => import('@/components/ShopDisplayMap'), { ssr: false })
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -595,10 +597,10 @@ export default function StudentDashboardPage() {
 
         {/* ================= STEP 2: SHOP SELECTION ================= */}
         {step === 2 && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-700">
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-700">
             
             {/* Header & Sorting Controls */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8 px-2">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2 px-2">
               <div>
                 <h2 className="text-4xl font-black tracking-tight mb-2">Select a Shop</h2>
                 <p className={`font-bold text-xs uppercase tracking-widest ${isDark ? "text-white/40" : "text-stone-400"}`}>
@@ -630,85 +632,121 @@ export default function StudentDashboardPage() {
                     Price
                   </button>
                 </div>
-                <button onClick={() => setStep(1)} className={`shrink-0 font-bold text-xs uppercase tracking-widest border-b transition-all ${isDark ? "border-white/50 hover:border-white" : "border-stone-400 hover:border-stone-900"}`}>← Back</button>
+                <button onClick={() => setStep(1)} className={`shrink-0 font-bold text-xs uppercase tracking-widest border-b transition-all hidden sm:block ${isDark ? "border-white/50 hover:border-white" : "border-stone-400 hover:border-stone-900"}`}>← Back</button>
               </div>
             </div>
 
-            {/* List Layout (Vertical Stack of Horizontal Cards) */}
-            <div className="flex flex-col gap-4">
-              {sortedShops.map((shop: Shop) => {
-                const isConfigured = shop.exactPriceStr !== null && shop.exactPriceStr !== undefined;
-                const isSelected = selectedShopId === shop.id;
+            {/* Split Screen Layout for Map and List */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-300px)] min-h-[600px]">
+              
+              {/* LEFT: Scrollable List of Shops */}
+              <div className="lg:col-span-5 flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar pb-24 lg:pb-0">
+                {sortedShops.map((shop: Shop) => {
+                  const isConfigured = shop.exactPriceStr !== null && shop.exactPriceStr !== undefined;
+                  const isSelected = selectedShopId === shop.id;
 
-                const queueCount = shopQueues[shop.id] || 0;
-                const waitMins = queueCount * 3; 
-                const mapUrl = shop.map_link || `http://googleusercontent.com/maps.google.com/?q=${shop.latitude},${shop.longitude}`;
+                  const queueCount = shopQueues[shop.id] || 0;
+                  const waitMins = queueCount * 3; 
+                  const mapUrl = shop.map_link || `http://googleusercontent.com/maps.google.com/?q=${shop.latitude},${shop.longitude}`;
 
-                return (
-                  <div
-                    key={shop.id}
-                    onClick={() => isConfigured && setSelectedShopId(shop.id)}
-                    className={`relative overflow-hidden border rounded-3xl p-5 sm:p-8 transition-all duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 ${
-                      !isConfigured ? "opacity-40 cursor-not-allowed grayscale"
-                      : isSelected ? isDark ? "bg-white/10 border-white shadow-[0_0_30px_rgba(255,255,255,0.1)] ring-1 ring-white/50 scale-[1.01]" : "border-stone-900 ring-2 ring-stone-900 bg-stone-50 shadow-lg scale-[1.01]"
-                      : isDark ? "border-white/10 bg-[#111111]/80 hover:border-white/30 hover:bg-white/5 cursor-pointer" : "border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm cursor-pointer"
-                    }`}
-                  >
-                    <div className="flex-1 min-w-0 z-10">
-                      <h3 className="font-black text-2xl tracking-tight mb-2 truncate">{shop.name}</h3>
-                      <p className={`text-sm font-medium flex items-start gap-1.5 truncate ${isDark ? "text-white/60" : "text-stone-500"}`}>
-                        <MapPin className="w-4 h-4 mt-0.5 opacity-70 shrink-0" />
-                        <span className="truncate">{shop.address}</span>
-                      </p>
-                      
-                      <div className="flex items-center flex-wrap gap-2 mt-4">
-                        {shop.distanceStr && (
-                          <span className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md border ${isDark ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-700'}`}>
-                            {shop.distanceStr} km away
-                          </span>
-                        )}
-                        <a 
-                          href={mapUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          onClick={(e) => e.stopPropagation()} 
-                          className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md border flex items-center gap-1 transition-colors ${isDark ? 'bg-white/5 border-white/10 text-white/70 hover:text-white hover:bg-white/10' : 'bg-stone-100 border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-200'}`}
-                        >
-                          <Map className="w-3 h-3" /> Map <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
-                    </div>
-
-                    {isConfigured && (
-                      <div className={`flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto mt-2 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-dashed border-current border-opacity-20 gap-4 sm:gap-6 z-10 shrink-0`}>
-                        
-                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${
-                            queueCount === 0 ? isDark ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-green-50 border-green-200 text-green-700'
-                            : queueCount > 5 ? isDark ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-700'
-                            : isDark ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-700'
-                        }`}>
-                            {queueCount === 0 ? (
-                                <><CheckCircle2 className="w-3.5 h-3.5" /> No Wait</>
-                            ) : (
-                                <><Timer className="w-3.5 h-3.5" /> ~{waitMins} min wait</>
+                  return (
+                    <div
+                      key={shop.id}
+                      onClick={() => {
+                        if(isConfigured) setSelectedShopId(shop.id);
+                        // Note: The map will automatically fly to this shop via the useEffect in ShopDisplayMap
+                      }}
+                      className={`relative overflow-hidden border rounded-3xl p-5 transition-all duration-300 flex flex-col justify-between shrink-0 ${
+                        !isConfigured ? "opacity-40 cursor-not-allowed grayscale"
+                        : isSelected ? isDark ? "bg-white/10 border-white shadow-[0_0_30px_rgba(255,255,255,0.1)] ring-1 ring-white/50" : "border-stone-900 ring-2 ring-stone-900 bg-stone-50 shadow-lg"
+                        : isDark ? "border-white/10 bg-[#111111]/80 hover:border-white/30 hover:bg-white/5 cursor-pointer" : "border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm cursor-pointer"
+                      }`}
+                    >
+                      <div className="flex justify-between items-start gap-4 mb-4">
+                        <div className="flex-1 min-w-0 z-10">
+                          <h3 className="font-black text-xl tracking-tight mb-1 truncate">{shop.name}</h3>
+                          <p className={`text-xs font-medium flex items-start gap-1.5 truncate ${isDark ? "text-white/60" : "text-stone-500"}`}>
+                            <MapPin className="w-3.5 h-3.5 mt-0.5 opacity-70 shrink-0" />
+                            <span className="truncate">{shop.address}</span>
+                          </p>
+                          
+                          <div className="flex items-center flex-wrap gap-2 mt-3">
+                            {shop.distanceStr && (
+                              <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border ${isDark ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-700'}`}>
+                                {shop.distanceStr} km
+                              </span>
                             )}
+                            <a 
+                              href={mapUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              onClick={(e) => e.stopPropagation()} 
+                              className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border flex items-center gap-1 transition-colors ${isDark ? 'bg-white/5 border-white/10 text-white/70 hover:text-white hover:bg-white/10' : 'bg-stone-100 border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-200'}`}
+                            >
+                              Directions <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
                         </div>
 
-                        <div className="text-right">
-                          <span className={`text-[10px] font-bold uppercase tracking-widest block mb-1 ${isDark ? "text-white/40" : "text-stone-400"}`}>Cost</span>
-                          <div className="text-3xl font-black tracking-tighter">₹{shop.exactPriceStr}</div>
-                        </div>
-
+                        {isConfigured && (
+                          <div className="text-right shrink-0">
+                            <span className={`text-[10px] font-bold uppercase tracking-widest block mb-1 ${isDark ? "text-white/40" : "text-stone-400"}`}>Cost</span>
+                            <div className="text-2xl font-black tracking-tighter">₹{shop.exactPriceStr}</div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+
+                      {isConfigured && (
+                        <div className="border-t border-dashed border-current border-opacity-20 pt-3 flex justify-between items-center z-10">
+                          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                              queueCount === 0 ? isDark ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-green-50 border-green-200 text-green-700'
+                              : queueCount > 5 ? isDark ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-700'
+                              : isDark ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-700'
+                          }`}>
+                              {queueCount === 0 ? (
+                                  <><CheckCircle2 className="w-3 h-3" /> No Wait</>
+                              ) : (
+                                  <><Timer className="w-3 h-3" /> ~{waitMins} min wait</>
+                              )}
+                          </div>
+                          
+                          {/* Inline proceed button directly inside the selected card on desktop */}
+                          {isSelected && (
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); setStep(3); }} 
+                              className={`hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-widest transition-all ${isDark ? "bg-white text-black hover:bg-gray-200" : "bg-stone-900 text-white hover:bg-black"}`}
+                            >
+                              Proceed <ArrowRight className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* RIGHT: The Interactive Map */}
+              <div className={`lg:col-span-7 rounded-[2rem] overflow-hidden border shadow-inner relative h-[300px] lg:h-full shrink-0 ${isDark ? "border-white/10" : "border-stone-200"}`}>
+                <ShopDisplayMap 
+                  userLat={userLocation?.lat}
+                  userLng={userLocation?.lng}
+                  shops={shops as Shop[]}
+                  selectedShopId={selectedShopId}
+                  onShopSelect={(id) => setSelectedShopId(id)}
+                  isDark={isDark}
+                />
+              </div>
+
             </div>
 
-            <button onClick={() => setStep(3)} disabled={!selectedShopId} className={`relative w-full mt-4 py-5 rounded-[2rem] font-black text-lg tracking-widest uppercase transition-all duration-500 flex items-center justify-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden ${isDark ? "bg-white text-black hover:bg-gray-200 shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:-translate-y-1" : "bg-stone-900 text-white hover:bg-black shadow-xl hover:-translate-y-1"}`}>
-              <span className="relative z-10 flex items-center gap-3">Proceed to Checkout <ArrowRight className="w-6 h-6 transition-transform group-hover:translate-x-1" /></span>
-            </button>
+            {/* Floating Proceed Button (Mobile Only) */}
+            <div className="lg:hidden fixed bottom-24 left-0 right-0 px-6 z-50">
+              <button onClick={() => setStep(3)} disabled={!selectedShopId} className={`w-full py-4 rounded-[2rem] font-black text-sm tracking-widest uppercase transition-all duration-500 flex items-center justify-center gap-3 shadow-2xl disabled:opacity-0 disabled:translate-y-10 ${isDark ? "bg-white text-black" : "bg-stone-900 text-white"}`}>
+                Proceed to Checkout <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+            
           </div>
         )}
 
