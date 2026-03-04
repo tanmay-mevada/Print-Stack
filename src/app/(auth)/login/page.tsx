@@ -39,10 +39,14 @@ export default function LoginPage() {
       setLoading(false);
     } else if (res?.success) {
       // Redirect based on the role returned from your database
-      if (res?.role === "shopkeeper" || res?.role === "admin") {
+      if (res?.role === "shopkeeper") {
+        router.push("/shopkeeper/dashboard");
+      } 
+      else if (res?.role == "admin") {
         router.push("/admin/dashboard");
-      } else {
-        router.push("/student");
+      }
+      else {
+        router.push("/student/dashboard");
       }
     }
   }
