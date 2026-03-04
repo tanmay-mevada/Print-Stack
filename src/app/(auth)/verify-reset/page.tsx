@@ -13,7 +13,7 @@ function VerifyResetContent() {
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState('')
 
-  // Safely extract the parameters using the Next.js Hook
+  // Safely extract the parameters using the Next.js
   const code = searchParams.get('code')
   const errorParam = searchParams.get('error')
   const errorDesc = searchParams.get('error_description')
