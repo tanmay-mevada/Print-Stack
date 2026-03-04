@@ -412,11 +412,15 @@ export async function updatePasswordAction(formData: FormData) {
   redirect('/login?message=Password updated successfully')
 }
 
-export async function consumeResetCodeAction(code: string) {
+export async function consumeResetCodeAction(tokenHash: string) {
   const supabase = await createClient()
   
-  // This is the function that actually consumes the token securely
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
+  // Use verifyOtp with 'recovery' instead of exchangeCodeForSession
+  // This securely verifies the user WITHOUT needing the originating browser cookie!
+  const { error } = await supabase.auth.verifyOtp({
+    token_hash: tokenHash,
+    type: 'recovery'
+  })
   
   if (error) {
     return { error: error.message }
