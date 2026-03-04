@@ -9,30 +9,34 @@ import crypto from 'crypto'
 export async function updateShopProfileAction(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
   if (!user) return { error: 'Not authenticated' }
 
-  const name = formData.get('name') as string
-  const address = formData.get('address') as string
-  const phone = formData.get('phone') as string
-  const latitude = parseFloat(formData.get('latitude') as string)
-  const longitude = parseFloat(formData.get('longitude') as string)
-  const map_link = formData.get('map_link') as string // <-- NEW: Grab the link
-
-  const { data: existingShop } = await supabase.from('shops').select('id').eq('owner_id', user.id).single()
-
-  if (existingShop) {
-    const { error } = await supabase.from('shops')
-      .update({ name, address, phone, latitude, longitude, map_link }) // <-- NEW: Update link
-      .eq('id', existingShop.id)
-    if (error) return { error: error.message }
-  } else {
-    const { error } = await supabase.from('shops')
-      .insert({ owner_id: user.id, name, address, phone, latitude, longitude, map_link }) // <-- NEW: Insert link
-    if (error) return { error: error.message }
+  // Extract ALL fields, INCLUDING the 3 new images!
+  const updates = {
+    name: formData.get('name') as string,
+    phone: formData.get('phone') as string,
+    address: formData.get('address') as string,
+    latitude: parseFloat(formData.get('latitude') as string),
+    longitude: parseFloat(formData.get('longitude') as string),
+    map_link: formData.get('map_link') as string,
+    // 👇 THESE ARE THE MISSING LINES 👇
+    image_1: formData.get('image_1') as string | null,
+    image_2: formData.get('image_2') as string | null,
+    image_3: formData.get('image_3') as string | null,
   }
 
-  revalidatePath('/shop')
-  revalidatePath('/shop/profile')
+  // Save to the shops table
+  const { error } = await supabase
+    .from('shops')
+    .update(updates)
+    .eq('owner_id', user.id)
+
+  if (error) {
+    console.error("Error updating shop profile:", error)
+    return { error: error.message }
+  }
+
   return { success: true }
 }
 

@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { updateShopProfileAction, resolveGoogleMapsLinkAction } from '../actions'
 import SmartLocationPicker from '@/components/SmartLocationPicker'
 import LoadingScreen from '@/components/LoadingScreen'
-import { MapPin, Link2, Loader2, CheckCircle2 } from 'lucide-react'
+import { MapPin, Link2, Loader2, CheckCircle2, ImagePlus, X } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
 import toast, { Toaster } from 'react-hot-toast'
 
@@ -24,7 +24,10 @@ export default function ShopProfilePage() {
   const [parsingLink, setParsingLink] = useState(false)
   const [linkSuccess, setLinkSuccess] = useState(false)
 
-  // Standardized Map Link Generator
+  // NEW: Image Upload State
+  // Holds either the existing URL string (from DB) or a new File object
+  const [images, setImages] = useState<[File | string | null, File | string | null, File | string | null]>([null, null, null]);
+
   const generatedMapLink = `https://www.google.com/maps?q=${coords.lat},${coords.lng}`
 
   useEffect(() => {
@@ -36,10 +39,15 @@ export default function ShopProfilePage() {
         if (data) {
           setShop(data)
           setCoords({ lat: data.latitude, lng: data.longitude })
-          // If they already have a saved link, pre-fill the input box!
           if (data.map_link) {
             setMapsInput(data.map_link)
           }
+          // Load existing images if they exist
+          setImages([
+            data.image_1 || null,
+            data.image_2 || null,
+            data.image_3 || null
+          ])
         }
       }
       setLoading(false)
@@ -49,7 +57,7 @@ export default function ShopProfilePage() {
 
   const handleLocationChange = useCallback((lat: number, lng: number) => {
     setCoords({ lat, lng })
-    setLinkSuccess(false) // Reset success if they drag the pin manually
+    setLinkSuccess(false) 
   }, [])
 
   const handleMapsLinkPaste = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,38 +84,134 @@ export default function ShopProfilePage() {
     setParsingLink(false)
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setSaving(true)
-    
-    const savingToast = toast.loading('Saving shop profile...')
+  // Handle Image Selection
+  const handleImageSelect = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0]) {
+          const newFile = e.target.files[0];
+          
+          // Basic validation
+          if (!newFile.type.startsWith('image/')) {
+              toast.error("Please upload an image file.");
+              return;
+          }
+          if (newFile.size > 5 * 1024 * 1024) { // 5MB limit
+              toast.error("Image must be less than 5MB.");
+              return;
+          }
 
+          const newImages = [...images] as typeof images;
+          newImages[index] = newFile;
+          setImages(newImages);
+      }
+  }
+
+  // Remove Image
+  const removeImage = (index: number) => {
+      const newImages = [...images] as typeof images;
+      newImages[index] = null;
+      setImages(newImages);
+  }
+
+  // Upload an individual file to Supabase Storage
+  const uploadImageToStorage = async (file: File, index: number, supabase: any): Promise<string | null> => {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `shop_${shop?.id}_img${index + 1}_${Date.now()}.${fileExt}`;
+      const filePath = `shop_images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+          .from('shop_images')
+          .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+          console.error("Upload Error:", uploadError);
+          return null;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+          .from('shop_images')
+          .getPublicUrl(filePath);
+
+      return publicUrlData.publicUrl;
+  }
+
+ async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    
+    if (images.some(img => img === null)) {
+        toast.error("You must upload exactly 3 photos of your shop.");
+        return;
+    }
+
+    setSaving(true)
+    const savingToast = toast.loading('Saving shop profile & uploading images...')
+
+    const supabase = createClient()
     const formData = new FormData(e.currentTarget)
     formData.set('latitude', coords.lat.toString())
     formData.set('longitude', coords.lng.toString())
     
-    // INTELLIGENT LINK SAVING:
-    // If they used the Link method and it succeeded, save their exact pasted link.
-    // Otherwise, save the dynamically generated one based on the pin.
-    const finalMapLink = (locationMode === 'link' && linkSuccess && mapsInput) 
-      ? mapsInput 
-      : generatedMapLink;
-      
+    const finalMapLink = (locationMode === 'link' && linkSuccess && mapsInput) ? mapsInput : generatedMapLink;
     formData.set('map_link', finalMapLink)
 
-    const res = await updateShopProfileAction(formData)
-    
-    toast.dismiss(savingToast)
+    try {
+        console.log("--- STARTING UPLOAD PROCESS ---");
+        const finalImageUrls: string[] = [];
+        
+        for (let i = 0; i < 3; i++) {
+            const img = images[i];
+            if (img instanceof File) {
+                console.log(`Uploading Image ${i+1}...`);
+                const fileExt = img.name.split('.').pop();
+                const fileName = `shop_${shop?.id}_img${i + 1}_${Date.now()}.${fileExt}`;
+                
+                // Upload to Supabase Storage
+                const { error: uploadError } = await supabase.storage
+                    .from('shop_images')
+                    .upload(fileName, img, { upsert: true });
 
-    if (res?.error) {
-        toast.error(res.error)
-    } else if (res?.success) {
-        toast.success("Profile saved successfully!")
+                if (uploadError) {
+                    console.error(`Supabase Storage Error for Image ${i+1}:`, uploadError);
+                    throw new Error(`Storage Error: ${uploadError.message}`);
+                }
+
+                // Get Public URL
+                const { data: publicUrlData } = supabase.storage
+                    .from('shop_images')
+                    .getPublicUrl(fileName);
+
+                console.log(`Image ${i+1} Uploaded! URL:`, publicUrlData.publicUrl);
+                finalImageUrls.push(publicUrlData.publicUrl);
+            } else if (typeof img === 'string') {
+                finalImageUrls.push(img);
+            }
+        }
+
+        console.log("All 3 URLs generated:", finalImageUrls);
+
+        formData.set('image_1', finalImageUrls[0]);
+        formData.set('image_2', finalImageUrls[1]);
+        formData.set('image_3', finalImageUrls[2]);
+
+        console.log("Sending to actions.ts...");
+        const res = await updateShopProfileAction(formData)
+        
+        toast.dismiss(savingToast)
+
+        if (res?.error) {
+            console.error("Database Update Error:", res.error);
+            toast.error(`Database Error: ${res.error}`)
+        } else if (res?.success) {
+            console.log("--- SUCCESS! Profile Saved ---");
+            toast.success("Profile saved successfully!")
+        }
+    } catch (error: any) {
+        console.error("Caught Error in handleSubmit:", error);
+        toast.dismiss(savingToast)
+        toast.error(error.message || "An error occurred while saving.");
+    } finally {
+        setSaving(false)
     }
-    
-    setSaving(false)
   }
-
   if (loading) return <LoadingScreen isDark={isDark} />
 
   return (
@@ -214,11 +318,65 @@ export default function ShopProfilePage() {
             </div>
           </div>
 
-          {/* SECTION 2: Location Setup */}
+          {/* SECTION 2: Shop Images (COMPULSORY) */}
+          <div>
+            <div className="flex justify-between items-end mb-6 pb-2 border-b border-current border-opacity-10">
+              <h2 className={`text-sm font-black uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-stone-400'}`}>2. Shop Photos</h2>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-red-500">* Required (3/3)</span>
+            </div>
+            
+            <p className={`text-xs mb-4 font-medium ${isDark ? 'text-white/50' : 'text-stone-500'}`}>
+                Upload exactly 3 clear photos of your storefront and printers. This helps students verify they are at the correct location.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[0, 1, 2].map((index) => {
+                  const img = images[index];
+                  // Determine preview URL based on if it's a new File or existing string
+                  const previewUrl = img instanceof File ? URL.createObjectURL(img) : img;
+
+                  return (
+                      <div key={index} className={`relative aspect-square rounded-2xl border-2 border-dashed overflow-hidden flex flex-col items-center justify-center transition-all ${
+                          previewUrl 
+                          ? (isDark ? 'border-white/20' : 'border-stone-300') 
+                          : (isDark ? 'border-white/10 hover:border-white/30 bg-white/5' : 'border-stone-200 hover:border-stone-400 bg-stone-50')
+                      }`}>
+                          {previewUrl ? (
+                              <>
+                                  <img src={previewUrl} alt={`Shop ${index + 1}`} className="absolute inset-0 w-full h-full object-cover" />
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                                      <button 
+                                          type="button"
+                                          onClick={() => removeImage(index)}
+                                          className="p-3 bg-red-500 text-white rounded-full hover:scale-110 transition-transform shadow-xl"
+                                      >
+                                          <X className="w-5 h-5" />
+                                      </button>
+                                  </div>
+                              </>
+                          ) : (
+                              <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer p-4 text-center">
+                                  <input 
+                                      type="file" 
+                                      accept="image/*" 
+                                      className="hidden" 
+                                      onChange={(e) => handleImageSelect(index, e)} 
+                                  />
+                                  <ImagePlus className={`w-8 h-8 mb-2 ${isDark ? 'text-white/30' : 'text-stone-400'}`} />
+                                  <span className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-stone-500'}`}>Upload Photo {index + 1}</span>
+                              </label>
+                          )}
+                      </div>
+                  );
+              })}
+            </div>
+          </div>
+
+          {/* SECTION 3: Location Setup */}
           <div>
             <h2 className={`text-sm font-black uppercase tracking-widest mb-6 pb-2 border-b ${
                 isDark ? 'text-white/40 border-white/10' : 'text-stone-400 border-stone-200'
-            }`}>2. Map Pin Setup</h2>
+            }`}>3. Map Pin Setup</h2>
             
             <div className="flex gap-4 mb-6">
               <button
@@ -315,7 +473,7 @@ export default function ShopProfilePage() {
             <button disabled={saving} className={`w-full rounded-xl py-5 text-sm font-black uppercase tracking-widest transition-all shadow-xl disabled:opacity-50 hover:-translate-y-1 ${
                 isDark ? 'bg-white text-black hover:bg-gray-200 shadow-white/10 hover:shadow-white/20' : 'bg-stone-900 text-white hover:bg-black shadow-stone-900/20 hover:shadow-stone-900/30'
             }`}>
-              {saving ? 'SAVING PROFILE...' : 'SAVE SHOP PROFILE'}
+              {saving ? 'SAVING PROFILE & UPLOADING...' : 'SAVE SHOP PROFILE'}
             </button>
           </div>
         </form>

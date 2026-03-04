@@ -8,7 +8,7 @@ export async function fetchAvailableShopsAction(lat?: number, lng?: number) {
   let shopsResult: any[] = []
   let type = 'all'
 
-  // 1. Try Nearby Shops
+  // 1. Try Nearby Shops (Uses the SQL function we updated earlier)
   if (lat && lng) {
     const { data: nearbyShops, error: rpcError } = await supabase.rpc('get_nearby_shops', {
       user_lat: lat, user_lon: lng, radius_meters: 5000
@@ -21,21 +21,30 @@ export async function fetchAvailableShopsAction(lat?: number, lng?: number) {
 
   // 2. Fallback to All Shops
   if (shopsResult.length === 0) {
-    const { data: allShops } = await supabase.from('shops').select('id, name, address, phone, latitude, longitude').eq('is_active', true)
+    // 👇 WE ADDED image_1, image_2, image_3 HERE 👇
+    const { data: allShops } = await supabase
+      .from('shops')
+      .select('id, name, address, phone, latitude, longitude, image_1, image_2, image_3') 
+      .eq('is_active', true)
+      
     shopsResult = allShops || []
   }
 
   // 3. FETCH PRICING FOR THESE SHOPS
+  // 3. FETCH PRICING FOR THESE SHOPS
   if (shopsResult.length > 0) {
-    const shopIds = shopsResult.map(s => s.id)
+    const shopIds = shopsResult.map((s: any) => s.id)
     const { data: pricingData } = await supabase.from('pricing_configs').select('*').in('shop_id', shopIds)
     
     // Merge pricing into the shop objects
-    shopsResult = shopsResult.map(shop => ({
+    shopsResult = shopsResult.map((shop: any) => ({
       ...shop,
-      pricing: pricingData?.find(p => p.shop_id === shop.id) || null
+      pricing: pricingData?.find((p: any) => p.shop_id === shop.id) || null
     }))
   }
+
+  // 👇 ADD THIS EXACT LINE 👇
+  console.log("SERVER CHECK - Data from DB:", JSON.stringify(shopsResult[0], null, 2));
 
   return { type, shops: shopsResult }
 }
