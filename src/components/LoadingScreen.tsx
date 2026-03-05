@@ -18,7 +18,7 @@ export default function LoadingScreen({ isDark = true }: { isDark?: boolean }) {
                 <div className="relative w-28 h-28 mb-8 animate-[bounce_3s_infinite]">
                     <Image 
                         // DYNAMIC LOGO SWITCHING HERE
-                        src={isDark ? "/pwhitex.png" : "/pblackx.png"} 
+                        src={isDark ? "/pblackx.png" : "/pwhitex.png"} 
                         alt="PrintStack Logo" 
                         fill 
                         priority
