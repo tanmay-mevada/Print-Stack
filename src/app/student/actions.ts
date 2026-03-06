@@ -4,8 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
 import { revalidatePath } from 'next/cache'
 import nodemailer from 'nodemailer'
-
-import { unstable_noStore as noStore } from 'next/cache'; // 1. Import Cache Killer
+import { unstable_noStore as noStore } from 'next/cache';
 
 // ============================================================================
 // MAILER CONFIGURATION & TEMPLATES (Student Side)
@@ -57,27 +56,43 @@ async function sendOrderConfirmationEmail(to: string, name: string, orderId: str
 }
 
 // ============================================================================
+// ADVANCED PRICING MATH UTILITIES
+// ============================================================================
+
+// Converts a string like "1, 3-5" into a JavaScript Set: {1, 3, 4, 5}
+function parsePageRange(rangeStr: string, maxPages: number): Set<number> {
+  const pages = new Set<number>();
+  if (!rangeStr) return pages;
+  
+  const parts = rangeStr.split(',').map(p => p.trim());
+  for (const part of parts) {
+    if (part.includes('-')) {
+      const [start, end] = part.split('-').map(Number);
+      if (start && end && start <= end) {
+        for (let i = start; i <= Math.min(end, maxPages); i++) pages.add(i);
+      }
+    } else {
+      const num = Number(part);
+      if (num && num <= maxPages) pages.add(num);
+    }
+  }
+  return pages;
+}
+
+// ============================================================================
 // STUDENT ACTIONS
 // ============================================================================
 
 export async function fetchAvailableShopsAction(lat?: number, lng?: number) {
-  noStore(); // 2. Force Next.js to run a fresh query every single time
-  
+  noStore(); // Prevents aggressive caching of the shops list
   const supabase = await createClient()
 
-  console.log("=== FETCHING SHOPS (SERVER) ===") // 3. Debugging
-
-  const { data: allShops, error } = await supabase
+  const { data: allShops } = await supabase
     .from('shops')
     .select('id, name, address, phone, latitude, longitude, map_link, owner_id, is_active, paused_until')
   
-  // Print the raw results to your VS Code terminal
-  console.log("DB Error:", error?.message || "None");
-  console.log("Shops found in DB:", allShops?.map(s => ({ name: s.name, active: s.is_active })));
-
   let shopsResult = allShops || []
 
-  // 2. FETCH PRICING AND PROFILES
   if (shopsResult.length > 0) {
     const shopIds = shopsResult.map((s: any) => s.id)
     const ownerIds = [...new Set(shopsResult.map((s: any) => s.owner_id).filter(Boolean))]
@@ -97,7 +112,20 @@ export async function fetchAvailableShopsAction(lat?: number, lng?: number) {
   return { type: (lat && lng) ? 'nearby' : 'all', shops: shopsResult }
 }
 
-export async function submitOrderAction(payload: { shopId: string; filePath: string; config: { print_type: 'BW' | 'COLOR'; sided: 'SINGLE' | 'DOUBLE'; copies: number; total_pages: number; }; }) {
+export async function submitOrderAction(payload: { 
+  shopId: string; 
+  filePath: string; 
+  config: { 
+    print_type: 'BW' | 'COLOR' | 'MIXED'; 
+    sided: 'SINGLE' | 'DOUBLE' | 'MIXED'; 
+    copies: number; 
+    total_pages: number;
+    color_pages?: string;
+    bw_pages?: string;
+    single_pages?: string;
+    double_pages?: string;
+  }; 
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
@@ -105,14 +133,48 @@ export async function submitOrderAction(payload: { shopId: string; filePath: str
   const { data: pricing } = await supabase.from('pricing_configs').select('*').eq('shop_id', payload.shopId).single()
   if (!pricing) return { error: 'Missing pricing config.' }
 
-  let pricePerPage = payload.config.print_type === 'COLOR' ? pricing.color_price : pricing.bw_price;
-  let sideModifier = payload.config.sided === 'DOUBLE' ? pricing.double_side_modifier : 1;
-  const finalExactPrice = (pricePerPage * sideModifier) * payload.config.total_pages * payload.config.copies;
+  // THE MATRIX PRICING ENGINE
+  let finalExactPrice = 0;
 
+  if (payload.config.print_type === 'MIXED' || payload.config.sided === 'MIXED') {
+    // If they used Advanced Settings, calculate page by page
+    const colorSet = parsePageRange(payload.config.color_pages || '', payload.config.total_pages);
+    const doubleSet = parsePageRange(payload.config.double_pages || '', payload.config.total_pages);
+    
+    let totalCostForOneCopy = 0;
+    
+    for (let i = 1; i <= payload.config.total_pages; i++) {
+      const isColor = payload.config.print_type === 'COLOR' || (payload.config.print_type === 'MIXED' && colorSet.has(i));
+      const isDouble = payload.config.sided === 'DOUBLE' || (payload.config.sided === 'MIXED' && doubleSet.has(i));
+      
+      const basePrice = isColor ? pricing.color_price : pricing.bw_price;
+      const modifier = isDouble ? pricing.double_side_modifier : 1;
+      
+      totalCostForOneCopy += (basePrice * modifier);
+    }
+    finalExactPrice = totalCostForOneCopy * payload.config.copies;
+  } else {
+    // Standard basic calculation
+    let pricePerPage = payload.config.print_type === 'COLOR' ? pricing.color_price : pricing.bw_price;
+    let sideModifier = payload.config.sided === 'DOUBLE' ? pricing.double_side_modifier : 1;
+    finalExactPrice = (pricePerPage * sideModifier) * payload.config.total_pages * payload.config.copies;
+  }
+
+  // Insert into database with the new columns
   const { data: newOrder, error } = await supabase.from('orders').insert({
-    student_id: user.id, shop_id: payload.shopId, file_path: payload.filePath,
-    total_pages: payload.config.total_pages, print_type: payload.config.print_type, sided: payload.config.sided,
-    copies: payload.config.copies, total_price: finalExactPrice, status: 'CREATED' 
+    student_id: user.id, 
+    shop_id: payload.shopId, 
+    file_path: payload.filePath,
+    total_pages: payload.config.total_pages, 
+    print_type: payload.config.print_type, 
+    sided: payload.config.sided,
+    copies: payload.config.copies, 
+    color_pages: payload.config.color_pages || null,
+    bw_pages: payload.config.bw_pages || null,
+    single_pages: payload.config.single_pages || null,
+    double_pages: payload.config.double_pages || null,
+    total_price: finalExactPrice, 
+    status: 'CREATED' 
   }).select('id').single()
 
   if (error) return { error: error.message }
@@ -147,16 +209,13 @@ export async function submitOrderAction(payload: { shopId: string; filePath: str
 export async function verifyPaymentSuccessAction(orderId: string) {
   const supabase = await createClient()
   
-  // Update order to PAID
   const { data: order, error } = await supabase.from('orders').update({ status: 'PAID' }).eq('id', orderId).select('*, profiles:student_id(email, name), shops(name, owner_id)').single()
   if (error || !order) return { error: "Failed to verify order" }
 
-  // Send Confirmation Email to Student
   if (order.profiles?.email) {
       await sendOrderConfirmationEmail(order.profiles.email, order.profiles.name || 'Student', order.id, order.shops?.name || 'Print Shop', order.total_price);
   }
 
-  // Push Notification to Shop Owner
   if (order.shops?.owner_id) {
       await supabase.from('notifications').insert({
           user_id: order.shops.owner_id,
