@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { updateOrderStatusAction, verifyPickupOTPAction, getDownloadUrlAction } from '@/app/shop/actions'
-import { ArrowLeft, FileText, Download, CheckCircle2, Clock, User, FileDigit, RefreshCw, KeyRound, X } from 'lucide-react'
+import { ArrowLeft, FileText, Download, CheckCircle2, Clock, User, FileDigit, RefreshCw, KeyRound, X, AlertCircle } from 'lucide-react'
 import toast, { Toaster } from 'react-hot-toast'
 import LoadingScreen from '@/components/LoadingScreen'
 import { useTheme } from '@/context/ThemeContext'
@@ -124,6 +124,11 @@ export default function OrderDetailsPage() {
     }
 
     const fileName = order.file_path ? order.file_path.split('-').slice(1).join('-') : 'Document.pdf'
+    
+    // Check if this order uses advanced configuration
+    const isMixedPrint = order.print_type === 'MIXED';
+    const isMixedSided = order.sided === 'MIXED';
+    const hasAdvancedConfig = isMixedPrint || isMixedSided;
 
     return (
         <div className={`min-h-screen font-sans transition-colors duration-700 pb-20 ${
@@ -222,14 +227,18 @@ export default function OrderDetailsPage() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-8 gap-x-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-8 gap-x-4 mb-2">
                                 <div>
                                     <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>Color Mode</p>
-                                    <p className="font-black text-xl">{order.print_type === 'COLOR' ? 'Full Color' : 'B & W'}</p>
+                                    <p className={`font-black text-xl ${isMixedPrint ? (isDark ? 'text-yellow-500' : 'text-yellow-600') : ''}`}>
+                                        {isMixedPrint ? 'Mixed' : order.print_type === 'COLOR' ? 'Full Color' : 'B & W'}
+                                    </p>
                                 </div>
                                 <div>
                                     <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>Layout</p>
-                                    <p className="font-black text-xl">{order.sided === 'DOUBLE' ? 'Double Sided' : 'Single Sided'}</p>
+                                    <p className={`font-black text-xl ${isMixedSided ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`}>
+                                        {isMixedSided ? 'Mixed' : order.sided === 'DOUBLE' ? 'Double Sided' : 'Single Sided'}
+                                    </p>
                                 </div>
                                 <div>
                                     <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>Pages</p>
@@ -240,6 +249,33 @@ export default function OrderDetailsPage() {
                                     <p className="font-black text-xl">{order.copies} Copies</p>
                                 </div>
                             </div>
+
+                            {/* ADVANCED PRINT INSTRUCTIONS ALERT BOX */}
+                            {hasAdvancedConfig && (
+                                <div className={`mt-8 p-6 rounded-2xl border ${isDark ? 'bg-[#1a1a1a] border-white/10' : 'bg-stone-50 border-stone-200'}`}>
+                                    <h3 className="font-black tracking-widest uppercase text-xs flex items-center gap-2 mb-4">
+                                        <AlertCircle className={`w-4 h-4 ${isDark ? 'text-yellow-500' : 'text-yellow-600'}`} /> 
+                                        Custom Print Instructions
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {isMixedPrint && order.color_pages && (
+                                            <div className="flex justify-between items-center pb-3 border-b border-dashed border-current border-opacity-20">
+                                                <span className={`text-sm font-bold uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-stone-500'}`}>Print in Color</span>
+                                                <span className={`font-black text-lg ${isDark ? 'text-yellow-500' : 'text-yellow-700'}`}>Pages {order.color_pages}</span>
+                                            </div>
+                                        )}
+                                        {isMixedSided && order.double_pages && (
+                                            <div className="flex justify-between items-center">
+                                                <span className={`text-sm font-bold uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-stone-500'}`}>Print Double-Sided</span>
+                                                <span className={`font-black text-lg ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>Pages {order.double_pages}</span>
+                                            </div>
+                                        )}
+                                        <p className={`text-[10px] uppercase font-bold tracking-widest mt-4 pt-2 opacity-60`}>
+                                            *All other pages print as standard B&W / Single Sided
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className={`border p-8 sm:p-10 rounded-[2.5rem] shadow-xl ring-1 backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-6 transition-colors duration-500 ${

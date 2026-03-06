@@ -54,16 +54,17 @@ export default function OrderRow({ order, isDark }: OrderRowProps) {
         </div>
       </td>
 
-      {/* 4. Specs */}
+      {/* 4. Specs (MINIMAL & CLEAN) */}
       <td className="p-6 border-r border-inherit">
         <div className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest ${isDark ? 'text-white/60' : 'text-stone-500'}`}>
-          <span className={order.print_type === 'COLOR' ? (isDark ? 'text-blue-400' : 'text-blue-600') : ''}>
-            {order.print_type}
+          <span className={
+            order.print_type === 'COLOR' ? (isDark ? 'text-blue-400' : 'text-blue-600') : 
+            order.print_type === 'MIXED' ? (isDark ? 'text-yellow-500' : 'text-yellow-600') : ''
+          }>
+            {order.print_type === 'MIXED' ? 'MIXED' : order.print_type === 'BW' ? 'B&W' : 'COLOR'}
           </span>
           <span className="opacity-30">•</span>
           <span>{order.total_pages} PG</span>
-          <span className="opacity-30">•</span>
-          <span>{order.copies} {order.copies === 1 ? 'CPY' : 'CPYS'}</span>
         </div>
       </td>
 
