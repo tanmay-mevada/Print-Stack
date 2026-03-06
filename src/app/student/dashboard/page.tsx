@@ -7,26 +7,9 @@ import { createClient } from "@/lib/supabase/client";
 import { PDFDocument } from "pdf-lib";
 import { fetchAvailableShopsAction, submitOrderAction } from "../actions";
 import {
-  Sun,
-  Moon,
-  Printer,
-  LogOut,
-  UploadCloud,
-  FileText,
-  CheckCircle2,
-  MapPin,
-  Store,
-  ArrowRight,
-  User,
-  History,
-  CreditCard,
-  Clock,
-  ChevronDown,
-  Timer,
-  Activity,
-  Map,
-  ExternalLink,
-  Settings
+  Sun, Moon, Printer, LogOut, UploadCloud, FileText, CheckCircle2,
+  MapPin, Store, ArrowRight, User, History, CreditCard, Clock,
+  ChevronDown, Timer, Activity, Map, ExternalLink, Settings, XCircle, Eye, EyeOff
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import dynamic from 'next/dynamic';
@@ -41,67 +24,40 @@ const ShopDisplayMap = dynamic(() => import('@/components/ShopDisplayMap'), { ss
 interface Option { label: string; value: string; }
 
 interface CustomSelectProps {
-  label: string;
-  value: string;
-  options: Option[];
-  onChange: (value: string) => void;
-  isDark: boolean;
+  label: string; value: string; options: Option[];
+  onChange: (value: string) => void; isDark: boolean;
 }
 
 interface ShopPricing {
-  bw_price: number;
-  color_price: number;
-  double_side_modifier: number;
+  bw_price: number; color_price: number; double_side_modifier: number;
 }
 
 interface Shop {
-  id: string;
-  name: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  map_link?: string;
-  profile_pic?: string | null;
-  pricing?: ShopPricing;
-  exactPriceNum?: number;
-  exactPriceStr?: string | null;
-  distanceNum?: number;
-  distanceStr?: string | null;
+  id: string; name: string; address: string;
+  latitude: number; longitude: number; map_link?: string;
+  profile_pic?: string | null; pricing?: ShopPricing;
+  is_active?: boolean; paused_until?: string | null; 
+  exactPriceNum?: number; exactPriceStr?: string | null;
+  distanceNum?: number; distanceStr?: string | null;
 }
 
 interface Order {
-  id: string;
-  status: string;
-  shop_id: string;
-  student_id: string;
-  created_at: string;
-  file_path?: string;
-  total_pages?: number;
-  print_type?: string;
-  total_price?: number;
-  otp?: string;
-  queue_position?: number;
-  shops?: { name: string };
+  id: string; status: string; shop_id: string; student_id: string;
+  created_at: string; file_path?: string; total_pages?: number;
+  print_type?: string; total_price?: number; otp?: string;
+  queue_position?: number; shops?: { name: string };
 }
 
 interface PrintConfig {
-  print_type: "BW" | "COLOR";
-  sided: "SINGLE" | "DOUBLE";
-  copies: number;
-  total_pages: number;
+  print_type: "BW" | "COLOR"; sided: "SINGLE" | "DOUBLE";
+  copies: number; total_pages: number;
 }
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): string | null {
   if (!lat1 || !lon1 || !lat2 || !lon2) return null;
-  const R = 6371;
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return (R * c).toFixed(1);
+  const R = 6371; const dLat = (lat2 - lat1) * (Math.PI / 180); const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(1);
 }
 
 function CustomSelect({ label, value, options, onChange, isDark }: CustomSelectProps) {
@@ -125,7 +81,6 @@ function CustomSelect({ label, value, options, onChange, isDark }: CustomSelectP
         {selectedOption?.label}
         <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
       </div>
-
       {isOpen && (
         <div className={`absolute left-0 right-0 top-[calc(100%+12px)] z-[999] rounded-2xl overflow-hidden shadow-2xl border py-2 animate-in fade-in zoom-in-95 duration-200 ${isDark ? "bg-[#18181b] border-white/10 shadow-black/80" : "bg-white border-stone-200 shadow-stone-300/50"}`}>
           {options.map((opt: Option) => (
@@ -151,6 +106,7 @@ export default function StudentDashboardPage() {
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
   const [sortBy, setSortBy] = useState<"distance" | "price">("price");
+  const [showInactiveShops, setShowInactiveShops] = useState(true);
 
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
@@ -161,17 +117,13 @@ export default function StudentDashboardPage() {
     const rect = mobileNavRef.current.getBoundingClientRect();
     const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width - 1));
     const section = Math.floor((x / rect.width) * 3);
-
     if (section === 0 && step !== 1) setStep(1);
     else if (section === 1 && step !== 2 && file) setStep(2);
     else if (section === 2 && step !== 3 && file && selectedShopId) setStep(3);
   };
 
   const [printConfig, setPrintConfig] = useState<PrintConfig>({
-    print_type: "BW",
-    sided: "SINGLE",
-    copies: 1,
-    total_pages: 1,
+    print_type: "BW", sided: "SINGLE", copies: 1, total_pages: 1,
   });
 
   const [locating, setLocating] = useState(false);
@@ -189,7 +141,6 @@ export default function StudentDashboardPage() {
 
     if (user) {
       const { data: myOrders } = await supabase.from("orders").select("*, shops(name)").eq("student_id", user.id).order("created_at", { ascending: false });
-
       if (myOrders) {
         const enhancedOrders: Order[] = await Promise.all(myOrders.map(async (order: Order) => {
           if (['PAID', 'PRINTING'].includes(order.status)) {
@@ -200,11 +151,8 @@ export default function StudentDashboardPage() {
         }));
         setOrders(enhancedOrders);
       }
-
       const { data: profile } = await supabase.from('profiles').select('profile_pic').eq('id', user.id).single();
-      if (profile?.profile_pic) {
-        setUserAvatar(profile.profile_pic);
-      }
+      if (profile?.profile_pic) setUserAvatar(profile.profile_pic);
     }
   }, []);
 
@@ -212,9 +160,7 @@ export default function StudentDashboardPage() {
     if (availableShops.length === 0) return;
     const shopIds = availableShops.map((s: Shop) => s.id);
     const supabase = createClient();
-
     const { data } = await supabase.from("orders").select("shop_id").in("shop_id", shopIds).in("status", ["PAID", "PRINTING"]);
-
     if (data) {
       const counts: Record<string, number> = {};
       data.forEach((order: { shop_id: string }) => { counts[order.shop_id] = (counts[order.shop_id] || 0) + 1; });
@@ -230,12 +176,10 @@ export default function StudentDashboardPage() {
         void fetchUserOrdersAndProfile();
         if (shopsRef.current.length > 0) void fetchShopQueues(shopsRef.current);
       }).subscribe();
-
     const intervalId = setInterval(() => {
       void fetchUserOrdersAndProfile();
       if (shopsRef.current.length > 0) void fetchShopQueues(shopsRef.current);
     }, 8000);
-
     return () => { supabase.removeChannel(channel); clearInterval(intervalId); };
   }, [fetchUserOrdersAndProfile, fetchShopQueues]);
 
@@ -255,9 +199,7 @@ export default function StudentDashboardPage() {
         const arrayBuffer = await selected.arrayBuffer();
         const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
         setPrintConfig((prev) => ({ ...prev, total_pages: pdfDoc.getPageCount() }));
-      } catch (error) {
-        alert("We couldn't read the page count of this PDF.");
-      }
+      } catch (error) { alert("We couldn't read the page count of this PDF."); }
     }
   }
 
@@ -275,23 +217,17 @@ export default function StudentDashboardPage() {
   function handleNextStep() {
     if (!file) return alert("Please upload a file first!");
     setLocating(true);
-
     const getLocation = () => new Promise<GeolocationPosition>((resolve, reject) => {
       if (!navigator.geolocation) return reject("No Geolocation Support");
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: true, timeout: 10000, maximumAge: 0
-      });
+      navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
     });
-
     getLocation()
       .then(async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setUserLocation({ lat: latitude, lng: longitude });
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setSortBy("distance");
-        await loadShops(latitude, longitude);
+        await loadShops(pos.coords.latitude, pos.coords.longitude);
       })
       .catch(async (err) => {
-        console.warn("Location access denied or timed out.", err);
         setUserLocation(null);
         setSortBy("price");
         await loadShops();
@@ -301,23 +237,17 @@ export default function StudentDashboardPage() {
   async function handleCheckout() {
     if (!file || !selectedShopId) return;
     setUploading(true);
-
     const supabase = createClient();
     const fileExt = file.name.split(".").pop();
     const safeFileName = file.name.replace(/[^a-zA-Z0-9]/g, "_");
     const storagePath = `uploads/${Date.now()}-${safeFileName}.${fileExt}`;
-
     const { error: uploadError } = await supabase.storage.from("print_files").upload(storagePath, file);
-    if (uploadError) {
-      alert("Upload failed: " + uploadError.message);
-      setUploading(false);
-      return;
-    }
+    
+    if (uploadError) { alert("Upload failed: " + uploadError.message); setUploading(false); return; }
 
     const res = await submitOrderAction({ shopId: selectedShopId, filePath: storagePath, config: printConfig });
     if (res.success && res.paymentUrl) window.location.href = res.paymentUrl;
     else setStep(4);
-
     setUploading(false);
   }
 
@@ -326,8 +256,7 @@ export default function StudentDashboardPage() {
   const getStatusProgress = (status: string, position?: number) => {
     switch (status) {
       case 'CREATED': case 'PENDING': return { width: '25%', text: 'Awaiting Payment' };
-      case 'PAID':
-      case 'PRINTING':
+      case 'PAID': case 'PRINTING':
         if (position === 0) return { width: '80%', text: 'Printing Now' };
         if (position === 1) return { width: '60%', text: 'Next in Line' };
         return { width: '45%', text: 'In Queue' };
@@ -336,7 +265,18 @@ export default function StudentDashboardPage() {
     }
   }
 
+  // ==========================================================================
+  // SHOP FILTERING AND SORTING LOGIC
+  // ==========================================================================
   const sortedShops = [...shops]
+    .filter((shop: Shop) => {
+      const isClosed = shop.is_active === false || shop.is_active === null;
+      const isPaused = shop.paused_until && new Date(shop.paused_until) > new Date();
+      const isUnavailable = isClosed || isPaused;
+      
+      if (!showInactiveShops && isUnavailable) return false;
+      return true;
+    })
     .map((shop: Shop) => {
       const priceStr = getExactShopPrice(shop);
       const distStr = userLocation ? calculateDistance(userLocation.lat, userLocation.lng, shop.latitude, shop.longitude) : null;
@@ -349,7 +289,26 @@ export default function StudentDashboardPage() {
       };
     })
     .sort((a, b) => {
-      if (sortBy === "distance") return a.distanceNum - b.distanceNum;
+      // 1. Push Closed or Paused shops to the bottom
+      const aUnavailable = a.is_active === false || a.is_active === null || !!(a.paused_until && new Date(a.paused_until) > new Date());
+      const bUnavailable = b.is_active === false || b.is_active === null || !!(b.paused_until && new Date(b.paused_until) > new Date());
+
+      if (aUnavailable && !bUnavailable) return 1;
+      if (!aUnavailable && bUnavailable) return -1;
+
+      // 2. Push unconfigured shops (missing price) just above the closed ones
+      const aConfigured = a.exactPriceStr !== null;
+      const bConfigured = b.exactPriceStr !== null;
+
+      if (!aConfigured && bConfigured) return 1;
+      if (aConfigured && !bConfigured) return -1;
+
+      // 3. Standard active sorting (Price or Distance)
+      if (sortBy === "distance") {
+        const distA = a.distanceNum === Infinity ? 99999 : a.distanceNum;
+        const distB = b.distanceNum === Infinity ? 99999 : b.distanceNum;
+        return distA - distB;
+      }
       return a.exactPriceNum - b.exactPriceNum;
     });
 
@@ -380,7 +339,6 @@ export default function StudentDashboardPage() {
       )}
 
       <div className="p-6 sm:p-8 max-w-5xl mx-auto relative">
-
         {/* ================= NAVBAR ================= */}
         <div className={`flex justify-between items-center pb-6 mb-10 relative transition-colors duration-500 border-b ${isDark ? "border-white/10" : "border-stone-200/60"}`}>
           <div className="flex items-center gap-4">
@@ -394,26 +352,18 @@ export default function StudentDashboardPage() {
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             <div className="relative" ref={profileDropdownRef}>
-
               <button onClick={() => setIsProfileOpen(!isProfileOpen)} className={`w-11 h-11 rounded-full overflow-hidden flex items-center justify-center transition-all duration-300 hover:scale-105 ${isDark ? "bg-white/5 hover:bg-white/10 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] ring-1 ring-white/10" : "bg-white hover:bg-stone-50 text-stone-900 shadow-sm border border-stone-200/50"}`}>
                 {userAvatar ? <img src={userAvatar} alt="Profile" className="w-full h-full object-cover" /> : <User className="w-5 h-5" />}
               </button>
-
               {isProfileOpen && (
                 <div className={`absolute right-0 mt-4 w-60 rounded-2xl shadow-2xl z-50 overflow-hidden backdrop-blur-3xl transition-colors duration-300 animate-in fade-in slide-in-from-top-2 ${isDark ? "bg-[#111111]/90 border border-white/10 ring-1 ring-white/5" : "bg-white/90 border border-stone-200/50 shadow-stone-300/50"}`}>
                   <div className={`p-2 border-b ${isDark ? "border-white/10" : "border-stone-100"}`}>
-                    <Link href="/student/profile" onClick={() => setIsProfileOpen(false)} className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-sm font-bold transition-all ${isDark ? "hover:bg-white/10 text-white/80 hover:text-white" : "hover:bg-stone-50 text-stone-700 hover:text-stone-900"}`}>
-                      <Settings className="w-4 h-4 opacity-70" /> Edit Profile
-                    </Link>
-                    <Link href="/student/orders" onClick={() => setIsProfileOpen(false)} className={`w-full flex items-center gap-3 p-3.5 mt-1 rounded-xl text-sm font-bold transition-all ${isDark ? "hover:bg-white/10 text-white/80 hover:text-white" : "hover:bg-stone-50 text-stone-700 hover:text-stone-900"}`}>
-                      <History className="w-4 h-4 opacity-70" /> Order History
-                    </Link>
+                    <Link href="/student/profile" onClick={() => setIsProfileOpen(false)} className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-sm font-bold transition-all ${isDark ? "hover:bg-white/10 text-white/80 hover:text-white" : "hover:bg-stone-50 text-stone-700 hover:text-stone-900"}`}><Settings className="w-4 h-4 opacity-70" /> Edit Profile</Link>
+                    <Link href="/student/orders" onClick={() => setIsProfileOpen(false)} className={`w-full flex items-center gap-3 p-3.5 mt-1 rounded-xl text-sm font-bold transition-all ${isDark ? "hover:bg-white/10 text-white/80 hover:text-white" : "hover:bg-stone-50 text-stone-700 hover:text-stone-900"}`}><History className="w-4 h-4 opacity-70" /> Order History</Link>
                   </div>
                   <div className="p-2">
                     <form action={logoutAction}>
-                      <button type="submit" className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-sm font-bold transition-all ${isDark ? "text-red-400 hover:bg-red-500/10" : "text-red-600 hover:bg-red-50"}`}>
-                        <LogOut className="w-4 h-4 opacity-70" /> Log Out
-                      </button>
+                      <button type="submit" className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-sm font-bold transition-all ${isDark ? "text-red-400 hover:bg-red-500/10" : "text-red-600 hover:bg-red-50"}`}><LogOut className="w-4 h-4 opacity-70" /> Log Out</button>
                     </form>
                   </div>
                 </div>
@@ -550,7 +500,7 @@ export default function StudentDashboardPage() {
                             )}
                           </div>
                           <div className={`h-2 w-full rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-stone-100'}`}>
-                            <div className={`h-full transition-all duration-1000 ease-out ${order.status === 'READY' ? 'bg-green-500' : isDark ? 'bg-indigo-500' : 'bg-indigo-500'}`} style={{ width: progress.width }} />
+                            <div className={`h-full transition-all duration-1000 ease-out ${order.status === 'READY' ? 'bg-green-500' : 'bg-indigo-500'}`} style={{ width: progress.width }} />
                           </div>
                         </div>
 
@@ -570,48 +520,70 @@ export default function StudentDashboardPage() {
         {/* ================= STEP 2: SHOP SELECTION ================= */}
         {step === 2 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-700">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-2 px-2">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-2 px-2">
               <div>
                 <h2 className="text-4xl font-black tracking-tight mb-2">Select a Shop</h2>
                 <p className={`font-bold text-xs uppercase tracking-widest ${isDark ? "text-white/40" : "text-stone-400"}`}>
                   {searchType === 'nearby' ? 'Showing shops near you' : 'Showing all available shops'}
                 </p>
               </div>
-              <div className="flex items-center gap-4 w-full sm:w-auto">
+              
+              {/* FILTERS AND TOGGLES */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
+                
+                {/* INACTIVE TOGGLE */}
+                <button 
+                  onClick={() => setShowInactiveShops(!showInactiveShops)} 
+                  className={`w-full sm:w-auto px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 border ${
+                    showInactiveShops 
+                      ? isDark ? 'bg-white/10 border-white/20 text-white' : 'bg-stone-100 border-stone-300 text-stone-900' 
+                      : isDark ? 'border-white/10 text-white/40 hover:text-white/80' : 'border-stone-200 text-stone-400 hover:text-stone-600'
+                  }`}
+                >
+                  {showInactiveShops ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />} 
+                  {showInactiveShops ? 'Hide Inactive' : 'Show Inactive'}
+                </button>
+
+                {/* SORT TOGGLE */}
                 <div className={`flex items-center p-1 rounded-xl border w-full sm:w-auto ${isDark ? 'bg-[#111111]/80 border-white/10' : 'bg-white border-stone-200'}`}>
                   <button onClick={() => userLocation && setSortBy('distance')} disabled={!userLocation} className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${sortBy === 'distance' ? isDark ? 'bg-white/10 text-white' : 'bg-stone-100 text-stone-900' : isDark ? 'text-white/40 hover:text-white/80' : 'text-stone-400 hover:text-stone-600'} ${!userLocation && 'opacity-30 cursor-not-allowed'}`}>Distance</button>
                   <button onClick={() => setSortBy('price')} className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${sortBy === 'price' ? isDark ? 'bg-white/10 text-white' : 'bg-stone-100 text-stone-900' : isDark ? 'text-white/40 hover:text-white/80' : 'text-stone-400 hover:text-stone-600'}`}>Price</button>
                 </div>
+
                 <button onClick={() => setStep(1)} className={`shrink-0 font-bold text-xs uppercase tracking-widest border-b transition-all hidden sm:block ${isDark ? "border-white/50 hover:border-white" : "border-stone-400 hover:border-stone-900"}`}>← Back</button>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-300px)] min-h-[600px]">
 
-              {/* LEFT: Scrollable List of Shops - UPDATED LAYOUT */}
+              {/* LEFT: Scrollable List of Shops */}
               <div className="lg:col-span-5 flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar pb-24 lg:pb-0">
                 {sortedShops.map((shop: Shop) => {
+                  
+                  const isClosed = shop.is_active === false || shop.is_active === null;
+                  const isPaused = !!(shop.paused_until && new Date(shop.paused_until) > new Date());
+                  const isUnavailable = isClosed || isPaused;
                   const isConfigured = shop.exactPriceStr !== null && shop.exactPriceStr !== undefined;
+                  
                   const isSelected = selectedShopId === shop.id;
                   const queueCount = shopQueues[shop.id] || 0;
                   const waitMins = queueCount * 3;
 
                   let mapUrl = shop.map_link || `https://www.google.com/maps/dir/?api=1&destination=$${shop.latitude},${shop.longitude}`;
-                  if (shop.map_link && !shop.map_link.startsWith('http')) {
-                    mapUrl = `https://${shop.map_link}`;
-                  }
+                  if (shop.map_link && !shop.map_link.startsWith('http')) mapUrl = `https://${shop.map_link}`;
 
                   return (
                     <div
                       key={shop.id}
-                      onClick={() => { if (isConfigured) setSelectedShopId(shop.id); }}
-                      className={`relative border rounded-3xl p-4 sm:p-5 transition-all duration-300 flex flex-col shrink-0 cursor-pointer overflow-hidden ${!isConfigured ? "opacity-40 grayscale"
-                          : isSelected ? (isDark ? "bg-white/10 border-white shadow-[0_0_20px_rgba(255,255,255,0.1)] ring-1 ring-white/50" : "border-stone-900 ring-1 ring-stone-900 bg-white shadow-md")
-                            : (isDark ? "border-white/10 bg-[#111111]/80 hover:bg-white/5" : "border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm")
+                      onClick={() => { if (isConfigured && !isUnavailable) setSelectedShopId(shop.id); }}
+                      // CHANGED: We now prioritize 'isUnavailable' styles above '!isConfigured' styles!
+                      className={`relative border rounded-3xl p-4 sm:p-5 transition-all duration-300 flex flex-col shrink-0 overflow-hidden ${
+                          isUnavailable ? `opacity-60 grayscale-[0.5] cursor-not-allowed ${isDark ? "bg-[#111111]/40 border-white/5" : "bg-stone-50 border-stone-200"}` :
+                          !isConfigured ? "opacity-40 grayscale cursor-not-allowed" : 
+                          isSelected ? (isDark ? "bg-white/10 border-white shadow-[0_0_20px_rgba(255,255,255,0.1)] ring-1 ring-white/50 cursor-default" : "border-stone-900 ring-1 ring-stone-900 bg-white shadow-md cursor-default") : 
+                          (isDark ? "border-white/10 bg-[#111111]/80 hover:bg-white/5 cursor-pointer" : "border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm cursor-pointer")
                         }`}
                     >
-                      <Toaster />
-                      <NotificationListener />
                       <div className="flex items-start gap-3 sm:gap-4 w-full">
 
                         {/* THUMBNAIL */}
@@ -631,7 +603,7 @@ export default function StudentDashboardPage() {
                           {/* Top Line: Name & Price */}
                           <div className="flex justify-between items-start gap-2 w-full">
                             <h3 className="font-black text-lg tracking-tight truncate leading-tight mt-0.5">{shop.name}</h3>
-                            {isConfigured && (
+                            {isConfigured && !isUnavailable && (
                               <div className="text-right shrink-0">
                                 <div className="text-lg sm:text-xl font-black tracking-tighter leading-none">₹{shop.exactPriceStr}</div>
                               </div>
@@ -644,37 +616,39 @@ export default function StudentDashboardPage() {
                             <span className="truncate">{shop.address}</span>
                           </p>
 
-                          {/* Badges (Distance, Map, Wait Time) */}
+                          {/* Badges (Distance, Map, Wait Time, STATUS) */}
                           <div className="flex flex-wrap items-center gap-2 mt-2.5">
                             {shop.distanceStr && (
                               <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border ${isDark ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-600'}`}>
                                 {shop.distanceStr} km
                               </span>
                             )}
-                            <a
-                              href={mapUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border flex items-center gap-1 transition-colors ${isDark ? 'bg-white/5 border-white/10 text-white/70 hover:text-white hover:bg-white/20' : 'bg-stone-50 border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-100'}`}
-                            >
-                              Directions <ExternalLink className="w-2.5 h-2.5" />
-                            </a>
-                            {isConfigured && (
-                              <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border flex items-center gap-1 ${queueCount === 0 ? isDark ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-green-50 border-green-200 text-green-600'
-                                  : queueCount > 5 ? isDark ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-600'
-                                    : isDark ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-600'
-                                }`}>
+                            
+                            {/* SMART STATUS BADGES */}
+                            {isPaused ? (
+                              <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border flex items-center gap-1 ${isDark ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' : 'bg-yellow-50 border-yellow-200 text-yellow-600'}`}>
+                                <Clock className="w-2.5 h-2.5" /> Reopens at {new Date(shop.paused_until!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            ) : isClosed ? (
+                              <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border flex items-center gap-1 ${isDark ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-red-50 border-red-200 text-red-600'}`}>
+                                <XCircle className="w-2.5 h-2.5" /> Temporarily Closed
+                              </span>
+                            ) : isConfigured ? (
+                              <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border flex items-center gap-1 ${queueCount === 0 ? isDark ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-green-50 border-green-200 text-green-600' : queueCount > 5 ? isDark ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-600' : isDark ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-600'}`}>
                                 {queueCount === 0 ? <><CheckCircle2 className="w-2.5 h-2.5" /> No Wait</> : <><Timer className="w-2.5 h-2.5" /> ~{waitMins} min</>}
                               </span>
-                            )}
+                            ) : null}
+
+                            <a href={mapUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border flex items-center gap-1 transition-colors ${isDark ? 'bg-white/5 border-white/10 text-white/70 hover:text-white hover:bg-white/20' : 'bg-stone-50 border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-100'}`}>
+                              Directions <ExternalLink className="w-2.5 h-2.5" />
+                            </a>
                           </div>
 
                         </div>
                       </div>
 
                       {/* SELECTED EXPANDED BUTTON */}
-                      {isSelected && isConfigured && (
+                      {isSelected && isConfigured && !isUnavailable && (
                         <div className="mt-4 pt-4 border-t border-dashed border-current border-opacity-20 animate-in fade-in slide-in-from-top-2 duration-300">
                           <button onClick={() => setStep(3)} className={`hidden lg:flex w-full items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest transition-all ${isDark ? "bg-white text-black hover:bg-gray-200" : "bg-stone-900 text-white hover:bg-black"}`}>
                             Proceed to Checkout <ArrowRight className="w-4 h-4" />
@@ -684,6 +658,14 @@ export default function StudentDashboardPage() {
                     </div>
                   );
                 })}
+
+                {sortedShops.length === 0 && (
+                  <div className={`p-10 text-center border rounded-3xl ${isDark ? 'border-white/10 bg-white/5' : 'border-stone-200 bg-stone-50'}`}>
+                    <Store className={`w-12 h-12 mx-auto mb-4 opacity-50 ${isDark ? 'text-white/50' : 'text-stone-400'}`} />
+                    <p className="font-bold tracking-widest uppercase text-sm">No shops found</p>
+                    <p className={`text-xs mt-2 ${isDark ? 'text-white/40' : 'text-stone-500'}`}>Try adjusting your filters.</p>
+                  </div>
+                )}
               </div>
 
               {/* RIGHT: The Interactive Map */}
@@ -693,7 +675,12 @@ export default function StudentDashboardPage() {
                   userLng={userLocation?.lng}
                   shops={shops as Shop[]}
                   selectedShopId={selectedShopId}
-                  onShopSelect={(id) => setSelectedShopId(id)}
+                  onShopSelect={(id) => {
+                    const shop = shops.find(s => s.id === id);
+                    const isClosed = shop?.is_active === false || shop?.is_active === null;
+                    const isPaused = shop?.paused_until && new Date(shop?.paused_until) > new Date();
+                    if (shop?.pricing && !isClosed && !isPaused) setSelectedShopId(id);
+                  }}
                   isDark={isDark}
                 />
               </div>

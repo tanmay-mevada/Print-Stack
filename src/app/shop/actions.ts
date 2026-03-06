@@ -127,10 +127,18 @@ export async function updateShopPricingAction(formData: FormData) {
   return { success: true }
 }
 
-export async function toggleShopActiveStatus(shopId: string, currentStatus: boolean) {
+export async function setShopStatusAction(shopId: string, isActive: boolean, pausedUntilISO: string | null = null) {
   const supabase = await createClient()
-  const { error } = await supabase.from('shops').update({ is_active: !currentStatus }).eq('id', shopId)
+
+  const { error } = await supabase.from('shops')
+    .update({ 
+      is_active: isActive, 
+      paused_until: pausedUntilISO 
+    })
+    .eq('id', shopId)
+
   if (error) return { error: error.message }
+  
   revalidatePath('/shop/dashboard')
   return { success: true }
 }

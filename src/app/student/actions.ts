@@ -5,6 +5,8 @@ import crypto from 'crypto'
 import { revalidatePath } from 'next/cache'
 import nodemailer from 'nodemailer'
 
+import { unstable_noStore as noStore } from 'next/cache'; // 1. Import Cache Killer
+
 // ============================================================================
 // MAILER CONFIGURATION & TEMPLATES (Student Side)
 // ============================================================================
@@ -59,23 +61,23 @@ async function sendOrderConfirmationEmail(to: string, name: string, orderId: str
 // ============================================================================
 
 export async function fetchAvailableShopsAction(lat?: number, lng?: number) {
+  noStore(); // 2. Force Next.js to run a fresh query every single time
+  
   const supabase = await createClient()
-  let shopsResult: any[] = []
-  let type = 'all'
 
-  if (lat && lng) {
-    const { data: nearbyShops, error: rpcError } = await supabase.rpc('get_nearby_shops', { user_lat: lat, user_lon: lng, radius_meters: 5000 })
-    if (!rpcError && nearbyShops && nearbyShops.length > 0) {
-      shopsResult = nearbyShops
-      type = 'nearby'
-    }
-  }
+  console.log("=== FETCHING SHOPS (SERVER) ===") // 3. Debugging
 
-  if (shopsResult.length === 0) {
-    const { data: allShops } = await supabase.from('shops').select('id, name, address, phone, latitude, longitude, map_link, owner_id').eq('is_active', true)
-    shopsResult = allShops || []
-  }
+  const { data: allShops, error } = await supabase
+    .from('shops')
+    .select('id, name, address, phone, latitude, longitude, map_link, owner_id, is_active, paused_until')
+  
+  // Print the raw results to your VS Code terminal
+  console.log("DB Error:", error?.message || "None");
+  console.log("Shops found in DB:", allShops?.map(s => ({ name: s.name, active: s.is_active })));
 
+  let shopsResult = allShops || []
+
+  // 2. FETCH PRICING AND PROFILES
   if (shopsResult.length > 0) {
     const shopIds = shopsResult.map((s: any) => s.id)
     const ownerIds = [...new Set(shopsResult.map((s: any) => s.owner_id).filter(Boolean))]
@@ -91,7 +93,8 @@ export async function fetchAvailableShopsAction(lat?: number, lng?: number) {
       profile_pic: profilesRes.data?.find((p: any) => p.id === shop.owner_id)?.profile_pic || null
     }))
   }
-  return { type, shops: shopsResult }
+  
+  return { type: (lat && lng) ? 'nearby' : 'all', shops: shopsResult }
 }
 
 export async function submitOrderAction(payload: { shopId: string; filePath: string; config: { print_type: 'BW' | 'COLOR'; sided: 'SINGLE' | 'DOUBLE'; copies: number; total_pages: number; }; }) {
@@ -141,7 +144,6 @@ export async function submitOrderAction(payload: { shopId: string; filePath: str
   }
 }
 
-// NEW: Call this upon successful redirect from PhonePe
 export async function verifyPaymentSuccessAction(orderId: string) {
   const supabase = await createClient()
   
