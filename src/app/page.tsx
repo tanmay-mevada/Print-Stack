@@ -395,26 +395,26 @@ export default function Home() {
               <Code2 className={`w-7 h-7 md:w-8 md:h-8 ${isDark ? "text-white" : "text-stone-800"}`} />
               <span className={`font-bold text-sm md:text-base mt-2 ${isDark ? "text-white/80" : "text-stone-700"}`}>Next.js</span>
             </div>
-            <div className="flex flex-col items-center justify-center text-center min-w-[110px]">
+            {/* <div className="flex flex-col items-center justify-center text-center min-w-[110px]">
               <Smartphone className={`w-7 h-7 md:w-8 md:h-8 ${isDark ? "text-white" : "text-stone-800"}`} />
               <span className={`font-bold text-sm md:text-base mt-2 ${isDark ? "text-white/80" : "text-stone-700"}`}>Flutter</span>
-            </div>
+            </div> */}
             <div className="flex flex-col items-center justify-center text-center min-w-[110px]">
               <Database className={`w-7 h-7 md:w-8 md:h-8 ${isDark ? "text-white" : "text-stone-800"}`} />
               <span className={`font-bold text-sm md:text-base mt-2 ${isDark ? "text-white/80" : "text-stone-700"}`}>Supabase</span>
             </div>
             <div className="flex flex-col items-center gap-3 min-w-[110px]">
               <CreditCard className={`w-8 h-8 ${isDark ? "text-white" : "text-stone-800"}`} />
-              <span className={`font-bold text-sm md:text-base  ${isDark ? "text-white/80" : "text-stone-700"}`}>Razorpay</span>
+              <span className={`font-bold text-sm md:text-base  ${isDark ? "text-white/80" : "text-stone-700"}`}>Phonepe</span>
             </div>
             <div className="flex flex-col items-center justify-center text-center min-w-[110px]">
               <Zap className={`w-7 h-7 md:w-8 md:h-8 ${isDark ? "text-white" : "text-stone-800"}`} />
               <span className={`font-bold text-sm md:text-base mt-2 ${isDark ? "text-white/80" : "text-stone-700"}`}>TailwindCSS</span>
             </div>
-            <div className="flex flex-col items-center justify-center text-center min-w-[110px]">
+            {/* <div className="flex flex-col items-center justify-center text-center min-w-[110px]">
               <Sparkles className={`w-7 h-7 md:w-8 md:h-8 ${isDark ? "text-white" : "text-stone-800"}`} />
               <span className={`font-bold text-sm md:text-base mt-2 ${isDark ? "text-white/80" : "text-stone-700"}`}>Vertex AI</span>
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
