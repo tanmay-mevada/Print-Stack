@@ -307,3 +307,80 @@ export async function resolveGoogleMapsLinkAction(link: string) {
 
   } catch (err) { return { error: "Failed to resolve the link. It may be broken." }; }
 }
+
+export async function updateRefundStatusAction(refundId: string, newStatus: 'APPROVED' | 'REJECTED', adminNotes?: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  // Verify shop owns the refund
+  const { data: refund, error: refundError } = await supabase
+    .from('refunds')
+    .select('id, student_id, order_id, status')
+    .eq('id', refundId)
+    .eq('shop_id', user.id)
+    .single()
+
+  if (refundError || !refund) return { error: 'Refund not found' }
+  if (refund.status !== 'REQUESTED') return { error: 'Refund already processed' }
+
+  const updateData: any = { status: newStatus, processed_at: new Date().toISOString() }
+  if (adminNotes) updateData.admin_notes = adminNotes
+
+  const { error } = await supabase.from('refunds').update(updateData).eq('id', refundId)
+  if (error) return { error: error.message }
+
+  // Notify student
+  const notificationType = newStatus === 'APPROVED' ? 'REFUND_APPROVED' : 'REFUND_REJECTED'
+  const notificationMessage = newStatus === 'APPROVED' 
+    ? 'Your refund request has been approved.' 
+    : 'Your refund request has been rejected.'
+
+  await supabase.from('notifications').insert({
+    user_id: refund.student_id,
+    title: 'Refund Update',
+    message: notificationMessage,
+    type: notificationType
+  })
+
+  revalidatePath('/shop/dashboard')
+  return { success: true }
+}
+
+export async function updateComplaintStatusAction(complaintId: string, newStatus: 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED', adminNotes?: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  // Verify shop owns the complaint
+  const { data: complaint, error: complaintError } = await supabase
+    .from('complaints')
+    .select('id, student_id, status')
+    .eq('id', complaintId)
+    .eq('shop_id', user.id)
+    .single()
+
+  if (complaintError || !complaint) return { error: 'Complaint not found' }
+
+  const updateData: any = { status: newStatus }
+  if (newStatus === 'RESOLVED' || newStatus === 'CLOSED') {
+    updateData.resolved_at = new Date().toISOString()
+  }
+  if (adminNotes) updateData.admin_notes = adminNotes
+
+  const { error } = await supabase.from('complaints').update(updateData).eq('id', complaintId)
+  if (error) return { error: error.message }
+
+  // Notify student
+  const notificationMessage = `Your complaint status has been updated to ${newStatus.toLowerCase().replace('_', ' ')}.`
+
+  await supabase.from('notifications').insert({
+    user_id: complaint.student_id,
+    title: 'Complaint Update',
+    message: notificationMessage,
+    type: 'COMPLAINT_UPDATE'
+  })
+
+  revalidatePath('/shop/dashboard')
+  return { success: true }
+}

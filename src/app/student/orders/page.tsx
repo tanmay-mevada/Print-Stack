@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { ArrowLeft, Clock, FileText, Printer, CheckCircle2, Sun, Moon } from 'lucide-react'
+import { ArrowLeft, Clock, FileText, Printer, CheckCircle2, Sun, Moon, AlertTriangle, RotateCcw } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
+import { requestRefundAction, raiseComplaintAction } from '../actions'
+import toast from 'react-hot-toast'
 
 export default function OrderHistoryPage() {
     const t = useTranslations('student')
@@ -13,6 +15,43 @@ export default function OrderHistoryPage() {
     const [isDark, setIsDark] = useState(true)
     const [orders, setOrders] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
+    const [refundModal, setRefundModal] = useState<{ open: boolean, orderId: string }>({ open: false, orderId: '' })
+    const [complaintModal, setComplaintModal] = useState<{ open: boolean, orderId: string }>({ open: false, orderId: '' })
+    const [refundReason, setRefundReason] = useState('')
+    const [complaintMessage, setComplaintMessage] = useState('')
+    const [submitting, setSubmitting] = useState(false)
+
+    const handleRefund = async () => {
+        if (!refundReason.trim()) return
+        setSubmitting(true)
+        const result = await requestRefundAction(refundModal.orderId, refundReason)
+        setSubmitting(false)
+        if (result.success) {
+            toast.success('Refund request submitted successfully')
+            setRefundModal({ open: false, orderId: '' })
+            setRefundReason('')
+            // Refresh orders
+            window.location.reload()
+        } else {
+            toast.error(result.error || 'Failed to submit refund request')
+        }
+    }
+
+    const handleComplaint = async () => {
+        if (!complaintMessage.trim()) return
+        setSubmitting(true)
+        const result = await raiseComplaintAction(complaintModal.orderId, complaintMessage)
+        setSubmitting(false)
+        if (result.success) {
+            toast.success('Complaint submitted successfully')
+            setComplaintModal({ open: false, orderId: '' })
+            setComplaintMessage('')
+            // Refresh orders
+            window.location.reload()
+        } else {
+            toast.error(result.error || 'Failed to submit complaint')
+        }
+    }
 
     useEffect(() => {
         async function fetchUserOrders() {
@@ -31,6 +70,19 @@ export default function OrderHistoryPage() {
             setLoading(false)
         }
         fetchUserOrders()
+
+        // Real-time subscriptions
+        const supabase = createClient()
+        const ordersChannel = supabase
+            .channel('student_orders')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+                fetchUserOrders()
+            })
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(ordersChannel)
+        }
     }, [])
 
     // Helper to format Date
@@ -156,11 +208,34 @@ export default function OrderHistoryPage() {
                                             ₹{order.total_price}
                                         </div>
                                     </div>
-                                    {order.status === 'COMPLETED' && (
-                                        <div className="mt-0 md:mt-4 flex items-center gap-1.5 text-xs font-bold text-green-500 uppercase tracking-widest">
-                                            <CheckCircle2 className="w-4 h-4" /> Paid & Picked Up
-                                        </div>
-                                    )}
+                                    <div className="flex flex-col gap-2 mt-4">
+                                        {order.status === 'COMPLETED' ? (
+                                            <div className="flex items-center gap-1.5 text-xs font-bold text-green-500 uppercase tracking-widest">
+                                                <CheckCircle2 className="w-4 h-4" /> Paid & Picked Up
+                                            </div>
+                                        ) : (
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => setRefundModal({ open: true, orderId: order.id })}
+                                                    className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest rounded-lg border transition-colors ${
+                                                        isDark ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' : 'bg-stone-100 border-stone-200 text-stone-700 hover:bg-stone-200'
+                                                    }`}
+                                                >
+                                                    <RotateCcw className="w-3 h-3 inline mr-1" />
+                                                    Refund
+                                                </button>
+                                                <button
+                                                    onClick={() => setComplaintModal({ open: true, orderId: order.id })}
+                                                    className={`px-3 py-1.5 text-xs font-bold uppercase tracking-widest rounded-lg border transition-colors ${
+                                                        isDark ? 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+                                                    }`}
+                                                >
+                                                    <AlertTriangle className="w-3 h-3 inline mr-1" />
+                                                    Complaint
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
                             </div>
@@ -169,6 +244,69 @@ export default function OrderHistoryPage() {
                 </div>
 
             </div>
+
+            {/* Refund Modal */}
+            {refundModal.open && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                    <div className={`w-full max-w-md rounded-2xl p-6 ${isDark ? 'bg-[#111111] border border-white/10' : 'bg-white border border-stone-200'}`}>
+                        <h3 className="text-xl font-black mb-4">Request Refund</h3>
+                        <textarea
+                            value={refundReason}
+                            onChange={(e) => setRefundReason(e.target.value)}
+                            placeholder="Please explain why you're requesting a refund..."
+                            className={`w-full p-3 rounded-lg border resize-none ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-white/50' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder-stone-500'}`}
+                            rows={4}
+                        />
+                        <div className="flex gap-3 mt-4">
+                            <button
+                                onClick={() => setRefundModal({ open: false, orderId: '' })}
+                                className={`flex-1 py-2 px-4 rounded-lg font-bold transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-stone-200 hover:bg-stone-300 text-stone-700'}`}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleRefund}
+                                disabled={submitting || !refundReason.trim()}
+                                className="flex-1 py-2 px-4 rounded-lg font-bold bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                {submitting ? 'Submitting...' : 'Submit'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Complaint Modal */}
+            {complaintModal.open && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                    <div className={`w-full max-w-md rounded-2xl p-6 ${isDark ? 'bg-[#111111] border border-white/10' : 'bg-white border border-stone-200'}`}>
+                        <h3 className="text-xl font-black mb-4">Raise Complaint</h3>
+                        <textarea
+                            value={complaintMessage}
+                            onChange={(e) => setComplaintMessage(e.target.value)}
+                            placeholder="Please describe your complaint..."
+                            className={`w-full p-3 rounded-lg border resize-none ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-white/50' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder-stone-500'}`}
+                            rows={4}
+                        />
+                        <div className="flex gap-3 mt-4">
+                            <button
+                                onClick={() => setComplaintModal({ open: false, orderId: '' })}
+                                className={`flex-1 py-2 px-4 rounded-lg font-bold transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-stone-200 hover:bg-stone-300 text-stone-700'}`}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleComplaint}
+                                disabled={submitting || !complaintMessage.trim()}
+                                className="flex-1 py-2 px-4 rounded-lg font-bold bg-red-500 hover:bg-red-600 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                {submitting ? 'Submitting...' : 'Submit'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     )
 }

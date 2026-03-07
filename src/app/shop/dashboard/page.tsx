@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { logoutAction } from '@/app/(auth)/actions'
 import { setShopStatusAction } from '../actions'
+import { updateRefundStatusAction, updateComplaintStatusAction } from '../actions'
 import { createClient } from '@/lib/supabase/client'
 import OrderRow from '@/components/OrderRow'
 import NotificationListener from '@/components/NotificationListener'
@@ -62,10 +63,14 @@ export default function ShopDashboardPage() {
 
   const [activeOrders, setActiveOrders] = useState<any[]>([])
   const [completedOrders, setCompletedOrders] = useState<any[]>([])
+  const [refunds, setRefunds] = useState<any[]>([])
+  const [complaints, setComplaints] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
 
   const [statusMenuOpen, setStatusMenuOpen] = useState(false)
+  const [updatingComplaint, setUpdatingComplaint] = useState<string | null>(null)
+  const [updatingRefund, setUpdatingRefund] = useState<string | null>(null)
 
   // ==========================================================================
   // SEARCH, FILTER & SORT STATES
@@ -134,10 +139,34 @@ export default function ShopDashboardPage() {
     }
 
     if (currentShop) {
-      const { data: ordersData } = await supabase.from('orders').select('*, profiles:student_id(name)').eq('shop_id', currentShop.id).order('created_at', { ascending: false })
-      if (ordersData) {
-        setActiveOrders(ordersData.filter(o => ['PENDING', 'PAID', 'PRINTING', 'READY'].includes(o.status)))
-        setCompletedOrders(ordersData.filter(o => ['COMPLETED', 'CANCELLED'].includes(o.status)))
+      try {
+        const { data: ordersData } = await supabase.from('orders').select('*, profiles:student_id(name)').eq('shop_id', currentShop.id).order('created_at', { ascending: false })
+        if (ordersData) {
+          setActiveOrders(ordersData.filter(o => ['PENDING', 'PAID', 'PRINTING', 'READY'].includes(o.status)))
+          setCompletedOrders(ordersData.filter(o => ['COMPLETED', 'CANCELLED'].includes(o.status)))
+        }
+
+        // Fetch refunds
+        const { data: refundsData, error: refundsError } = await supabase.from('refunds').select('*, orders!order_id(id, total_price), profiles!student_id(name)').eq('shop_id', currentShop.id).order('created_at', { ascending: false })
+        if (refundsError) {
+          console.error('Error fetching refunds:', refundsError)
+        } else if (refundsData) {
+          setRefunds(refundsData)
+        }
+
+        // Fetch complaints
+        const { data: complaintsData, error: complaintsError } = await supabase.from('complaints').select('*, orders!order_id(id), profiles!student_id(name)').eq('shop_id', currentShop.id).order('created_at', { ascending: false })
+        if (complaintsError) {
+          console.error('Error fetching complaints:', complaintsError)
+          // If complaints table doesn't exist, show message
+          if (complaintsError.message.includes('relation') || complaintsError.message.includes('does not exist')) {
+            console.warn('⚠️ Complaints table not found. Please run the database migration in Supabase.')
+          }
+        } else if (complaintsData) {
+          setComplaints(complaintsData)
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
       }
     }
     if (isInitialLoad) setLoading(false)
@@ -146,9 +175,28 @@ export default function ShopDashboardPage() {
   useEffect(() => {
     fetchDashboardData(true);
     const supabase = createClient();
-    const channel = supabase.channel('shop-orders-tracker').on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => fetchDashboardData(false)).subscribe();
-    const intervalId = setInterval(() => fetchDashboardData(false), 8000);
-    return () => { supabase.removeChannel(channel); clearInterval(intervalId); }
+
+    // Real-time subscriptions
+    const ordersChannel = supabase
+      .channel('orders_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => fetchDashboardData(false))
+      .subscribe();
+
+    const refundsChannel = supabase
+      .channel('refunds_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'refunds' }, () => fetchDashboardData(false))
+      .subscribe();
+
+    const complaintsChannel = supabase
+      .channel('complaints_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, () => fetchDashboardData(false))
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ordersChannel);
+      supabase.removeChannel(refundsChannel);
+      supabase.removeChannel(complaintsChannel);
+    };
   }, [fetchDashboardData])
 
   useEffect(() => {
@@ -174,6 +222,38 @@ export default function ShopDashboardPage() {
     const target = new Date();
     target.setMinutes(target.getMinutes() + Number(pauseDuration));
     handleSetStatus(true, target.toISOString());
+  }
+
+  const handleComplaintStatusUpdate = async (complaintId: string, newStatus: 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED') => {
+    setUpdatingComplaint(complaintId)
+    const result = await updateComplaintStatusAction(complaintId, newStatus)
+    setUpdatingComplaint(null)
+    
+    if (result.success) {
+      const toast = require('react-hot-toast').default
+      toast.success(`Complaint marked as ${newStatus.toLowerCase()}`)
+      // Refresh data
+      fetchDashboardData(false)
+    } else {
+      const toast = require('react-hot-toast').default
+      toast.error(result.error || 'Failed to update complaint')
+    }
+  }
+
+  const handleRefundStatusUpdate = async (refundId: string, newStatus: 'APPROVED' | 'REJECTED') => {
+    setUpdatingRefund(refundId)
+    const result = await updateRefundStatusAction(refundId, newStatus)
+    setUpdatingRefund(null)
+    
+    if (result.success) {
+      const toast = require('react-hot-toast').default
+      toast.success(`Refund ${newStatus.toLowerCase()}`)
+      // Refresh data
+      fetchDashboardData(false)
+    } else {
+      const toast = require('react-hot-toast').default
+      toast.error(result.error || 'Failed to update refund')
+    }
   }
 
   // ==========================================================================
@@ -469,6 +549,154 @@ export default function ShopDashboardPage() {
                 <h2 className={`text-xl sm:text-2xl font-black tracking-tight mb-4 sm:mb-6 px-2 ${isDark ? 'text-white/50' : 'text-stone-400'}`}>Order History</h2>
                 <div className={`p-10 text-center border rounded-[1.5rem] sm:rounded-[2rem] opacity-60 ${isDark ? 'bg-[#111111]/40 border-white/10' : 'bg-stone-50 border-stone-200/60'}`}>
                   <p className={`text-xs sm:text-sm font-bold uppercase tracking-widest ${isDark ? 'text-white/30' : 'text-stone-400'}`}>No past orders match your search.</p>
+                </div>
+              </div>
+            )}
+
+            {/* ================= REFUNDS SECTION ================= */}
+            {refunds.length > 0 && (
+              <div className="pt-4 sm:pt-6 z-10 relative">
+                <h2 className={`text-xl sm:text-2xl font-black tracking-tight mb-4 sm:mb-6 px-2 ${isDark ? 'text-white/50' : 'text-stone-400'}`}>Refund Requests</h2>
+                <div className={`border rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden backdrop-blur-xl transition-all duration-500 ${isDark ? 'bg-[#111111]/80 border-white/10 ring-1 ring-white/5' : 'bg-white border-stone-200/60 shadow-xl shadow-stone-200/30'}`}>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[800px] sm:min-w-[900px]">
+                      <thead>
+                        <tr className={`border-b text-[10px] uppercase tracking-widest font-black ${isDark ? 'bg-white/5 border-white/10 text-white/50' : 'bg-stone-50 border-stone-200 text-stone-500'}`}>
+                          <th className="p-4 sm:p-6 border-r border-inherit w-32 sm:w-40">Date</th>
+                          <th className="p-4 sm:p-6 border-r border-inherit">Student</th>
+                          <th className="p-4 sm:p-6 border-r border-inherit">Reason</th>
+                          <th className="p-4 sm:p-6 border-r border-inherit">Amount</th>
+                          <th className="p-4 sm:p-6 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className={`divide-y transition-colors ${isDark ? 'divide-white/10' : 'divide-stone-200'}`}>
+                        {refunds.map(refund => (
+                          <tr key={refund.id} className={`text-sm ${isDark ? 'text-white/80' : 'text-stone-700'}`}>
+                            <td className="p-4 sm:p-6 border-r border-inherit">
+                              <div className="font-bold">{new Date(refund.created_at).toLocaleDateString()}</div>
+                              <div className={`text-xs ${isDark ? 'text-white/50' : 'text-stone-500'}`}>{new Date(refund.created_at).toLocaleTimeString()}</div>
+                            </td>
+                            <td className="p-4 sm:p-6 border-r border-inherit">
+                              <div className="font-bold">{refund.profiles?.name || 'Unknown'}</div>
+                            </td>
+                            <td className="p-4 sm:p-6 border-r border-inherit">
+                              <div className="max-w-xs truncate" title={refund.reason}>{refund.reason}</div>
+                            </td>
+                            <td className="p-4 sm:p-6 border-r border-inherit">
+                              <div className="font-bold">₹{refund.amount}</div>
+                            </td>
+                            <td className="p-4 sm:p-6 text-right">
+                              {refund.status === 'REQUESTED' ? (
+                                <div className="flex gap-2 justify-end">
+                                  <button
+                                    onClick={() => handleRefundStatusUpdate(refund.id, 'APPROVED')}
+                                    disabled={updatingRefund === refund.id}
+                                    className={`px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isDark ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' : 'bg-green-50 text-green-700 hover:bg-green-100'}`}
+                                  >
+                                    {updatingRefund === refund.id ? 'Processing...' : 'Approve'}
+                                  </button>
+                                  <button
+                                    onClick={() => handleRefundStatusUpdate(refund.id, 'REJECTED')}
+                                    disabled={updatingRefund === refund.id}
+                                    className={`px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isDark ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-red-50 text-red-700 hover:bg-red-100'}`}
+                                  >
+                                    {updatingRefund === refund.id ? 'Processing...' : 'Reject'}
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className={`px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-lg ${
+                                  refund.status === 'APPROVED' ? (isDark ? 'bg-green-500/10 text-green-400' : 'bg-green-50 text-green-700') :
+                                  refund.status === 'REJECTED' ? (isDark ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-700') :
+                                  (isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-700')
+                                }`}>
+                                  {refund.status}
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ================= COMPLAINTS SECTION ================= */}
+            {complaints.length > 0 && (
+              <div className="pt-4 sm:pt-6 z-10 relative">
+                <h2 className={`text-xl sm:text-2xl font-black tracking-tight mb-4 sm:mb-6 px-2 ${isDark ? 'text-white/50' : 'text-stone-400'}`}>Complaints</h2>
+                <div className={`border rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden backdrop-blur-xl transition-all duration-500 ${isDark ? 'bg-[#111111]/80 border-white/10 ring-1 ring-white/5' : 'bg-white border-stone-200/60 shadow-xl shadow-stone-200/30'}`}>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[800px] sm:min-w-[900px]">
+                      <thead>
+                        <tr className={`border-b text-[10px] uppercase tracking-widest font-black ${isDark ? 'bg-white/5 border-white/10 text-white/50' : 'bg-stone-50 border-stone-200 text-stone-500'}`}>
+                          <th className="p-4 sm:p-6 border-r border-inherit w-32 sm:w-40">Date</th>
+                          <th className="p-4 sm:p-6 border-r border-inherit">Student</th>
+                          <th className="p-4 sm:p-6 border-r border-inherit">Message</th>
+                          <th className="p-4 sm:p-6 border-r border-inherit">Status</th>
+                          <th className="p-4 sm:p-6 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className={`divide-y transition-colors ${isDark ? 'divide-white/10' : 'divide-stone-200'}`}>
+                        {complaints.map(complaint => (
+                          <tr key={complaint.id} className={`text-sm ${isDark ? 'text-white/80' : 'text-stone-700'}`}>
+                            <td className="p-4 sm:p-6 border-r border-inherit">
+                              <div className="font-bold">{new Date(complaint.created_at).toLocaleDateString()}</div>
+                              <div className={`text-xs ${isDark ? 'text-white/50' : 'text-stone-500'}`}>{new Date(complaint.created_at).toLocaleTimeString()}</div>
+                            </td>
+                            <td className="p-4 sm:p-6 border-r border-inherit">
+                              <div className="font-bold">{complaint.profiles?.name || 'Unknown'}</div>
+                            </td>
+                            <td className="p-4 sm:p-6 border-r border-inherit">
+                              <div className="max-w-xs truncate" title={complaint.message}>{complaint.message}</div>
+                            </td>
+                            <td className="p-4 sm:p-6 border-r border-inherit">
+                              <span className={`px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-lg ${
+                                complaint.status === 'OPEN' ? (isDark ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-700') :
+                                complaint.status === 'IN_PROGRESS' ? (isDark ? 'bg-yellow-500/10 text-yellow-400' : 'bg-yellow-50 text-yellow-700') :
+                                complaint.status === 'RESOLVED' ? (isDark ? 'bg-green-500/10 text-green-400' : 'bg-green-50 text-green-700') :
+                                (isDark ? 'bg-gray-500/10 text-gray-400' : 'bg-gray-50 text-gray-700')
+                              }`}>
+                                {complaint.status.replace('_', ' ')}
+                              </span>
+                            </td>
+                            <td className="p-4 sm:p-6 text-right">
+                              {complaint.status !== 'CLOSED' && (
+                                <div className="flex gap-2 justify-end">
+                                  {complaint.status === 'OPEN' && (
+                                    <button
+                                      onClick={() => handleComplaintStatusUpdate(complaint.id, 'IN_PROGRESS')}
+                                      disabled={updatingComplaint === complaint.id}
+                                      className={`px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isDark ? 'bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20' : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'}`}
+                                    >
+                                      {updatingComplaint === complaint.id ? 'Starting...' : 'Start'}
+                                    </button>
+                                  )}
+                                  {(complaint.status === 'OPEN' || complaint.status === 'IN_PROGRESS') && (
+                                    <button
+                                      onClick={() => handleComplaintStatusUpdate(complaint.id, 'RESOLVED')}
+                                      disabled={updatingComplaint === complaint.id}
+                                      className={`px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isDark ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' : 'bg-green-50 text-green-700 hover:bg-green-100'}`}
+                                    >
+                                      {updatingComplaint === complaint.id ? 'Resolving...' : 'Resolve'}
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => handleComplaintStatusUpdate(complaint.id, 'CLOSED')}
+                                    disabled={updatingComplaint === complaint.id}
+                                    className={`px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isDark ? 'bg-gray-500/10 text-gray-400 hover:bg-gray-500/20' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
+                                  >
+                                    {updatingComplaint === complaint.id ? 'Closing...' : 'Close'}
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
