@@ -11,8 +11,6 @@ import { ArrowLeft, IndianRupee, Layers, Palette } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 export default function ShopPricingPage() {
-  const t = useTranslations('shop.pricing')
-  const tCommon = useTranslations()
   const { isDark } = useTheme()
   const [pricing, setPricing] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -50,7 +48,7 @@ export default function ShopPricingPage() {
         toast.error(res.error)
     }
     if (res?.success) {
-        toast.success(t('pricingUpdated'))
+        toast.success('Pricing updated successfully!')
     }
     
     setSaving(false)
@@ -113,11 +111,11 @@ export default function ShopPricingPage() {
                  <IndianRupee className="w-5 h-5" />
              </div>
              <h1 className="text-3xl font-black uppercase tracking-tight">
-               {t('editPricing')}
+               Edit Pricing
              </h1>
           </div>
           <p className="text-sm text-white/60 font-medium ml-12">
-            {t('subtitle')}
+            Update your per-page printing configuration.
           </p>
         </div>
 
