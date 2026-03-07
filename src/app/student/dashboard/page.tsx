@@ -1263,7 +1263,7 @@ export default function StudentDashboardPage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* The Dropdowns take up 2 columns combined */}
-                <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-20">
+                <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-50">
                   <CustomSelect
                     label="Binding Type"
                     value={printConfig.binding_type}
@@ -1323,7 +1323,7 @@ export default function StudentDashboardPage() {
 
             {/* NEW: PRIORITY PRINTING TOGGLE */}
             <div
-              className={`border p-6 rounded-[2rem] relative z-10 backdrop-blur-xl transition-all duration-500 overflow-hidden mb-6 ${
+              className={`border p-6 rounded-[2rem] relative z-5 backdrop-blur-xl transition-all duration-500 overflow-hidden mb-6 ${
                 printConfig.is_priority
                   ? isDark
                     ? "bg-orange-500/10 border-orange-500/50 ring-1 ring-orange-500/50"
