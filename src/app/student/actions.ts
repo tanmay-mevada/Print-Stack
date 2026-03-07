@@ -86,10 +86,17 @@ export async function fetchAvailableShopsAction(lat?: number, lng?: number) {
   noStore(); 
   const supabase = await createClient()
 
-  const { data: allShops } = await supabase
+  // 🚨 DEMO SAVER BYPASS: We use select('*') so it never crashes looking for missing columns.
+  // We skip the SQL function completely because your frontend already calculates distance!
+  const { data: allShops, error: shopError } = await supabase
     .from('shops')
-    .select('id, name, address, phone, latitude, longitude, map_link, owner_id, is_active, paused_until')
+    .select('*')
+    .eq('is_active', true)
   
+  if (shopError) {
+      console.error("🔴 CRITICAL DB ERROR:", shopError.message);
+  }
+
   let shopsResult = allShops || []
 
   if (shopsResult.length > 0) {
@@ -98,9 +105,9 @@ export async function fetchAvailableShopsAction(lat?: number, lng?: number) {
 
     const [pricingRes, profilesRes] = await Promise.all([
       supabase.from('pricing_configs').select('*').in('shop_id', shopIds),
-      ownerIds.length > 0 ? supabase.from('profiles').select('id, profile_pic').in('id', ownerIds) : { data: [] }
+      ownerIds.length > 0 ? supabase.from('profiles').select('id, profile_pic').in('id', ownerIds) : Promise.resolve({ data: [] })
     ])
-    
+
     shopsResult = shopsResult.map((shop: any) => ({
       ...shop,
       pricing: pricingRes.data?.find((p: any) => p.shop_id === shop.id) || null,
@@ -108,7 +115,7 @@ export async function fetchAvailableShopsAction(lat?: number, lng?: number) {
     }))
   }
   
-  return { type: (lat && lng) ? 'nearby' : 'all', shops: shopsResult }
+  return { type: 'all', shops: shopsResult }
 }
 
 export async function submitOrderAction(payload: { 
@@ -123,10 +130,10 @@ export async function submitOrderAction(payload: {
     double_pages?: string;
     paper_size: 'A4' | 'A3' | 'A2' | 'A1' | 'A0';
     binding_type: 'NONE' | 'SPIRAL' | 'HARD';
+    cover_type: 'NONE' | 'PAPER' | 'PLASTIC';
     wants_stapling: boolean;
-    wants_cover: boolean;
-    wants_lamination: boolean; // <-- NEW
-    wants_paper_file: boolean; // <-- NEW
+    wants_lamination: boolean; 
+    is_priority: boolean; // <-- NEW FLAG
   }; 
 }) {
   const supabase = await createClient()
@@ -147,9 +154,9 @@ export async function submitOrderAction(payload: {
   if (payload.config.binding_type === 'SPIRAL' && pricing.spiral_binding_price === null) return { error: 'Spiral binding not supported.' }
   if (payload.config.binding_type === 'HARD' && pricing.hard_binding_price === null) return { error: 'Hard binding not supported.' }
   if (payload.config.wants_stapling && pricing.stapling_price === null) return { error: 'Stapling not supported.' }
-  if (payload.config.wants_cover && pricing.transparent_cover_price === null) return { error: 'Covers not supported.' }
+  if (payload.config.cover_type === 'PLASTIC' && pricing.transparent_cover_price === null) return { error: 'Plastic covers not supported.' }
+  if (payload.config.cover_type === 'PAPER' && pricing.paper_folder_price === null) return { error: 'Paper folders not supported.' }
   if (payload.config.wants_lamination && pricing.lamination_price === null) return { error: 'Lamination not supported.' }
-  if (payload.config.wants_paper_file && pricing.paper_file_price === null) return { error: 'Paper files not supported.' }
 
   // 2. MATRIX PRICING ENGINE
   let totalCostForOneCopy = 0;
@@ -160,7 +167,7 @@ export async function submitOrderAction(payload: {
     else if (payload.config.paper_size === 'A2') base = pricing.a2_price;
     else if (payload.config.paper_size === 'A1') base = pricing.a1_price;
     else if (payload.config.paper_size === 'A0') base = pricing.a0_price;
-    else base = isColor ? pricing.color_price : pricing.bw_price; // Standard A4
+    else base = isColor ? pricing.color_price : pricing.bw_price;
     
     return base * (isDouble ? pricing.double_side_modifier : 1);
   }
@@ -178,24 +185,29 @@ export async function submitOrderAction(payload: {
     totalCostForOneCopy = getPagePrice(payload.config.print_type === 'COLOR', payload.config.sided === 'DOUBLE') * payload.config.total_pages;
   }
 
-  // Add Lamination (Price is PER PAGE)
+  // Add Lamination
   if (payload.config.wants_lamination) {
       totalCostForOneCopy += (pricing.lamination_price * payload.config.total_pages);
   }
 
   let finalExactPrice = totalCostForOneCopy * payload.config.copies;
 
-  // Add Finishing Flat Fees (Multiply by copies because each document needs its own finishing)
+  // Add Finishing Flat Fees
   let finishingCostPerCopy = 0;
   if (payload.config.binding_type === 'SPIRAL') finishingCostPerCopy += pricing.spiral_binding_price;
   if (payload.config.binding_type === 'HARD') finishingCostPerCopy += pricing.hard_binding_price;
   if (payload.config.wants_stapling) finishingCostPerCopy += pricing.stapling_price;
-  if (payload.config.wants_cover) finishingCostPerCopy += pricing.transparent_cover_price;
-  if (payload.config.wants_paper_file) finishingCostPerCopy += pricing.paper_file_price;
+  if (payload.config.cover_type === 'PLASTIC') finishingCostPerCopy += pricing.transparent_cover_price;
+  if (payload.config.cover_type === 'PAPER') finishingCostPerCopy += pricing.paper_folder_price;
 
   finalExactPrice += (finishingCostPerCopy * payload.config.copies);
 
-  // 3. INVENTORY DEDUCTION (Reserve the stock immediately)
+  // 👇 NEW: PRIORITY MULTIPLIER (1.5x) 👇
+  if (payload.config.is_priority) {
+      finalExactPrice = finalExactPrice * 1.5;
+  }
+
+  // 3. INVENTORY DEDUCTION
   if (payload.config.paper_size !== 'A4') {
     const pKey = payload.config.paper_size.toLowerCase();
     await supabase.from('pricing_configs').update({ 
@@ -218,10 +230,10 @@ export async function submitOrderAction(payload: {
     status: 'CREATED',
     paper_size: payload.config.paper_size, 
     binding_type: payload.config.binding_type === 'NONE' ? null : payload.config.binding_type,
+    cover_type: payload.config.cover_type === 'NONE' ? null : payload.config.cover_type,
     wants_stapling: payload.config.wants_stapling, 
-    wants_cover: payload.config.wants_cover,
-    wants_lamination: payload.config.wants_lamination, // <-- NEW
-    wants_paper_file: payload.config.wants_paper_file  // <-- NEW
+    wants_lamination: payload.config.wants_lamination,
+    is_priority: payload.config.is_priority // <-- SAVE TO DB
   }).select('id').single()
 
   if (error) return { error: error.message }

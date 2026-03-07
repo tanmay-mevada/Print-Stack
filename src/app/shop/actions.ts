@@ -143,7 +143,10 @@ export async function updateShopPricingAction(formData: FormData) {
       spiral_binding_price: getOptNum('spiral_binding_price'),
       hard_binding_price: getOptNum('hard_binding_price'),
       stapling_price: getOptNum('stapling_price'),
-      transparent_cover_price: getOptNum('transparent_cover_price')
+      transparent_cover_price: formData.get('transparent_cover_price') === 'null' ? null : parseFloat(formData.get('transparent_cover_price') as string),
+    paper_folder_price: formData.get('paper_folder_price') === 'null' ? null : parseFloat(formData.get('paper_folder_price') as string),
+  lamination_price: formData.get('lamination_price') === 'null' ? null : parseFloat(formData.get('lamination_price') as string),
+  
   };
 
   const { error } = await supabase.from('pricing_configs').upsert(updates, { onConflict: 'shop_id' })

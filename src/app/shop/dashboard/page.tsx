@@ -192,6 +192,12 @@ export default function ShopDashboardPage() {
         return matchesSearch && matchesType
       })
       .sort((a, b) => {
+        // 🔥 PRIORITY SORTING OVERRIDE 🔥
+        // Priority orders ALWAYS float to the absolute top of the list!
+        if (a.is_priority && !b.is_priority) return -1;
+        if (!a.is_priority && b.is_priority) return 1;
+
+        // If they are both priority (or both normal), fall back to standard sorting
         if (sortBy === 'date_desc') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         if (sortBy === 'date_asc') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         if (sortBy === 'price_desc') return Number(b.total_price) - Number(a.total_price)
@@ -294,7 +300,7 @@ export default function ShopDashboardPage() {
 
         {!shop ? (
           <div className={`border rounded-[2rem] sm:rounded-[3rem] p-8 sm:p-16 text-center backdrop-blur-xl max-w-2xl mx-auto mt-12 transition-all duration-500 ${isDark ? 'bg-[#111111]/80 border-white/10 shadow-[0_20px_60px_-15px_rgba(255,255,255,0.05)] ring-1 ring-white/5' : 'bg-white border-stone-200 shadow-2xl shadow-stone-200/50'}`}>
-            <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl ${isDark ? 'bg-white/5 text-white/50 ring-1 ring-white/10' : 'bg-stone-100 text-stone-400 ring-1 ring-stone-200'}`}><Store className="w-10 h-10 sm:w-12 sm:h-12" /></div>
+            <div className={`w-20 h-20 sm:w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl ${isDark ? 'bg-white/5 text-white/50 ring-1 ring-white/10' : 'bg-stone-100 text-stone-400 ring-1 ring-stone-200'}`}><Store className="w-10 h-10 sm:w-12 sm:h-12" /></div>
             <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-widest mb-4">Profile Incomplete</h2>
             <p className={`mb-8 font-medium ${isDark ? 'text-white/60' : 'text-stone-500'}`}>You must complete your shop profile before you can receive orders.</p>
             <Link href="/shop/profile" className={`inline-flex items-center gap-3 py-4 sm:py-5 px-8 sm:px-10 rounded-[2rem] font-black text-base sm:text-lg tracking-widest uppercase transition-all duration-500 hover:-translate-y-1 ${isDark ? 'bg-white text-black hover:bg-gray-200 shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.25)]' : 'bg-stone-900 text-white hover:bg-black shadow-xl shadow-stone-900/20'}`}>
