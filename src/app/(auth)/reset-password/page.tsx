@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { updatePasswordAction } from '../actions'
 import { Lock, ArrowRight } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
+import { useTranslations } from 'next-intl'
 
 export default function ResetPasswordPage() {
+    const t = useTranslations('auth.resetPasswordPage')
     const { isDark } = useTheme()
     const [loading, setLoading] = useState(false)
     const [errorMsg, setErrorMsg] = useState('')
@@ -20,7 +22,7 @@ export default function ResetPasswordPage() {
         const confirm = formData.get('confirm_password') as string
 
         if (password !== confirm) {
-            setErrorMsg("Passwords do not match.")
+            setErrorMsg(t("passwordsNoMatch"))
             setLoading(false)
             return
         }
@@ -48,7 +50,7 @@ export default function ResetPasswordPage() {
                     {errorMsg && <p className="text-xs text-red-500 font-bold text-center bg-red-500/10 p-3 rounded-xl">{errorMsg}</p>}
 
                     <div>
-                        <label className={`block text-[10px] font-bold mb-2 uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-stone-500'}`}>New Password</label>
+                        <label className={`block text-[10px] font-bold mb-2 uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-stone-500'}`}>{t("newPassword")}</label>
                         <input
                             name="password"
                             type="password"
@@ -59,7 +61,7 @@ export default function ResetPasswordPage() {
                     </div>
 
                     <div>
-                        <label className={`block text-[10px] font-bold mb-2 uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-stone-500'}`}>Confirm Password</label>
+                        <label className={`block text-[10px] font-bold mb-2 uppercase tracking-widest ${isDark ? 'text-white/50' : 'text-stone-500'}`}>{t("confirmPassword")}</label>
                         <input
                             name="confirm_password"
                             type="password"
@@ -70,7 +72,7 @@ export default function ResetPasswordPage() {
                     </div>
 
                     <button disabled={loading} className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl font-black text-sm uppercase tracking-widest transition-all disabled:opacity-50 ${isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-stone-900 text-white hover:bg-black'}`}>
-                        {loading ? 'Updating...' : <>Update Password <ArrowRight className="w-4 h-4" /></>}
+                        {loading ? t("updating") : <>{t("updatePassword")} <ArrowRight className="w-4 h-4" /></>}
                     </button>
                 </form>
             </div>

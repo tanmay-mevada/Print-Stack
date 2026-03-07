@@ -12,7 +12,7 @@ import { Toaster } from 'react-hot-toast'
 import LoadingScreen from '@/components/LoadingScreen'
 import {
   Sun, Moon, LogOut, Store, Settings, Zap, PauseCircle,
-  BarChart3, ChevronDown, Clock, XCircle, Timer, Search, Filter, ArrowUpDown, CheckCircle2
+  BarChart3, ChevronDown, Clock, XCircle, Timer, Search, Filter, ArrowUpDown, CheckCircle2, AlertCircle
 } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
 
@@ -282,6 +282,7 @@ export default function ShopDashboardPage() {
                     <Link href="/shop/analytics" onClick={() => setIsOpen(false)} className={`flex items-center gap-3 p-3 rounded-xl text-sm font-bold transition-colors ${isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'}`}><BarChart3 className="w-4 h-4 opacity-70" /> Analytics</Link>
                     <Link href="/shop/profile" onClick={() => setIsOpen(false)} className={`flex items-center gap-3 p-3 rounded-xl text-sm font-bold transition-colors ${isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'}`}><Store className="w-4 h-4 opacity-70" /> Edit Shop Details</Link>
                     <Link href="/shop/pricing" onClick={() => setIsOpen(false)} className={`flex items-center gap-3 p-3 rounded-xl text-sm font-bold transition-colors ${isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'}`}><Settings className="w-4 h-4 opacity-70" /> Edit Prices</Link>
+                    <Link href="/shop/complaints" onClick={() => setIsOpen(false)} className={`flex items-center gap-3 p-3 rounded-xl text-sm font-bold transition-colors ${isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'}`}><AlertCircle className="w-4 h-4 opacity-70" /> Complaints</Link>
                   </div>
                   <div className="p-2">
                     <form action={logoutAction}><button type="submit" className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm font-bold transition-colors text-left ${isDark ? 'hover:bg-red-500/10 text-red-400 hover:text-red-300' : 'hover:bg-red-50 text-red-600 hover:text-red-700'}`}><LogOut className="w-4 h-4 opacity-70" /> Log out</button></form>

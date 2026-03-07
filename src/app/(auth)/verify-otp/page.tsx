@@ -14,11 +14,14 @@ import {
     MailCheck 
 } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 function VerifyOtpContent() {
     const searchParams = useSearchParams()
     const email = searchParams.get('email')
     
+    const t = useTranslations('auth.verifyOtp')
     const { isDark, toggleTheme } = useTheme()
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
@@ -46,7 +49,8 @@ function VerifyOtpContent() {
             <div className="w-full lg:w-1/2 flex flex-col p-8 sm:p-12 md:p-16 lg:p-24 justify-center relative z-10">
 
                 {/* Header: Logo & Theme Toggle */}
-                <div className="absolute top-8 left-8 sm:top-12 sm:left-12 flex items-center gap-6 z-10">
+                <div className="absolute top-8 left-8 sm:top-12 sm:left-12 right-8 flex items-center justify-between z-10">
+                <div className="flex items-center gap-6">
                     <Link href="/" className="flex items-center gap-3 group">
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm transition-colors duration-300 ${isDark ? 'bg-white group-hover:bg-gray-300' : 'bg-stone-900 group-hover:bg-stone-700'}`}>
                             <Printer className={`w-5 h-5 ${isDark ? 'text-black' : 'text-white'}`} />
@@ -65,6 +69,8 @@ function VerifyOtpContent() {
                         {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                     </button>
                 </div>
+                <LanguageSwitcher />
+                </div>
 
                 <div className="max-w-md w-full mx-auto mt-16 lg:mt-0 relative z-10">
                     
@@ -75,10 +81,10 @@ function VerifyOtpContent() {
                                 <MailCheck className="w-8 h-8" />
                             </div>
                             <h2 className={`text-3xl font-black tracking-tight mb-3 transition-colors ${isDark ? 'text-white' : 'text-stone-900'}`}>
-                                Missing Information
+                                {t("missingInfo")}
                             </h2>
                             <p className={`font-medium mb-8 transition-colors ${isDark ? 'text-white/60' : 'text-stone-500'}`}>
-                                We couldnt find an email address to verify. Please return to the signup page and try again.
+                                {t("missingInfoDesc")}
                             </p>
                             <Link 
                                 href="/signup" 
@@ -86,7 +92,7 @@ function VerifyOtpContent() {
                                     isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-stone-900 text-white hover:bg-stone-800'
                                 }`}
                             >
-                                Return to Sign Up
+                                {t("returnToSignUp")}
                             </Link>
                         </div>
                     ) : (
@@ -94,10 +100,10 @@ function VerifyOtpContent() {
                         <>
                             <div className="mb-10 text-center sm:text-left">
                                 <h2 className={`text-4xl font-black tracking-tight mb-3 transition-colors ${isDark ? 'text-white' : 'text-stone-900'}`}>
-                                    Check your email
+                                    {t("checkEmail")}
                                 </h2>
                                 <p className={`font-medium transition-colors ${isDark ? 'text-white/60' : 'text-stone-500'}`}>
-                                    We sent a 6-digit security code to <strong className={isDark ? 'text-white' : 'text-stone-900'}>{email}</strong>
+                                    {t("sentCodeTo")} <strong className={isDark ? 'text-white' : 'text-stone-900'}>{email}</strong>
                                 </p>
                             </div>
 
@@ -113,7 +119,7 @@ function VerifyOtpContent() {
                             <form onSubmit={handleVerify} className="space-y-6">
                                 <div>
                                     <label className={`block text-sm font-bold mb-3 uppercase tracking-wide transition-colors text-center sm:text-left ${isDark ? 'text-white/80' : 'text-stone-700'}`}>
-                                        Secure OTP Code
+                                        {t("secureOtpCode")}
                                     </label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -148,17 +154,17 @@ function VerifyOtpContent() {
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
-                                            Verifying...
+                                            {t("verifying")}
                                         </span>
                                     ) : (
-                                        <>Verify & Continue <ArrowRight className="w-5 h-5" /></>
+                                        <>{t("verifyAndContinue")} <ArrowRight className="w-5 h-5" /></>
                                     )}
                                 </button>
                             </form>
 
                             <div className="mt-10 text-center">
                                 <p className={`font-medium text-sm transition-colors ${isDark ? 'text-white/60' : 'text-stone-500'}`}>
-                                    Didnt receive the email? Check your spam folder.
+                                    {t("checkSpam")}
                                 </p>
                             </div>
                         </>
@@ -187,11 +193,11 @@ function VerifyOtpContent() {
                         </div>
                         
                         <h3 className={`text-2xl font-black tracking-tight mb-3 transition-colors ${isDark ? 'text-stone-900' : 'text-white'}`}>
-                            Bank-Grade Identity Check
+                            {t("bankGradeTitle")}
                         </h3>
                         
                         <p className={`font-medium leading-relaxed transition-colors ${isDark ? 'text-stone-600' : 'text-white/80'}`}>
-                            We verify every account to ensure a secure environment. Your digital documents, payment information, and print queues remain completely private.
+                            {t("bankGradeDesc")}
                         </p>
 
                     </div>
@@ -207,7 +213,7 @@ export default function VerifyOtpPage() {
     return (
         <Suspense fallback={
             <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white/50 font-bold tracking-widest uppercase">
-                Loading Secure Gateway...
+                Loading...
             </div>
         }>
             <VerifyOtpContent />

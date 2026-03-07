@@ -1,0 +1,159 @@
+{
+  "common": {
+    "logIn": "ಲಾಗ್ ಇನ್",
+    "signUp": "ಸೈನ್ ಅಪ್",
+    "signOut": "ಲಾಗ್ ಔಟ್",
+    "goToPortal": "ಪೋರ್ಟಲ್‌ಗೆ ಹೋಗಿ",
+    "printStack": "PrintStack",
+    "explore": "ಅನ್ವೇಷಿಸಿ",
+    "or": "ಅಥವಾ",
+    "loading": "ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+    "toggleTheme": "ಥೀಮ್ ಬದಲಾಯಿಸಿ",
+    "backToDashboard": "Back to Dashboard",
+    "backToLogin": "Back to Login"
+  },
+  "home": {
+    "nav": {
+      "howItWorks": "ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ",
+      "features": "ವೈಶಿಷ್ಟ್ಯಗಳು",
+      "techStack": "ಟೆಕ್ ಸ್ಟ್ಯಾಕ್"
+    },
+    "hero": {
+      "queueFree": "ಕ್ಯೂ ಮುಕ್ತ",
+      "printing": "ಪ್ರಿಂಟಿಂಗ್",
+      "tagline": "ಒಂದು ಬಾರಿ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ। ಬೆಲೆಗಳನ್ನು ಹೋಲಿಕೆ ಮಾಡಿ। ತಕ್ಷಣ ಪಾವತಿ ಮಾಡಿ। ಸುರಕ್ಷಿತವಾಗಿ ಸ್ವೀಕರಿಸಿ। ಶಬ್ದವಿಲ್ಲ। ಅವ್ಯವಸ್ಥೆ ಇಲ್ಲ।",
+      "welcomeBack": "ಮತ್ತೆ ಸ್ವಾಗತ",
+      "badge": "CVM ಹ್ಯಾಕಾಥಾನ್ 2026 • PS: 227",
+      "projectReady": "ಸಿದ್ಧ",
+      "secureOtp": "ಸುರಕ್ಷಿತ OTP",
+      "revealAtCounter": "ಕೌಂಟರ್‌ನಲ್ಲಿ ತೋರಿಸಿ",
+      "instantPayment": "ತಕ್ಷಣ ಪಾವತಿ"
+    },
+    "howItWorks": {
+      "title": "ಡಿಜಿಟಲ್ ವರ್ಕ್‌ಫ್ಲೋ",
+      "subtitle": "ನಾವು ಮ್ಯಾನುವಲ್ ಪ್ರಿಂಟಿಂಗ್ ವಿಳಂಬವನ್ನು ಪರಿಹರಿಸುತ್ತೇವೆ। ಅಪ್‌ಲೋಡ್ ಮಾಡಿ, ಆನ್‌ಲೈನ್‌ನಲ್ಲಿ ಪಾವತಿ ಮಾಡಿ, ಕ್ಯೂವನ್ನು ಸಂಪೂರ್ಣವಾಗಿ ತಪ್ಪಿಸಿ।",
+      "step1": { "title": "ಅಪ್‌ಲೋಡ್ ಮತ್ತು ಗುರುತಿಸಿ", "desc": "ನಿಯೋಜನೆಗಳು ಅಥವಾ ವರದಿಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ। ಆಟೋ ಪೇಜ್ ಡಿಟೆಕ್ಷನ್ ತಕ್ಷಣ ನಿಮ್ಮ ನಿಖರ ಬೆಲೆಯನ್ನು ಲೆಕ್ಕಾಚಾರ ಮಾಡುತ್ತದೆ।" },
+      "step2": { "title": "ಹೋಲಿಕೆ ಮಾಡಿ ಮತ್ತು ಪಾವತಿ ಮಾಡಿ", "desc": "ಹತ್ತಿರದ ಅಂಗಡಿ ಲಭ್ಯತೆಯನ್ನು ಹೋಲಿಕೆ ಮಾಡಿ। Razorpay ಮೂಲಕ ಸುರಕ್ಷಿತ, ಕ್ಯಾಷ್‌ಲೆಸ್ ಪಾವತಿ ಮಾಡಿ।" },
+      "step3": { "title": "ಸುರಕ್ಷಿತ ಪಿಕಪ್", "desc": "ಅಂಗಡಿಯಲ್ಲಿ ನಿಮ್ಮ OTP ನೀಡಿ। ಸಾಲಿನಲ್ಲಿ ಕಾಯದೆ ನಿಮ್ಮ ಮುದ್ರಿತ ದಾಖಲೆಗಳನ್ನು ಸ್ವೀಕರಿಸಿ।" }
+    },
+    "features": {
+      "multiShop": { "title": "ಮಲ್ಟಿ-ಶಾಪ್ ಈಕೋಸಿಸ್ಟಮ್", "desc": "ವಿದ್ಯಾರ್ಥಿಗಳು ಹತ್ತಿರದ ಪ್ರಿಂಟ್ ಶಾಪ್‌ಗಳನ್ನು ಬ್ರೌಸ್ ಮಾಡಬಹುದು, ಅವುಗಳ ರಿಯಲ್-ಟೈಮ್ ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸಬಹುದು ಮತ್ತು ಬೆಲೆಗಳನ್ನು ಹೋಲಿಕೆ ಮಾಡಬಹುದು।" },
+      "secureHandover": { "title": "ಸುರಕ್ಷಿತ ಹ್ಯಾಂಡ್‌ಓವರ್", "desc": "OTP ಆಧಾರಿತ ಪರಿಶೀಲನೆ ಸುರಕ್ಷಿತ ಡಾಕ್ಯುಮೆಂಟ್ ಹ್ಯಾಂಡ್‌ಓವರ್ ಖಾತ್ರಿ ಮಾಡುತ್ತದೆ।" },
+      "analytics": { "title": "ಶಾಪ್ ಅನಾಲಿಟಿಕ್ಸ್", "subtitle": "ರಿಯಲ್-ಟೈಮ್ ಟ್ರ್ಯಾಕಿಂಗ್", "desc": "ದೈನಂದಿನ ಆದಾಯ ಅಂತರ್ದೃಷ್ಟಿಗಳು ಮತ್ತು ಡಿಜಿಟಲ್ ವರ್ಕ್‌ಫ್ಲೋ ನಿರ್ವಹಣೆ।" },
+      "bulkOrders": { "title": "ಬಲ್ಕ್ ಮತ್ತು ತುರ್ತು ಆರ್ಡರ್ಗಳು", "desc": "ಥೀಸಿಸ್ ಮತ್ತು ಲ್ಯಾಬ್ ರೆಕಾರ್ಡ್‌ಗಳಿಗಾಗಿ ಪೀಕ್ ಲೋಡ್ ಅನ್ನು ಪರಿಣಾಮಕಾರಿಯಾಗಿ ನಿರ್ವಹಿಸಿ।" }
+    },
+    "techStack": { "title": "ಆಧುನಿಕ ಟೆಕ್ ಸ್ಟ್ಯಾಕ್ ಮೂಲಕ ಶಕ್ತಿಯುತ" },
+    "footer": {
+      "developedBy": "ವಿಕಸಿತ",
+      "team": "ಟೀಮ್ ಟರ್ಬೋಸಿ++",
+      "hackathon": "CVM ಹ್ಯಾಕಾಥಾನ್ 2026 ಗಾಗಿ। ದೈನಂದಿನ ಪ್ರಿಂಟಿಂಗ್ ಕ್ಯೂಗಳನ್ನು ತೆಗೆದುಹಾಕಲು ಸುರಕ್ಷಿತ ಮತ್ತು ಸ್ಕೇಲ್‌ಬಲ್ ಆರ್ಕಿಟೆಕ್ಚರ್।",
+      "teamTurbo": "ಟೀಮ್ ಟರ್ಬೋಸಿ++",
+      "advisory": "ಸಲಹಾ",
+      "members": ["ಓಂ ಘೋಡಾಸರಾ (ಲೀಡರ್)", "ತನ್ಮಯ್ ಮೇವಾಡಾ", "ಊರ್ವಿ ಲಾಢಾಣಿ", "ಆರ್ಚಿ ಪಟೇಲ್"],
+      "mentor": "ಮೆಂಟರ್: ಮೋಸಿನ್ ಇಬ್ರಾಹಿಮ್ ಹಸನ್",
+      "college": "ಬಿರ್ಲಾ ವಿಶ್ವಕರ್ಮ ಮಹಾವಿದ್ಯಾಲಯ",
+      "domain": "AI/ML ಡೊಮೈನ್",
+      "copyright": "© 2026 PrintStack • ಇಂಜಿನಿಯರಿಂಗ್ ಮತ್ತು ತಂತ್ರಜ್ಞಾನದಲ್ಲಿ ನಾವೀನ್ಯಕ್ಕಾಗಿ ನಿರ್ಮಿಸಲಾಗಿದೆ।",
+      "viewSource": "GitHub ನಲ್ಲಿ ಮೂಲ ನೋಡಿ",
+      "githubRepo": "GitHub ರೆಪೋ"
+    }
+  },
+  "auth": {
+    "welcomeBack": "ಮತ್ತೆ ಸ್ವಾಗತ",
+    "enterCredentials": "ನಿಮ್ಮ ಡಿಜಿಟಲ್ ಪ್ರಿಂಟ್ ಕ್ಯೂಗೆ ಪ್ರವೇಶಿಸಲು ನಿಮ್ಮ ಕ್ರೆಡೆನ್‌ಶಿಯಲ್‌ಗಳನ್ನು ನಮೂದಿಸಿ।",
+    "createAccount": "ನಿಮ್ಮ ಖಾತೆಯನ್ನು ರಚಿಸಿ",
+    "createAccountDesc": "ಪೇಪರ್‌ಲೆಸ್ ಕ್ರಾಂತಿಗೆ ಸೇರಿಕೊಳ್ಳಿ ಮತ್ತು ಪ್ರಿಂಟಿಂಗ್ ಕ್ಯೂಗಳನ್ನು ಶಾಶ್ವತವಾಗಿ ತಪ್ಪಿಸಿ।",
+    "email": "ಇಮೇಲ್ ವಿಳಾಸ",
+    "password": "ಪಾಸ್‌ವರ್ಡ್",
+    "forgotPassword": "ಪಾಸ್‌ವರ್ಡ್ ಮರೆತಿದ್ದೀರಾ?",
+    "fullName": "ಪೂರ್ಣ ಹೆಸರು",
+    "confirmPassword": "ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ",
+    "signIn": "ಸೈನ್ ಇನ್",
+    "signUp": "Sign Up",
+    "signingIn": "ಸೈನ್ ಇನ್ ಆಗುತ್ತಿದೆ...",
+    "creatingAccount": "Creating account...",
+    "continueWithGoogle": "Google ನೊಂದಿಗೆ ಮುಂದುವರಿಸಿ",
+    "signUpWithGoogle": "Sign up with Google",
+    "returnToSignUp": "Return to Sign Up",
+    "dontHaveAccount": "ಖಾತೆ ಇಲ್ಲವೇ?",
+    "alreadyHaveAccount": "ಈಗಾಗಲೇ ಖಾತೆ ಇದೆಯೇ?",
+    "placeholders": {
+      "email": "student@cvmu.edu.in",
+      "emailPlaceholder": "student@university.edu.in",
+      "password": "••••••••",
+      "fullName": "ಜೇನ್ ಡೋ",
+      "createPassword": "ಭದ್ರವಾದ ಪಾಸ್‌ವರ್ಡ್ ರಚಿಸಿ",
+      "studentEmail": "student@college.edu"
+    },
+    "forgotPasswordPage": {
+      "title": "Reset Password",
+      "subtitle": "Enter your email to receive a secure recovery link.",
+      "checkInbox": "Check your inbox",
+      "linkSent": "Link sent successfully",
+      "sending": "Sending...",
+      "sendResetLink": "Send Reset Link"
+    },
+    "resetPasswordPage": {
+      "title": "New Password",
+      "subtitle": "Secure your account with a new password.",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "updating": "Updating...",
+      "updatePassword": "Update Password",
+      "passwordsNoMatch": "Passwords do not match."
+    },
+    "verifyOtp": {
+      "missingInfo": "Missing Information",
+      "missingInfoDesc": "We couldn't find an email address to verify. Please return to the signup page and try again.",
+      "checkEmail": "Check your email",
+      "sentCodeTo": "We sent a 6-digit security code to",
+      "secureOtpCode": "Secure OTP Code",
+      "verifying": "Verifying...",
+      "verifyAndContinue": "Verify & Continue",
+      "checkSpam": "Didn't receive the email? Check your spam folder.",
+      "bankGradeTitle": "Bank-Grade Identity Check",
+      "bankGradeDesc": "We verify every account to ensure a secure environment. Your digital documents, payment information, and print queues remain completely private.",
+      "loadingGateway": "Loading Secure Gateway..."
+    },
+    "verifyReset": {
+      "invalidLink": "Invalid Link",
+      "invalidLinkDesc": "This link is missing a secure token or has already been used.",
+      "requestNewLink": "Request New Link",
+      "secureVerification": "Secure Verification",
+      "confirmReset": "To protect your account from automated scanners, please confirm you want to reset your password.",
+      "verifying": "Verifying...",
+      "confirmAndReset": "Confirm & Reset Password",
+      "loadingPortal": "Loading Secure Portal..."
+    }
+  },
+  "shop": {
+    "dashboard": "Shop Dashboard",
+    "editShopDetails": "ಶಾಪ್ ವಿವರಗಳನ್ನು ಸಂಪಾದಿಸಿ",
+    "editPrices": "ಬೆಲೆಗಳನ್ನು ಸಂಪಾದಿಸಿ",
+    "logOut": "ಲಾಗ್ ಔಟ್",
+    "pricing": {
+      "editPricing": "Edit Pricing",
+      "subtitle": "Update your per-page printing configuration.",
+      "updatingPricing": "Updating pricing...",
+      "pricingUpdated": "Pricing updated successfully!"
+    }
+  },
+  "student": {
+    "orderHistory": "Order History",
+    "orderHistoryDesc": "All your past printing requests.",
+    "noOrdersYet": "No Orders Yet",
+    "noOrdersDesc": "You have not printed anything yet. Once you do, it will appear here.",
+    "profile": {
+      "editProfile": "Edit Profile",
+      "savingProfile": "Saving profile...",
+      "uploadImage": "Please upload an image file.",
+      "imageSize": "Image must be less than 5MB."
+    }
+  },
+  "order": {
+    "status": { "completed": "ಪೂರ್ಣಗೊಂಡಿದೆ", "ready": "ಸಿದ್ಧ", "printing": "ಪ್ರಿಂಟ್ ಆಗುತ್ತಿದೆ", "pending": "ಬಾಕಿ" }
+  },
+  "loading": {
+    "preparingStack": "Preparing Stack"
+  }
+}

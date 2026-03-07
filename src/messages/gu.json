@@ -1,0 +1,105 @@
+{
+  "common": {
+    "logIn": "લોગ ઇન",
+    "signUp": "સાઇન અપ",
+    "signOut": "લોગ આઉટ",
+    "goToPortal": "પોર્ટલ પર જાઓ",
+    "printStack": "PrintStack",
+    "explore": "અન્વેષણ કરો",
+    "or": "અથવા",
+    "loading": "લોડ થઈ રહ્યું છે...",
+    "toggleTheme": "થીમ બદલો",
+    "backToDashboard": "ડેશબોર્ડ પર પાછા",
+    "backToLogin": "લોગઇન પર પાછા"
+  },
+  "home": {
+    "nav": {
+      "howItWorks": "કેવી રીતે કામ કરે છે",
+      "features": "સુવિધાઓ",
+      "techStack": "ટેક સ્ટેક"
+    },
+    "hero": {
+      "queueFree": "ક્યૂ મુક્ત",
+      "printing": "પ્રિન્ટિંગ",
+      "tagline": "એક વાર અપલોડ કરો। ભાવની તુલના કરો। તરત ચૂકવણી કરો। સુરક્ષિત રીતે લો। કોઈ અવાજ નહીં। કોઈ અસ્તવ્યસ્તતા નહીં।",
+      "welcomeBack": "પાછા સ્વાગત છે",
+      "badge": "CVM હેકથોન 2026 • PS: 227",
+      "projectReady": "તૈયાર",
+      "secureOtp": "સુરક્ષિત OTP",
+      "revealAtCounter": "કાઉન્ટર પર બતાવો",
+      "instantPayment": "ત્વરિત ચૂકવણી"
+    },
+    "howItWorks": {
+      "title": "ડિજિટલ વર્કફ્લો",
+      "subtitle": "અમે મેન્યુઅલ પ્રિન્ટિંગ વિલંબ દૂર કરીએ છીએ। અપલોડ કરો, ઓનલાઇન ચૂકવણી કરો, ક્યૂ સંપૂર્ણપણે છોડી દો।",
+      "step1": { "title": "અપલોડ અને ડિટેક્ટ", "desc": "અસાઇનમેન્ટ અથવા રિપોર્ટ અપલોડ કરો। ઑટો પેજ ડિટેક્શન તરત તમારી ચોક્કસ કિંમત ગણે છે।" },
+      "step2": { "title": "તુલના અને ચૂકવણી", "desc": "નજીકની દુકાન ઉપલબ્ધતા તુલના કરો। Razorpay દ્વારા સુરક્ષિત, કેશલેસ ચૂકવણી કરો।" },
+      "step3": { "title": "સુરક્ષિત પિકઅપ", "desc": "દુકાન પર તમારો OTP આપો। લાઇનમાં રાહ જોયા વિના તમારા પ્રિન્ટેડ દસ્તાવેજો લો।" }
+    },
+    "features": {
+      "multiShop": { "title": "મલ્ટી-શોપ ઇકોસિસ્ટમ", "desc": "વિદ્યાર્થીઓ પાસની પ્રિન્ટ શોપ્સ બ્રાઉઝ કરી શકે છે, તેમની રીયલ-ટાઇમ સ્થિતિ તપાસી શકે છે અને ભાવની તુલના કરી શકે છે।" },
+      "secureHandover": { "title": "સુરક્ષિત હેન્ડઓવર", "desc": "OTP આધારિત ચકાસણી સુરક્ષિત દસ્તાવેજ સોંપણી ખાતરી કરે છે।" },
+      "analytics": { "title": "શોપ એનાલિટિક્સ", "subtitle": "રીયલ-ટાઇમ ટ્રેકિંગ", "desc": "દૈનિક આવક અંતર્દૃષ્ટિ અને ડિજિટલ વર્કફ્લો મેનેજમેન્ટ।" },
+      "bulkOrders": { "title": "બલ્ક અને અગત્યના ઓર્ડર્સ", "desc": "થીસીસ અને લેબ રેકોર્ડ માટે પીક લોડ કાર્યક્ષમ રીતે મેનેજ કરો।" }
+    },
+    "techStack": { "title": "આધુનિક ટેક સ્ટેક દ્વારા સંચાલિત" },
+    "footer": {
+      "developedBy": "વિકસિત",
+      "team": "ટીમ ટર્બોસી++",
+      "hackathon": "CVM હેકથોન 2026 માટે। દૈનિક પ્રિન્ટિંગ કતારો દૂર કરવા માટે સુરક્ષિત અને સ્કેલેબલ આર્કિટેક્ચર।",
+      "teamTurbo": "ટીમ ટર્બોસી++",
+      "advisory": "સલાહકાર",
+      "members": ["ઓમ ઘોડાસરા (લીડર)", "તન્મય મેવાડા", "ઊર્વી લાઢાણી", "આર્ચી પટેલ"],
+      "mentor": "માંટર: મોસિન ઇબ્રાહીમ હસન",
+      "college": "બિરલા વિશ્વકર્મા મહાવિદ્યાલય",
+      "domain": "AI/ML ડોમેન",
+      "copyright": "© 2026 PrintStack • એન્જિનિયરિંગ અને ટેકનોલોજીમાં નવાચાર માટે બનાવ્યું।",
+      "viewSource": "GitHub પર સ્ત્રોત જુઓ",
+      "githubRepo": "GitHub રેપો"
+    }
+  },
+  "auth": {
+    "welcomeBack": "પાછા સ્વાગત છે",
+    "enterCredentials": "તમારી ડિજિટલ પ્રિન્ટ કતાર ઍક્સેસ કરવા માટે ક્રેડેન્શિયલ્સ દાખલ કરો।",
+    "createAccount": "તમારું એકાઉન્ટ બનાવો",
+    "createAccountDesc": "પેપરલેસ ક્રાંતિમાં જોડાઓ અને પ્રિન્ટિંગ કતારો કાયમ માટે છોડી દો।",
+    "email": "ઈમેલ સરનામું",
+    "password": "પાસવર્ડ",
+    "forgotPassword": "પાસવર્ડ ભૂલી ગયા?",
+    "fullName": "પૂર્ણ નામ",
+    "confirmPassword": "પાસવર્ડ પુષ્ટિ કરો",
+    "signIn": "સાઇન ઇન",
+    "signingIn": "સાઇન ઇન થઈ રહ્યું છે...",
+    "continueWithGoogle": "Google સાથે ચાલુ રાખો",
+    "dontHaveAccount": "એકાઉન્ટ નથી?",
+    "alreadyHaveAccount": "પહેલેથી એકાઉન્ટ છે?",
+    "signUp": "સાઇન અપ",
+    "creatingAccount": "એકાઉન્ટ બનાવી રહ્યું છે...",
+    "signUpWithGoogle": "Google સાથે સાઇન અપ કરો",
+    "returnToSignUp": "સાઇન અપ પર પાછા જાઓ",
+    "placeholders": {
+      "email": "student@cvmu.edu.in",
+      "emailPlaceholder": "student@university.edu.in",
+      "password": "••••••••",
+      "fullName": "જેન ડો",
+      "createPassword": "મજબૂત પાસવર્ડ બનાવો",
+      "studentEmail": "student@college.edu"
+    },
+    "forgotPasswordPage": { "title": "પાસવર્ડ રીસેટ કરો", "subtitle": "સુરક્ષિત રિકવરી લિંક મેળવવા તમારો ઈમેલ દાખલ કરો।", "checkInbox": "તમારો ઇનબોક્સ તપાસો", "linkSent": "લિંક સફળતાપૂર્વક મોકલ્યો", "sending": "મોકલી રહ્યું છે...", "sendResetLink": "રીસેટ લિંક મોકલો" },
+    "resetPasswordPage": { "title": "નવું પાસવર્ડ", "subtitle": "નવા પાસવર્ડ સાથે તમારું એકાઉન્ટ સુરક્ષિત કરો।", "newPassword": "નવું પાસવર્ડ", "confirmPassword": "પાસવર્ડ પુષ્ટિ કરો", "updating": "અપડેટ થઈ રહ્યું છે...", "updatePassword": "પાસવર્ડ અપડેટ કરો", "passwordsNoMatch": "પાસવર્ડ મેળ ખાતા નથી।" },
+    "verifyOtp": { "missingInfo": "જાણકારી ગાયબ", "missingInfoDesc": "અમને ચકાસવા માટે ઈમેલ મળ્યો નથી। કૃપા કરીને સાઇન અપ પેજ પર પાછા જાઓ।", "checkEmail": "તમારો ઈમેલ તપાસો", "sentCodeTo": "અમે 6-અંકનો સુરક્ષિત કોડ મોકલ્યો છે", "secureOtpCode": "સુરક્ષિત OTP કોડ", "verifying": "ચકાસણી થઈ રહ્યું છે...", "verifyAndContinue": "ચકાસો અને ચાલુ રાખો", "checkSpam": "ઈમેલ નથી મળ્યો? સ્પામ ફોલ્ડર તપાસો।", "bankGradeTitle": "બેંક-ગ્રેડ આઇડેન્ટિટી ચેક", "bankGradeDesc": "અમે દરેક એકાઉન્ટને સુરક્ષિત વાતાવરણ માટે ચકાસીએ છીએ।", "returnToSignUp": "સાઇન અપ પર પાછા જાઓ" },
+    "verifyReset": { "invalidLink": "અમાન્ય લિંક", "invalidLinkDesc": "આ લિંકમાં સુરક્ષિત ટોકન ગાયબ છે અથવા પહેલેથી વપરાયેલ છે।", "requestNewLink": "નવી લિંક વિનંતી કરો", "secureVerification": "સુરક્ષિત ચકાસણી", "confirmReset": "આપનાં એકાઉન્ટની રક્ષણ માટે પાસવર્ડ રીસેટ પુષ્ટિ કરો।", "verifying": "ચકાસણી થઈ રહ્યું છે...", "confirmAndReset": "પુષ્ટિ કરો અને પાસવર્ડ રીસેટ કરો", "loadingPortal": "સુરક્ષિત પોર્ટલ લોડ થઈ રહ્યું છે..." }
+  },
+  "shop": {
+    "dashboard": "શોપ ડેશબોર્ડ",
+    "pricing": { "editPricing": "ભાવ સંપાદિત કરો", "subtitle": "તમારું પ્રતિ પેજ પ્રિન્ટિંગ કન્ફિગ અપડેટ કરો।", "updatingPricing": "ભાવ અપડેટ થઈ રહ્યું છે...", "pricingUpdated": "ભાવ સફળતાપૂર્વક અપડેટ થયો!" },
+    "editShopDetails": "શોપ વિગતો સંપાદિત કરો",
+    "editPrices": "ભાવ સંપાદિત કરો",
+    "logOut": "લોગ આઉટ"
+  },
+  "student": { "orderHistory": "ઓર્ડર ઇતિહાસ", "orderHistoryDesc": "તમારા બધા ભૂતકાળના પ્રિન્ટિંગ વિનંતીઓ।", "noOrdersYet": "હજુ સુધી કોઈ ઓર્ડર નથી", "noOrdersDesc": "તમે હજી કંઈ પ્રિન્ટ કર્યું નથી। કર્યા પછી અહીં દેખાશે।", "profile": { "editProfile": "પ્રોફાઇલ સંપાદિત કરો", "savingProfile": "પ્રોફાઇલ સાચવી રહ્યું છે...", "uploadImage": "કૃપા કરીને ઇમેજ ફાઇલ અપલોડ કરો।", "imageSize": "ઇમેજ 5MB કરતાં ઓછી હોવી જોઈએ।" } },
+  "order": {
+    "status": { "completed": "પૂર્ણ", "ready": "તૈયાર", "printing": "પ્રિન્ટ થઈ રહ્યું", "pending": "બાકી" }
+  },
+  "loading": { "preparingStack": "સ્ટેક તૈયાર થઈ રહ્યું છે" }
+}

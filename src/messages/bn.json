@@ -1,0 +1,159 @@
+{
+  "common": {
+    "logIn": "লগ ইন",
+    "signUp": "সাইন আপ",
+    "signOut": "লগ আউট",
+    "goToPortal": "পোর্টালে যান",
+    "printStack": "PrintStack",
+    "explore": "অন্বেষণ করুন",
+    "or": "অথবা",
+    "loading": "লোড হচ্ছে...",
+    "toggleTheme": "থিম পরিবর্তন করুন",
+    "backToDashboard": "Back to Dashboard",
+    "backToLogin": "Back to Login"
+  },
+  "home": {
+    "nav": {
+      "howItWorks": "কিভাবে কাজ করে",
+      "features": "বৈশিষ্ট্য",
+      "techStack": "টেক স্ট্যাক"
+    },
+    "hero": {
+      "queueFree": "কিউ মুক্ত",
+      "printing": "প্রিন্টিং",
+      "tagline": "একবার আপলোড করুন। দামের তুলনা করুন। তৎক্ষণাত পেমেন্ট করুন। নিরাপদে সংগ্রহ করুন। কোনো গোলমাল নেই।",
+      "welcomeBack": "আবার স্বাগতম",
+      "badge": "CVM হ্যাকাথন 2026 • PS: 227",
+      "projectReady": "প্রস্তুত",
+      "secureOtp": "নিরাপদ OTP",
+      "revealAtCounter": "কাউন্টারে দেখান",
+      "instantPayment": "তাত্ক্ষণিক পেমেন্ট"
+    },
+    "howItWorks": {
+      "title": "ডিজিটাল ওয়ার্কফ্লো",
+      "subtitle": "আমরা ম্যানুয়াল প্রিন্টিং বিলম্ব সমাধান করি। আপলোড করুন, অনলাইনে পেমেন্ট করুন, কিউ পুরোপুরি এড়িয়ে যান।",
+      "step1": { "title": "আপলোড এবং সনাক্ত করুন", "desc": "অ্যাসাইমেন্ট বা রিপোর্ট আপলোড করুন। অটো পেজ ডিটেকশন তৎক্ষণাত আপনার সঠিক দাম গণনা করে।" },
+      "step2": { "title": "তুলনা করুন এবং পেমেন্ট করুন", "desc": "কাছের দোকানের উপলব্ধতার তুলনা করুন। Razorpay এর মাধ্যমে নিরাপদ, ক্যাশলেস পেমেন্ট করুন।" },
+      "step3": { "title": "নিরাপদ পিকআপ", "desc": "দোকানে আপনার OTP দিন। লাইনে অপেক্ষা না করে আপনার প্রিন্ট করা ডকুমেন্ট নিন।" }
+    },
+    "features": {
+      "multiShop": { "title": "মাল্টি-শপ ইকোসিস্টেম", "desc": "ছাত্ররা কাছের প্রিন্ট শপ ব্রাউজ করতে পারেন, তাদের রিয়েল-টাইম স্ট্যাটাস চেক করতে পারেন এবং দামের তুলনা করতে পারেন।" },
+      "secureHandover": { "title": "নিরাপদ হ্যান্ডওভার", "desc": "OTP ভিত্তিক যাচাইকরণ নিরাপদ ডকুমেন্ট হ্যান্ডওভার নিশ্চিত করে।" },
+      "analytics": { "title": "শপ অ্যানালিটিক্স", "subtitle": "রিয়েল-টাইম ট্র্যাকিং", "desc": "দৈনিক রাজস্ব অন্তর্দৃষ্টি এবং ডিজিটাল ওয়ার্কফ্লো ব্যবস্থাপনা।" },
+      "bulkOrders": { "title": "বাল্ক এবং জরুরি অর্ডার", "desc": "থিসিস এবং ল্যাব রেকর্ডের জন্য পীক লোড দক্ষতার সাথে পরিচালনা করুন।" }
+    },
+    "techStack": { "title": "আধুনিক টেক স্ট্যাক দ্বারা চালিত" },
+    "footer": {
+      "developedBy": "উন্নত",
+      "team": "টিম টার্বোসি++",
+      "hackathon": "CVM হ্যাকাথন 2026 এর জন্য। দৈনিক প্রিন্টিং কিউ দূর করতে নিরাপদ এবং স্কেলেবল আর্কিটেকচার।",
+      "teamTurbo": "টিম টার্বোসি++",
+      "advisory": "উপদেষ্টা",
+      "members": ["ওম ঘোড়াসারা (লিডার)", "তন্ময় মেভাড়া", "ঊর্বী লাঢ়াণী", "আর্চি পাটেল"],
+      "mentor": "মেন্টর: মোসিন ইব্রাহিম হাসান",
+      "college": "বির্লা বিশ্বকর্মা মহাবিদ্যালয়",
+      "domain": "AI/ML ডোমেইন",
+      "copyright": "© 2026 PrintStack • ইঞ্জিনিয়ারিং এবং প্রযুক্তিতে উদ্ভাবনের জন্য তৈরি।",
+      "viewSource": "GitHub এ সোর্স দেখুন",
+      "githubRepo": "GitHub রেপো"
+    }
+  },
+  "auth": {
+    "welcomeBack": "আবার স্বাগতম",
+    "enterCredentials": "আপনার ডিজিটাল প্রিন্ট কিউ অ্যাক্সেস করতে আপনার শংসাপত্র লিখুন।",
+    "createAccount": "আপনার অ্যাকাউন্ট তৈরি করুন",
+    "createAccountDesc": "পেপারলেস বিপ্লবে যোগ দিন এবং প্রিন্টিং কিউ চিরতরে এড়িয়ে যান।",
+    "email": "ইমেইল ঠিকানা",
+    "password": "পাসওয়ার্ড",
+    "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?",
+    "fullName": "পুরো নাম",
+    "confirmPassword": "পাসওয়ার্ড নিশ্চিত করুন",
+    "signIn": "সাইন ইন",
+    "signUp": "Sign Up",
+    "signingIn": "সাইন ইন হচ্ছে...",
+    "creatingAccount": "Creating account...",
+    "continueWithGoogle": "Google দিয়ে চালিয়ে যান",
+    "signUpWithGoogle": "Sign up with Google",
+    "returnToSignUp": "Return to Sign Up",
+    "dontHaveAccount": "অ্যাকাউন্ট নেই?",
+    "alreadyHaveAccount": "ইতিমধ্যে অ্যাকাউন্ট আছে?",
+    "placeholders": {
+      "email": "student@cvmu.edu.in",
+      "emailPlaceholder": "student@university.edu.in",
+      "password": "••••••••",
+      "fullName": "Jane Doe",
+      "createPassword": "শক্তিশালী পাসওয়ার্ড তৈরি করুন",
+      "studentEmail": "student@college.edu"
+    },
+    "forgotPasswordPage": {
+      "title": "Reset Password",
+      "subtitle": "Enter your email to receive a secure recovery link.",
+      "checkInbox": "Check your inbox",
+      "linkSent": "Link sent successfully",
+      "sending": "Sending...",
+      "sendResetLink": "Send Reset Link"
+    },
+    "resetPasswordPage": {
+      "title": "New Password",
+      "subtitle": "Secure your account with a new password.",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "updating": "Updating...",
+      "updatePassword": "Update Password",
+      "passwordsNoMatch": "Passwords do not match."
+    },
+    "verifyOtp": {
+      "missingInfo": "Missing Information",
+      "missingInfoDesc": "We couldn't find an email address to verify. Please return to the signup page and try again.",
+      "checkEmail": "Check your email",
+      "sentCodeTo": "We sent a 6-digit security code to",
+      "secureOtpCode": "Secure OTP Code",
+      "verifying": "Verifying...",
+      "verifyAndContinue": "Verify & Continue",
+      "checkSpam": "Didn't receive the email? Check your spam folder.",
+      "bankGradeTitle": "Bank-Grade Identity Check",
+      "bankGradeDesc": "We verify every account to ensure a secure environment. Your digital documents, payment information, and print queues remain completely private.",
+      "loadingGateway": "Loading Secure Gateway..."
+    },
+    "verifyReset": {
+      "invalidLink": "Invalid Link",
+      "invalidLinkDesc": "This link is missing a secure token or has already been used.",
+      "requestNewLink": "Request New Link",
+      "secureVerification": "Secure Verification",
+      "confirmReset": "To protect your account from automated scanners, please confirm you want to reset your password.",
+      "verifying": "Verifying...",
+      "confirmAndReset": "Confirm & Reset Password",
+      "loadingPortal": "Loading Secure Portal..."
+    }
+  },
+  "shop": {
+    "dashboard": "Shop Dashboard",
+    "editShopDetails": "শপ বিবরণ সম্পাদনা করুন",
+    "editPrices": "দাম সম্পাদনা করুন",
+    "logOut": "লগ আউট",
+    "pricing": {
+      "editPricing": "Edit Pricing",
+      "subtitle": "Update your per-page printing configuration.",
+      "updatingPricing": "Updating pricing...",
+      "pricingUpdated": "Pricing updated successfully!"
+    }
+  },
+  "student": {
+    "orderHistory": "Order History",
+    "orderHistoryDesc": "All your past printing requests.",
+    "noOrdersYet": "No Orders Yet",
+    "noOrdersDesc": "You have not printed anything yet. Once you do, it will appear here.",
+    "profile": {
+      "editProfile": "Edit Profile",
+      "savingProfile": "Saving profile...",
+      "uploadImage": "Please upload an image file.",
+      "imageSize": "Image must be less than 5MB."
+    }
+  },
+  "order": {
+    "status": { "completed": "সম্পূর্ণ", "ready": "প্রস্তুত", "printing": "প্রিন্ট হচ্ছে", "pending": "অপেক্ষমাণ" }
+  },
+  "loading": {
+    "preparingStack": "Preparing Stack"
+  }
+}

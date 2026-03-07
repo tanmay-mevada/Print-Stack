@@ -1,7 +1,10 @@
+'use client'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 
 // Accept 'isDark' as a prop, defaulting to true if not provided
 export default function LoadingScreen({ isDark = true }: { isDark?: boolean }) {
+    const t = useTranslations('loading')
     return (
         <div className={`fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden transition-colors duration-700 ${
             isDark ? 'bg-[#050505] text-white selection:bg-white/20' : 'bg-[#faf9f6] text-stone-900 selection:bg-stone-900/20'
@@ -39,7 +42,7 @@ export default function LoadingScreen({ isDark = true }: { isDark?: boolean }) {
                     <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isDark ? 'bg-white/60' : 'bg-stone-900/60'}`} style={{ animationDelay: '150ms' }} />
                     <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isDark ? 'bg-white/30' : 'bg-stone-900/30'}`} style={{ animationDelay: '300ms' }} />
                     <p className={`text-xs font-bold uppercase tracking-[0.3em] ml-2 transition-colors duration-700 ${isDark ? 'text-white/50' : 'text-stone-500'}`}>
-                        Preparing Stack
+                        {t('preparingStack')}
                     </p>
                 </div>
 

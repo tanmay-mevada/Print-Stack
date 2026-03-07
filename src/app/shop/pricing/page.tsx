@@ -7,9 +7,16 @@ import { updateShopPricingAction } from '../actions'
 import { useTheme } from '@/context/ThemeContext'
 import toast, { Toaster } from 'react-hot-toast'
 import LoadingScreen from '@/components/LoadingScreen'
+<<<<<<< Updated upstream
 import { ArrowLeft, IndianRupee, Layers, Palette, Printer, BookOpen, Package } from 'lucide-react'
+=======
+import { ArrowLeft, IndianRupee, Layers, Palette } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+>>>>>>> Stashed changes
 
 export default function ShopPricingPage() {
+  const t = useTranslations('shop.pricing')
+  const tCommon = useTranslations()
   const { isDark } = useTheme()
   const [pricing, setPricing] = useState<any>({
     bw_price: 0, color_price: 0, double_side_modifier: 1,
@@ -45,7 +52,11 @@ export default function ShopPricingPage() {
     e.preventDefault()
     setSaving(true)
     
+<<<<<<< Updated upstream
     const savingToast = toast.loading('Updating matrix...')
+=======
+    const savingToast = toast.loading(t('updatingPricing'))
+>>>>>>> Stashed changes
     
     const formData = new FormData(e.currentTarget)
     
@@ -66,8 +77,17 @@ export default function ShopPricingPage() {
     
     toast.dismiss(savingToast)
     
+<<<<<<< Updated upstream
     if (res?.error) toast.error(res.error)
     if (res?.success) toast.success('Pricing matrix updated successfully!')
+=======
+    if (res?.error) {
+        toast.error(res.error)
+    }
+    if (res?.success) {
+        toast.success(t('pricingUpdated'))
+    }
+>>>>>>> Stashed changes
     
     setSaving(false)
   }
@@ -114,8 +134,19 @@ export default function ShopPricingPage() {
     
     <div className="w-full max-w-4xl">
 
+<<<<<<< Updated upstream
       <Link href="/shop/dashboard" className={`flex items-center gap-2 text-sm font-bold uppercase tracking-widest transition-colors mb-6 w-fit ${isDark ? 'text-white/50 hover:text-white' : 'text-stone-500 hover:text-stone-900'}`}>
         <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+=======
+      {/* Back Link */}
+      <Link
+        href="/shop/dashboard"
+        className={`flex items-center gap-2 text-sm font-bold uppercase tracking-widest transition-colors mb-6 w-fit ${
+            isDark ? 'text-white/50 hover:text-white' : 'text-stone-500 hover:text-stone-900'
+        }`}
+      >
+        <ArrowLeft className="w-4 h-4" /> {tCommon('common.backToDashboard')}
+>>>>>>> Stashed changes
       </Link>
 
       <div className={`rounded-[2.5rem] overflow-hidden border transition-colors duration-700 ${
@@ -127,9 +158,19 @@ export default function ShopPricingPage() {
              <div className={`p-2 rounded-xl ${isDark ? 'bg-white/10' : 'bg-white/20'}`}>
                  <IndianRupee className="w-5 h-5" />
              </div>
+<<<<<<< Updated upstream
              <h1 className="text-3xl font-black uppercase tracking-tight">Service Pricing Matrix</h1>
           </div>
           <p className="text-sm text-white/60 font-medium ml-12">Configure your per-page costs, large format stock, and finishing fees.</p>
+=======
+             <h1 className="text-3xl font-black uppercase tracking-tight">
+               {t('editPricing')}
+             </h1>
+          </div>
+          <p className="text-sm text-white/60 font-medium ml-12">
+            {t('subtitle')}
+          </p>
+>>>>>>> Stashed changes
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-10">

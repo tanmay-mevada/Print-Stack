@@ -1,0 +1,159 @@
+{
+  "common": {
+    "logIn": "உள்நுழை",
+    "signUp": "பதிவு செய்",
+    "signOut": "வெளியேறு",
+    "goToPortal": "போர்ட்டலுக்குச் செல்",
+    "printStack": "PrintStack",
+    "explore": "ஆராயுங்கள்",
+    "or": "அல்லது",
+    "loading": "ஏற்றுகிறது...",
+    "toggleTheme": "தீம் மாற்று",
+    "backToDashboard": "Back to Dashboard",
+    "backToLogin": "Back to Login"
+  },
+  "home": {
+    "nav": {
+      "howItWorks": "எப்படி செயல்படுகிறது",
+      "features": "சிறப்பம்சங்கள்",
+      "techStack": "டெக் ஸ்டாக்"
+    },
+    "hero": {
+      "queueFree": "வரிசை இல்லா",
+      "printing": "அச்சிடுதல்",
+      "tagline": "ஒருமுறை பதிவேற்று। விலைகளை ஒப்பிடு। உடனடியாக செலுத்து। பாதுகாப்பாக பெற்றுக்கொள்। சத்தம் இல்லை। குழப்பம் இல்லை।",
+      "welcomeBack": "மீண்டும் வரவேற்பு",
+      "badge": "CVM ஹேக்காதான் 2026 • PS: 227",
+      "projectReady": "தயார்",
+      "secureOtp": "பாதுகாப்பான OTP",
+      "revealAtCounter": "கவுன்டரில் வெளிப்படுத்து",
+      "instantPayment": "உடனடி பணம்"
+    },
+    "howItWorks": {
+      "title": "டிஜிட்டல் வர்க்கப்போம்",
+      "subtitle": "கைமுறை அச்சிடுதல் தாமதத்தை நாங்கள் தீர்க்கிறோம்। பதிவேற்று, ஆன்லைனில் பணம் செலுத்து, வரிசையை முழுமையாகத் தவிர்।",
+      "step1": { "title": "பதிவேற்று மற்றும் கண்டறி", "desc": "அஸைன்மென்ட்கள் அல்லது அறிக்கைகளை பதிவேற்றுங்கள்। ஆட்டோ பேஜ் டிடெக்ஷன் உடனடியாக உங்கள் சரியான விலையை கணக்கிடும்।" },
+      "step2": { "title": "ஒப்பிடு மற்றும் செலுத்து", "desc": "அருகிலுள்ள கடை கிடைக்கும் தன்மையை ஒப்பிடுங்கள்। Razorpay மூலம் பாதுகாப்பான, காசு இல்லாத பணம் செலுத்துங்கள்।" },
+      "step3": { "title": "பாதுகாப்பான பிக்அப்", "desc": "கடையில் உங்கள் OTP கொடுங்கள்। வரிசையில் காத்திராமல் அச்சிடப்பட்ட ஆவணங்களைப் பெற்றுக்கொள்ளுங்கள்।" }
+    },
+    "features": {
+      "multiShop": { "title": "மல்டி-ஷாப் இகோசிஸ்டம்", "desc": "மாணவர்கள் அருகிலுள்ள அச்சு கடைகளை உலாவலாம், நேரடி செயல்பாட்டு நிலையை சரிபார்க்கலாம் மற்றும் விலையை ஒப்பிடலாம்।" },
+      "secureHandover": { "title": "பாதுகாப்பான ஹேண்ட்ஓவர்", "desc": "OTP அடிப்படையிலான சரிபார்ப்பு பாதுகாப்பான ஆவண ஹேண்ட்ஓவரை உறுதி செய்கிறது।" },
+      "analytics": { "title": "ஷாப் அனலிட்டிக்ஸ்", "subtitle": "நேரடி டிராக்கிங்", "desc": "தினசரி வருவாய் நுண்ணறிவு மற்றும் டிஜிட்டல் வர்க்கப்போ நிர்வாகம்।" },
+      "bulkOrders": { "title": "மொத்த மற்றும் அவசர ஆர்டர்கள்", "desc": "டிசர்ட்ஸ் மற்றும் லேப் பதிவுகளுக்கு பீக் சுமையை திறமையாக நிர்வகிக்கவும்।" }
+    },
+    "techStack": { "title": "நவீன டெக் ஸ்டாக் மூலம் இயக்கப்படுகிறது" },
+    "footer": {
+      "developedBy": "வளர்த்தது",
+      "team": "டீம் டர்போசி++",
+      "hackathon": "CVM ஹேக்காதான் 2026 க்காக। தினசரி அச்சிடுதல் வரிசைகளை நீக்க பாதுகாப்பான மற்றும் அளவிடக்கூடிய கட்டமைப்பு।",
+      "teamTurbo": "டீம் டர்போசி++",
+      "advisory": "ஆலோசனை",
+      "members": ["ஓம் கோடாசரா (தலைவர்)", "தன்மய் மேவாடா", "ஊர்வி லாதாணி", "ஆர்ச்சி படேல்"],
+      "mentor": "மென்டர்: மோசின் இப்ராஹிம் ஹசன்",
+      "college": "பிர்லா விஷ்வகர்மா மகாவித்யாலயா",
+      "domain": "AI/ML டொமைன்",
+      "copyright": "© 2026 PrintStack • பொறியியல் மற்றும் தொழில்நுட்பத்தில் புதுமைக்காக கட்டப்பட்டது।",
+      "viewSource": "GitHub இல் மூலத்தை காணுங்கள்",
+      "githubRepo": "GitHub ரெபோ"
+    }
+  },
+  "auth": {
+    "welcomeBack": "மீண்டும் வரவேற்பு",
+    "enterCredentials": "உங்கள் டிஜிட்டல் அச்சு வரிசையை அணுக உங்கள் சான்றுகளை உள்ளிடுங்கள்।",
+    "createAccount": "உங்கள் கணக்கை உருவாக்குங்கள்",
+    "createAccountDesc": "காகிதமற்ற புரட்சியில் சேரவும் மற்றும் அச்சிடுதல் வரிசைகளை எப்போதும் தவிர்க்கவும்।",
+    "email": "மின்னஞ்சல் முகவரி",
+    "password": "கடவுச்சொல்",
+    "forgotPassword": "கடவுச்சொல் மறந்துவிட்டீர்களா?",
+    "fullName": "முழு பெயர்",
+    "confirmPassword": "கடவுச்சொல்லை உறுதிசெய்",
+    "signIn": "உள்நுழை",
+    "signUp": "Sign Up",
+    "signingIn": "உள்நுழைகிறது...",
+    "creatingAccount": "Creating account...",
+    "continueWithGoogle": "Google மூலம் தொடரவும்",
+    "signUpWithGoogle": "Sign up with Google",
+    "returnToSignUp": "Return to Sign Up",
+    "dontHaveAccount": "கணக்கு இல்லையா?",
+    "alreadyHaveAccount": "ஏற்கனவே கணக்கு உள்ளதா?",
+    "placeholders": {
+      "email": "student@cvmu.edu.in",
+      "emailPlaceholder": "student@university.edu.in",
+      "password": "••••••••",
+      "fullName": "ஜேன் டோ",
+      "createPassword": "வலுவான கடவுச்சொல்லை உருவாக்குங்கள்",
+      "studentEmail": "student@college.edu"
+    },
+    "forgotPasswordPage": {
+      "title": "Reset Password",
+      "subtitle": "Enter your email to receive a secure recovery link.",
+      "checkInbox": "Check your inbox",
+      "linkSent": "Link sent successfully",
+      "sending": "Sending...",
+      "sendResetLink": "Send Reset Link"
+    },
+    "resetPasswordPage": {
+      "title": "New Password",
+      "subtitle": "Secure your account with a new password.",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "updating": "Updating...",
+      "updatePassword": "Update Password",
+      "passwordsNoMatch": "Passwords do not match."
+    },
+    "verifyOtp": {
+      "missingInfo": "Missing Information",
+      "missingInfoDesc": "We couldn't find an email address to verify. Please return to the signup page and try again.",
+      "checkEmail": "Check your email",
+      "sentCodeTo": "We sent a 6-digit security code to",
+      "secureOtpCode": "Secure OTP Code",
+      "verifying": "Verifying...",
+      "verifyAndContinue": "Verify & Continue",
+      "checkSpam": "Didn't receive the email? Check your spam folder.",
+      "bankGradeTitle": "Bank-Grade Identity Check",
+      "bankGradeDesc": "We verify every account to ensure a secure environment. Your digital documents, payment information, and print queues remain completely private.",
+      "loadingGateway": "Loading Secure Gateway..."
+    },
+    "verifyReset": {
+      "invalidLink": "Invalid Link",
+      "invalidLinkDesc": "This link is missing a secure token or has already been used.",
+      "requestNewLink": "Request New Link",
+      "secureVerification": "Secure Verification",
+      "confirmReset": "To protect your account from automated scanners, please confirm you want to reset your password.",
+      "verifying": "Verifying...",
+      "confirmAndReset": "Confirm & Reset Password",
+      "loadingPortal": "Loading Secure Portal..."
+    }
+  },
+  "shop": {
+    "dashboard": "Shop Dashboard",
+    "editShopDetails": "ஷாப் விவரங்களை திருத்து",
+    "editPrices": "விலைகளை திருத்து",
+    "logOut": "வெளியேறு",
+    "pricing": {
+      "editPricing": "Edit Pricing",
+      "subtitle": "Update your per-page printing configuration.",
+      "updatingPricing": "Updating pricing...",
+      "pricingUpdated": "Pricing updated successfully!"
+    }
+  },
+  "student": {
+    "orderHistory": "Order History",
+    "orderHistoryDesc": "All your past printing requests.",
+    "noOrdersYet": "No Orders Yet",
+    "noOrdersDesc": "You have not printed anything yet. Once you do, it will appear here.",
+    "profile": {
+      "editProfile": "Edit Profile",
+      "savingProfile": "Saving profile...",
+      "uploadImage": "Please upload an image file.",
+      "imageSize": "Image must be less than 5MB."
+    }
+  },
+  "order": {
+    "status": { "completed": "முடிந்தது", "ready": "தயார்", "printing": "அச்சிடுகிறது", "pending": "நிலுவையில்" }
+  },
+  "loading": {
+    "preparingStack": "Preparing Stack"
+  }
+}
