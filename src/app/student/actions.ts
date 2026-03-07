@@ -297,3 +297,88 @@ export async function updateStudentProfileAction(formData: FormData) {
     revalidatePath('/student/profile')
     return { success: true }
 }
+
+export async function requestRefundAction(orderId: string, reason: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  // Get order details
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select('id, student_id, shop_id, total_price, status')
+    .eq('id', orderId)
+    .eq('student_id', user.id)
+    .single()
+
+  if (orderError || !order) return { error: 'Order not found' }
+  if (order.status === 'COMPLETED') return { error: 'Cannot request refund for completed orders' }
+
+  // Check if refund already exists
+  const { data: existingRefund } = await supabase
+    .from('refunds')
+    .select('id')
+    .eq('order_id', orderId)
+    .maybeSingle()
+
+  if (existingRefund) return { error: 'Refund already requested for this order' }
+
+  // Create refund request
+  const { error } = await supabase.from('refunds').insert({
+    order_id: orderId,
+    student_id: user.id,
+    shop_id: order.shop_id,
+    amount: order.total_price,
+    reason
+  })
+
+  if (error) return { error: error.message }
+
+  // Notify shopkeeper
+  await supabase.from('notifications').insert({
+    user_id: order.shop_id,
+    title: 'Refund Request',
+    message: 'A student has requested a refund for their order.',
+    type: 'REFUND_REQUEST'
+  })
+
+  revalidatePath('/student/orders')
+  return { success: true }
+}
+
+export async function raiseComplaintAction(orderId: string, message: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  // Get order details
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select('id, student_id, shop_id, status')
+    .eq('id', orderId)
+    .eq('student_id', user.id)
+    .single()
+
+  if (orderError || !order) return { error: 'Order not found' }
+
+  // Create complaint
+  const { error } = await supabase.from('complaints').insert({
+    order_id: orderId,
+    student_id: user.id,
+    shop_id: order.shop_id,
+    message
+  })
+
+  if (error) return { error: error.message }
+
+  // Notify shopkeeper
+  await supabase.from('notifications').insert({
+    user_id: order.shop_id,
+    title: 'New Complaint',
+    message: 'A student has raised a complaint regarding their order.',
+    type: 'COMPLAINT_NEW'
+  })
+
+  revalidatePath('/student/orders')
+  return { success: true }
+}
