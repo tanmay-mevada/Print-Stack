@@ -24,15 +24,15 @@ interface FilterOption { label: string; value: string; }
 function FilterDropdown({ value, options, onChange, isDark, icon: Icon }: { value: string, options: FilterOption[], onChange: (val: string) => void, isDark: boolean, icon: any }) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     const handleClick = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false); };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
-  
+
   const selected = options.find(o => o.value === value);
-  
+
   return (
     <div className="relative flex-1 sm:flex-none" ref={ref}>
       <button onClick={() => setIsOpen(!isOpen)} className={`w-full flex items-center justify-center sm:justify-start gap-2 px-4 py-3 sm:py-2.5 rounded-xl sm:rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all border outline-none ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' : 'bg-stone-50 border-stone-200 hover:bg-stone-100 text-stone-700'} ${isOpen ? (isDark ? 'ring-1 ring-white/20' : 'ring-1 ring-stone-900/20') : ''}`}>
@@ -43,7 +43,7 @@ function FilterDropdown({ value, options, onChange, isDark, icon: Icon }: { valu
       {isOpen && (
         <div className={`absolute right-0 top-[calc(100%+8px)] min-w-[160px] z-50 rounded-2xl shadow-2xl border overflow-hidden animate-in fade-in zoom-in-95 duration-200 ${isDark ? 'bg-[#18181b] border-white/10 shadow-black/80' : 'bg-white border-stone-200 shadow-stone-300/50'}`}>
           {options.map(opt => (
-            <button key={opt.value} onClick={() => {onChange(opt.value); setIsOpen(false);}} className={`w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest flex justify-between items-center transition-colors ${value === opt.value ? (isDark ? 'bg-white/10 text-white' : 'bg-stone-100 text-stone-900') : (isDark ? 'hover:bg-white/5 text-white/50 hover:text-white' : 'hover:bg-stone-50 text-stone-500 hover:text-stone-900')}`}>
+            <button key={opt.value} onClick={() => { onChange(opt.value); setIsOpen(false); }} className={`w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest flex justify-between items-center transition-colors ${value === opt.value ? (isDark ? 'bg-white/10 text-white' : 'bg-stone-100 text-stone-900') : (isDark ? 'hover:bg-white/5 text-white/50 hover:text-white' : 'hover:bg-stone-50 text-stone-500 hover:text-stone-900')}`}>
               {opt.label}
               {value === opt.value && <CheckCircle2 className={`w-4 h-4 ${isDark ? 'text-white' : 'text-stone-900'}`} />}
             </button>
@@ -92,7 +92,7 @@ export default function ShopDashboardPage() {
 
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const mins = parseInt(e.target.value)
-    setPauseDuration(e.target.value) 
+    setPauseDuration(e.target.value)
     if (!isNaN(mins) && mins > 0) {
       const now = new Date()
       now.setMinutes(now.getMinutes() + mins)
@@ -183,7 +183,7 @@ export default function ShopDashboardPage() {
     return ordersList
       .filter(order => {
         const searchLower = searchQuery.toLowerCase()
-        const matchesSearch = 
+        const matchesSearch =
           order.profiles?.name?.toLowerCase().includes(searchLower) ||
           order.file_path?.toLowerCase().includes(searchLower) ||
           order.id.toLowerCase().includes(searchLower)
@@ -321,8 +321,8 @@ export default function ShopDashboardPage() {
               <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
                 <div className="relative w-full sm:w-auto z-50" ref={statusRef}>
                   <button onClick={() => setStatusMenuOpen(!statusMenuOpen)} className={`relative w-full sm:w-auto min-w-[280px] sm:min-w-[320px] h-[64px] sm:h-[72px] rounded-full transition-all duration-500 overflow-hidden shrink-0 flex items-center justify-between px-6 sm:px-8 border ${shop.is_active && !isPaused ? (isDark ? 'bg-green-500/10 border-green-500/30 text-green-500 shadow-[0_0_40px_rgba(34,197,94,0.15)]' : 'bg-green-50 border-green-200 text-green-700 shadow-inner') :
-                      isPaused ? (isDark ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' : 'bg-yellow-50 border-yellow-200 text-yellow-700') :
-                        (isDark ? 'bg-white/5 border-white/10 text-white/50' : 'bg-stone-100 border-stone-200 text-stone-500')
+                    isPaused ? (isDark ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' : 'bg-yellow-50 border-yellow-200 text-yellow-700') :
+                      (isDark ? 'bg-white/5 border-white/10 text-white/50' : 'bg-stone-100 border-stone-200 text-stone-500')
                     }`}
                   >
                     <div className="flex items-center gap-3 font-black tracking-widest uppercase text-sm sm:text-base">
@@ -354,25 +354,23 @@ export default function ShopDashboardPage() {
             </div>
 
             {/* ================= ULTRA-COMPACT SEARCH & FILTER BAR ================= */}
-            <div className={`p-2 rounded-2xl sm:rounded-full border flex flex-col sm:flex-row gap-2 items-center backdrop-blur-xl shadow-sm transition-colors z-20 relative ${
-              isDark ? 'bg-[#111111]/80 border-white/10 ring-1 ring-white/5' : 'bg-white border-stone-200'
-            }`}>
-              
+            <div className={`p-2 rounded-2xl sm:rounded-full border flex flex-col sm:flex-row gap-2 items-center backdrop-blur-xl shadow-sm transition-colors z-20 relative ${isDark ? 'bg-[#111111]/80 border-white/10 ring-1 ring-white/5' : 'bg-white border-stone-200'
+              }`}>
+
               <div className="relative flex-1 w-full pl-3">
                 <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-white/40' : 'text-stone-400'}`} />
-                <input 
-                  type="text" 
-                  placeholder="Search orders..." 
+                <input
+                  type="text"
+                  placeholder="Search orders..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full pl-8 pr-4 py-2 sm:py-1.5 bg-transparent text-xs font-bold uppercase tracking-widest outline-none transition-all ${
-                    isDark ? 'text-white placeholder:text-white/30' : 'text-stone-900 placeholder:text-stone-400'
-                  }`}
+                  className={`w-full pl-8 pr-4 py-2 sm:py-1.5 bg-transparent text-xs font-bold uppercase tracking-widest outline-none transition-all ${isDark ? 'text-white placeholder:text-white/30' : 'text-stone-900 placeholder:text-stone-400'
+                    }`}
                 />
               </div>
 
               <div className="flex w-full sm:w-auto gap-2 shrink-0">
-                <FilterDropdown 
+                <FilterDropdown
                   value={typeFilter}
                   options={[
                     { label: "All", value: "ALL" },
@@ -384,7 +382,7 @@ export default function ShopDashboardPage() {
                   isDark={isDark}
                   icon={Filter}
                 />
-                <FilterDropdown 
+                <FilterDropdown
                   value={sortBy}
                   options={[
                     { label: "Newest", value: "date_desc" },
@@ -462,13 +460,13 @@ export default function ShopDashboardPage() {
             {/* Empty State for Completed Orders if filtering hides them */}
             {completedOrders.length > 0 && filteredCompletedOrders.length === 0 && (
               <div className="pt-4 sm:pt-6">
-                 <h2 className={`text-xl sm:text-2xl font-black tracking-tight mb-4 sm:mb-6 px-2 ${isDark ? 'text-white/50' : 'text-stone-400'}`}>Order History</h2>
-                 <div className={`p-10 text-center border rounded-[1.5rem] sm:rounded-[2rem] opacity-60 ${isDark ? 'bg-[#111111]/40 border-white/10' : 'bg-stone-50 border-stone-200/60'}`}>
-                    <p className={`text-xs sm:text-sm font-bold uppercase tracking-widest ${isDark ? 'text-white/30' : 'text-stone-400'}`}>No past orders match your search.</p>
-                 </div>
+                <h2 className={`text-xl sm:text-2xl font-black tracking-tight mb-4 sm:mb-6 px-2 ${isDark ? 'text-white/50' : 'text-stone-400'}`}>Order History</h2>
+                <div className={`p-10 text-center border rounded-[1.5rem] sm:rounded-[2rem] opacity-60 ${isDark ? 'bg-[#111111]/40 border-white/10' : 'bg-stone-50 border-stone-200/60'}`}>
+                  <p className={`text-xs sm:text-sm font-bold uppercase tracking-widest ${isDark ? 'text-white/30' : 'text-stone-400'}`}>No past orders match your search.</p>
+                </div>
               </div>
             )}
-            
+
           </div>
         )}
       </div>

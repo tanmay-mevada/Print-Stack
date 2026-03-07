@@ -28,35 +28,19 @@ interface CustomSelectProps {
   onChange: (value: string) => void; isDark: boolean;
 }
 
-interface ShopPricing {
-  bw_price: number; color_price: number; double_side_modifier: number;
-}
-
-interface Shop {
-  id: string; name: string; address: string;
-  latitude: number; longitude: number; map_link?: string;
-  profile_pic?: string | null; pricing?: ShopPricing;
-  is_active?: boolean; paused_until?: string | null;
-  exactPriceNum?: number; exactPriceStr?: string | null;
-  distanceNum?: number; distanceStr?: string | null;
-}
-
-interface Order {
-  id: string; status: string; shop_id: string; student_id: string;
-  created_at: string; file_path?: string; total_pages?: number;
-  print_type?: string; total_price?: number; otp?: string;
-  queue_position?: number; shops?: { name: string };
-}
-
 interface PrintConfig {
   print_type: "BW" | "COLOR" | "MIXED";
   sided: "SINGLE" | "DOUBLE" | "MIXED";
   copies: number;
   total_pages: number;
   color_pages?: string;
-  bw_pages?: string;
-  single_pages?: string;
   double_pages?: string;
+  paper_size: "A4" | "A3" | "A2" | "A1" | "A0";
+  binding_type: "NONE" | "SPIRAL" | "HARD";
+  wants_stapling: boolean;
+  wants_cover: boolean;
+  wants_lamination: boolean;
+  wants_paper_file: boolean;
 }
 
 // ============================================================================
@@ -72,7 +56,6 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 function parsePageRange(rangeStr: string, maxPages: number): Set<number> {
   const pages = new Set<number>();
   if (!rangeStr) return pages;
-
   const parts = rangeStr.split(',').map(p => p.trim());
   for (const part of parts) {
     if (part.includes('-')) {
@@ -88,31 +71,22 @@ function parsePageRange(rangeStr: string, maxPages: number): Set<number> {
   return pages;
 }
 
-// NEW: Real-time UX Validation Engine
 function validateRangeInput(input: string, maxPages: number): { isValid: boolean, error?: string, parsedCount: number } {
   if (!input || !input.trim()) return { isValid: true, parsedCount: 0 };
-
-  // Block letters and symbols immediately
   const regex = /^[0-9,\-\s]+$/;
   if (!regex.test(input)) return { isValid: false, error: "Only numbers, commas, and hyphens allowed." };
-
   const parts = input.split(',').map(p => p.trim()).filter(p => p !== '');
   const pages = new Set<number>();
-
   for (const part of parts) {
     if (part.includes('-')) {
       const [startStr, endStr, ...rest] = part.split('-');
       if (rest.length > 0) return { isValid: false, error: "Format error (e.g. use 1-5)." };
       if (!startStr || !endStr) return { isValid: false, error: "Incomplete range." };
-
-      const start = parseInt(startStr);
-      const end = parseInt(endStr);
-
+      const start = parseInt(startStr); const end = parseInt(endStr);
       if (isNaN(start) || isNaN(end)) return { isValid: false, error: "Incomplete range." };
       if (start < 1 || end < 1) return { isValid: false, error: "Pages must be 1 or greater." };
       if (start > maxPages || end > maxPages) return { isValid: false, error: `Out of bounds (Max: ${maxPages}).` };
       if (start > end) return { isValid: false, error: "Start page must be smaller than end." };
-
       for (let i = start; i <= end; i++) pages.add(i);
     } else {
       const num = parseInt(part);
@@ -122,24 +96,17 @@ function validateRangeInput(input: string, maxPages: number): { isValid: boolean
       pages.add(num);
     }
   }
-
   return { isValid: true, parsedCount: pages.size };
 }
 
 function CustomSelect({ label, value, options, onChange, isDark }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) setIsOpen(false);
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    function handleClickOutside(event: MouseEvent) { if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) setIsOpen(false); }
+    document.addEventListener("mousedown", handleClickOutside); return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
   const selectedOption = options.find((o: Option) => o.value === value);
-
   return (
     <div ref={dropdownRef} className={`relative p-5 rounded-2xl border transition-all duration-300 ${isOpen ? 'z-50' : 'z-10'} ${isDark ? "bg-[#0A0A0A] border-white/10 hover:border-white/20" : "bg-stone-50 border-stone-200/60 hover:border-stone-300"} ${isOpen ? (isDark ? "ring-2 ring-white/20 border-white/20" : "ring-2 ring-stone-900/20 border-stone-900") : ""}`}>
       <label className={`block text-[10px] font-bold mb-2 uppercase tracking-widest ${isDark ? "text-white/50" : "text-stone-500"}`}>{label}</label>
@@ -148,7 +115,7 @@ function CustomSelect({ label, value, options, onChange, isDark }: CustomSelectP
         <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
       </div>
       {isOpen && (
-        <div className={`absolute left-0 right-0 top-[calc(100%+12px)] z-[999] rounded-2xl overflow-hidden shadow-2xl border py-2 animate-in fade-in zoom-in-95 duration-200 ${isDark ? "bg-[#18181b] border-white/10 shadow-black/80" : "bg-white border-stone-200 shadow-stone-300/50"}`}>
+        <div className={`absolute left-0 right-0 top-[calc(100%+12px)] rounded-2xl overflow-hidden shadow-2xl border py-2 animate-in fade-in zoom-in-95 duration-200 ${isDark ? "bg-[#18181b] border-white/10 shadow-black/80" : "bg-white border-stone-200 shadow-stone-300/50"}`}>
           {options.map((opt: Option) => (
             <div key={opt.value} onClick={() => { onChange(opt.value); setIsOpen(false); }} className={`px-5 py-3.5 font-bold cursor-pointer transition-all flex items-center justify-between ${value === opt.value ? isDark ? "text-white bg-white/5" : "text-stone-900 bg-stone-50" : isDark ? "text-white/50 hover:bg-white/5 hover:text-white" : "text-stone-500 hover:bg-stone-50 hover:text-stone-900"}`}>
               {opt.label}
@@ -161,12 +128,24 @@ function CustomSelect({ label, value, options, onChange, isDark }: CustomSelectP
   );
 }
 
+function CustomCheckbox({ checked, onChange, label, isDark }: { checked: boolean, onChange: (v: boolean) => void, label: string, isDark: boolean }) {
+    return (
+        <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all duration-300 ${checked ? (isDark ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-indigo-50 border-indigo-400 text-indigo-700') : (isDark ? 'bg-[#0A0A0A] border-white/10 hover:border-white/30 text-white/70' : 'bg-stone-50 border-stone-200 hover:border-stone-300 text-stone-600')}`}>
+            <input type="checkbox" className="hidden" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+            <div className={`w-5 h-5 rounded flex items-center justify-center border shrink-0 ${checked ? 'bg-current border-current' : (isDark ? 'border-white/30' : 'border-stone-300')}`}>
+                {checked && <CheckCircle2 className={`w-3.5 h-3.5 ${isDark ? 'text-black' : 'text-white'}`} />}
+            </div>
+            <span className="font-bold text-sm leading-tight">{label}</span>
+        </label>
+    )
+}
+
 export default function StudentDashboardPage() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { isDark, toggleTheme } = useTheme();
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [shopQueues, setShopQueues] = useState<Record<string, number>>({});
   const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
@@ -189,16 +168,15 @@ export default function StudentDashboardPage() {
   };
 
   const [printConfig, setPrintConfig] = useState<PrintConfig>({
-    print_type: "BW", sided: "SINGLE", copies: 1, total_pages: 1,
-    color_pages: "", double_pages: ""
+    print_type: "BW", sided: "SINGLE", copies: 1, total_pages: 1, color_pages: "", double_pages: "",
+    paper_size: "A4", binding_type: "NONE", wants_stapling: false, wants_cover: false, wants_lamination: false, wants_paper_file: false
   });
 
-  // Calculate validations on every render
   const colorValidation = validateRangeInput(printConfig.color_pages || '', printConfig.total_pages);
   const doubleValidation = validateRangeInput(printConfig.double_pages || '', printConfig.total_pages);
 
   const [locating, setLocating] = useState(false);
-  const [shops, setShops] = useState<Shop[]>([]);
+  const [shops, setShops] = useState<any[]>([]);
   const [searchType, setSearchType] = useState<"nearby" | "all">("all");
   const [selectedShopId, setSelectedShopId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -209,11 +187,10 @@ export default function StudentDashboardPage() {
   const fetchUserOrdersAndProfile = useCallback(async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-
     if (user) {
       const { data: myOrders } = await supabase.from("orders").select("*, shops(name)").eq("student_id", user.id).order("created_at", { ascending: false });
       if (myOrders) {
-        const enhancedOrders: Order[] = await Promise.all(myOrders.map(async (order: Order) => {
+        const enhancedOrders = await Promise.all(myOrders.map(async (order: any) => {
           if (['PAID', 'PRINTING'].includes(order.status)) {
             const { count } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('shop_id', order.shop_id).in('status', ['PAID', 'PRINTING']).lt('created_at', order.created_at);
             return { ...order, queue_position: count || 0 };
@@ -227,14 +204,14 @@ export default function StudentDashboardPage() {
     }
   }, []);
 
-  const fetchShopQueues = useCallback(async (availableShops: Shop[]) => {
+  const fetchShopQueues = useCallback(async (availableShops: any[]) => {
     if (availableShops.length === 0) return;
-    const shopIds = availableShops.map((s: Shop) => s.id);
+    const shopIds = availableShops.map((s) => s.id);
     const supabase = createClient();
     const { data } = await supabase.from("orders").select("shop_id").in("shop_id", shopIds).in("status", ["PAID", "PRINTING"]);
     if (data) {
       const counts: Record<string, number> = {};
-      data.forEach((order: { shop_id: string }) => { counts[order.shop_id] = (counts[order.shop_id] || 0) + 1; });
+      data.forEach((order) => { counts[order.shop_id] = (counts[order.shop_id] || 0) + 1; });
       setShopQueues(counts);
     }
   }, []);
@@ -247,50 +224,80 @@ export default function StudentDashboardPage() {
         void fetchUserOrdersAndProfile();
         if (shopsRef.current.length > 0) void fetchShopQueues(shopsRef.current);
       }).subscribe();
-    const intervalId = setInterval(() => {
-      void fetchUserOrdersAndProfile();
-      if (shopsRef.current.length > 0) void fetchShopQueues(shopsRef.current);
-    }, 8000);
+    const intervalId = setInterval(() => { void fetchUserOrdersAndProfile(); if (shopsRef.current.length > 0) void fetchShopQueues(shopsRef.current); }, 8000);
     return () => { supabase.removeChannel(channel); clearInterval(intervalId); };
   }, [fetchUserOrdersAndProfile, fetchShopQueues]);
 
   // ==========================================================================
-  // PRICING ENGINE
+  // SMART SHOP FILTERING & PRICING
   // ==========================================================================
-  const getExactShopPrice = (shop: Shop | undefined) => {
+  const getUnsupportedReason = (shop: any) => {
+    if (!shop?.pricing) return "No Pricing Configured";
+    const reqPages = printConfig.total_pages * printConfig.copies;
+    const p = shop.pricing;
+
+    if (printConfig.paper_size !== 'A4') {
+        const key = printConfig.paper_size.toLowerCase();
+        if (p[`${key}_price`] === null) return `${printConfig.paper_size} Not Offered`;
+        if (p[`${key}_stock`] < reqPages) return `Only ${p[`${key}_stock`]} ${printConfig.paper_size} left`;
+    }
+
+    if (printConfig.binding_type === 'SPIRAL' && p.spiral_binding_price === null) return "Spiral Binding Not Offered";
+    if (printConfig.binding_type === 'HARD' && p.hard_binding_price === null) return "Hard Binding Not Offered";
+    if (printConfig.wants_stapling && p.stapling_price === null) return "Stapling Not Offered";
+    if (printConfig.wants_cover && p.transparent_cover_price === null) return "Covers Not Offered";
+    if (printConfig.wants_lamination && p.lamination_price === null) return "Lamination Not Offered";
+    if (printConfig.wants_paper_file && p.paper_file_price === null) return "Paper Files Not Offered";
+    
+    return null; 
+  }
+
+  const getExactShopPrice = (shop: any) => {
     if (!shop?.pricing) return null;
     let totalCostForOneCopy = 0;
+    const p = shop.pricing;
+
+    const getPagePrice = (isColor: boolean, isDouble: boolean) => {
+      let base = 0;
+      if (printConfig.paper_size === 'A3') base = p.a3_price;
+      else if (printConfig.paper_size === 'A2') base = p.a2_price;
+      else if (printConfig.paper_size === 'A1') base = p.a1_price;
+      else if (printConfig.paper_size === 'A0') base = p.a0_price;
+      else base = isColor ? p.color_price : p.bw_price;
+      return base * (isDouble ? p.double_side_modifier : 1);
+    }
 
     if (printConfig.print_type === 'MIXED' || printConfig.sided === 'MIXED') {
       const colorSet = parsePageRange(printConfig.color_pages || '', printConfig.total_pages);
       const doubleSet = parsePageRange(printConfig.double_pages || '', printConfig.total_pages);
-
       for (let i = 1; i <= printConfig.total_pages; i++) {
         const isColor = printConfig.print_type === 'COLOR' || (printConfig.print_type === 'MIXED' && colorSet.has(i));
         const isDouble = printConfig.sided === 'DOUBLE' || (printConfig.sided === 'MIXED' && doubleSet.has(i));
-
-        const basePrice = isColor ? shop.pricing.color_price : shop.pricing.bw_price;
-        const modifier = isDouble ? shop.pricing.double_side_modifier : 1;
-        totalCostForOneCopy += (basePrice * modifier);
+        totalCostForOneCopy += getPagePrice(isColor, isDouble);
       }
     } else {
-      let pricePerPage = printConfig.print_type === 'COLOR' ? shop.pricing.color_price : shop.pricing.bw_price;
-      let sideModifier = printConfig.sided === 'DOUBLE' ? shop.pricing.double_side_modifier : 1;
-      totalCostForOneCopy = (pricePerPage * sideModifier) * printConfig.total_pages;
+      totalCostForOneCopy = getPagePrice(printConfig.print_type === 'COLOR', printConfig.sided === 'DOUBLE') * printConfig.total_pages;
     }
 
-    return (totalCostForOneCopy * printConfig.copies).toFixed(2);
+    if (printConfig.wants_lamination) totalCostForOneCopy += (p.lamination_price * printConfig.total_pages);
+
+    let finalTotal = totalCostForOneCopy * printConfig.copies;
+
+    if (printConfig.binding_type === 'SPIRAL') finalTotal += (p.spiral_binding_price * printConfig.copies);
+    if (printConfig.binding_type === 'HARD') finalTotal += (p.hard_binding_price * printConfig.copies);
+    if (printConfig.wants_stapling) finalTotal += (p.stapling_price * printConfig.copies);
+    if (printConfig.wants_cover) finalTotal += (p.transparent_cover_price * printConfig.copies);
+    if (printConfig.wants_paper_file) finalTotal += (p.paper_file_price * printConfig.copies);
+
+    return finalTotal.toFixed(2);
   }
 
-  const getPriceBreakdown = (shop: Shop | undefined) => {
+  const getPriceBreakdown = (shop: any) => {
     if (!shop?.pricing) return null;
-
-    let colorCount = 0;
-    let bwCount = 0;
-    let doubleCount = 0;
-
-    let baseCostForOneCopy = 0;
-    let doubleSidedDifference = 0;
+    
+    let colorCount = 0; let bwCount = 0; let doubleCount = 0;
+    let baseCostForOneCopy = 0; let doubleSidedDifference = 0; 
+    const p = shop.pricing;
 
     const colorSet = parsePageRange(printConfig.color_pages || '', printConfig.total_pages);
     const doubleSet = parsePageRange(printConfig.double_pages || '', printConfig.total_pages);
@@ -298,28 +305,38 @@ export default function StudentDashboardPage() {
     for (let i = 1; i <= printConfig.total_pages; i++) {
       const isColor = printConfig.print_type === 'COLOR' || (printConfig.print_type === 'MIXED' && colorSet.has(i));
       const isDouble = printConfig.sided === 'DOUBLE' || (printConfig.sided === 'MIXED' && doubleSet.has(i));
-
+      
       if (isColor) colorCount++; else bwCount++;
       if (isDouble) doubleCount++;
 
-      const basePrice = isColor ? shop.pricing.color_price : shop.pricing.bw_price;
-      const modifier = isDouble ? shop.pricing.double_side_modifier : 1;
+      let base = 0;
+      if (printConfig.paper_size === 'A3') base = p.a3_price;
+      else if (printConfig.paper_size === 'A2') base = p.a2_price;
+      else if (printConfig.paper_size === 'A1') base = p.a1_price;
+      else if (printConfig.paper_size === 'A0') base = p.a0_price;
+      else base = isColor ? p.color_price : p.bw_price;
 
-      baseCostForOneCopy += basePrice;
-
-      if (isDouble) {
-        doubleSidedDifference += (basePrice * modifier) - basePrice;
-      }
+      baseCostForOneCopy += base;
+      if (isDouble) doubleSidedDifference += (base * p.double_side_modifier) - base;
     }
 
-    const finalTotalForOneCopy = baseCostForOneCopy + doubleSidedDifference;
+    const flatFees = [];
+    if (printConfig.binding_type === 'SPIRAL') flatFees.push({ name: 'Spiral Binding', price: p.spiral_binding_price });
+    if (printConfig.binding_type === 'HARD') flatFees.push({ name: 'Hard Binding', price: p.hard_binding_price });
+    if (printConfig.wants_stapling) flatFees.push({ name: 'Stapling', price: p.stapling_price });
+    if (printConfig.wants_cover) flatFees.push({ name: 'Transparent Cover', price: p.transparent_cover_price });
+    if (printConfig.wants_paper_file) flatFees.push({ name: 'Paper File', price: p.paper_file_price });
+
+    const laminationTotalForCopy = printConfig.wants_lamination ? (p.lamination_price * printConfig.total_pages) : 0;
 
     return {
       colorCount, bwCount, doubleCount,
-      colorPrice: shop.pricing.color_price,
-      bwPrice: shop.pricing.bw_price,
+      colorPrice: printConfig.paper_size === 'A4' ? p.color_price : p[`${printConfig.paper_size.toLowerCase()}_price`],
+      bwPrice: printConfig.paper_size === 'A4' ? p.bw_price : p[`${printConfig.paper_size.toLowerCase()}_price`],
       doubleSidedDifference,
-      finalTotalForOneCopy
+      laminationTotalForCopy,
+      finalTotalForOneCopy: baseCostForOneCopy + doubleSidedDifference + laminationTotalForCopy,
+      flatFees
     };
   }
 
@@ -339,12 +356,9 @@ export default function StudentDashboardPage() {
   async function loadShops(lat?: number, lng?: number) {
     const res = await fetchAvailableShopsAction(lat, lng);
     if (res.shops) {
-      setShops(res.shops as Shop[]);
-      setSearchType(res.type as "nearby" | "all");
-      fetchShopQueues(res.shops as Shop[]);
+      setShops(res.shops); setSearchType(res.type as "nearby" | "all"); fetchShopQueues(res.shops);
     }
-    setLocating(false);
-    setStep(2);
+    setLocating(false); setStep(2);
   }
 
   function handleNextStep() {
@@ -354,16 +368,8 @@ export default function StudentDashboardPage() {
       navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
     });
     getLocation()
-      .then(async (pos) => {
-        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setSortBy("distance");
-        await loadShops(pos.coords.latitude, pos.coords.longitude);
-      })
-      .catch(async (err) => {
-        setUserLocation(null);
-        setSortBy("price");
-        await loadShops();
-      });
+      .then(async (pos) => { setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setSortBy("distance"); await loadShops(pos.coords.latitude, pos.coords.longitude); })
+      .catch(async (err) => { setUserLocation(null); setSortBy("price"); await loadShops(); });
   }
 
   async function handleCheckout() {
@@ -374,7 +380,7 @@ export default function StudentDashboardPage() {
     const safeFileName = file.name.replace(/[^a-zA-Z0-9]/g, "_");
     const storagePath = `uploads/${Date.now()}-${safeFileName}.${fileExt}`;
     const { error: uploadError } = await supabase.storage.from("print_files").upload(storagePath, file);
-
+    
     if (uploadError) { alert("Upload failed: " + uploadError.message); setUploading(false); return; }
 
     const res = await submitOrderAction({ shopId: selectedShopId, filePath: storagePath, config: printConfig });
@@ -398,44 +404,30 @@ export default function StudentDashboardPage() {
   }
 
   const sortedShops = [...shops]
-    .filter((shop: Shop) => {
+    .map((shop: any) => {
+      const unsupportReason = getUnsupportedReason(shop);
       const isClosed = shop.is_active === false || shop.is_active === null;
       const isPaused = shop.paused_until && new Date(shop.paused_until) > new Date();
-      const isUnavailable = isClosed || isPaused;
-      if (!showInactiveShops && isUnavailable) return false;
-      return true;
-    })
-    .map((shop: Shop) => {
-      const priceStr = getExactShopPrice(shop);
+      const isUnavailable = isClosed || isPaused || unsupportReason !== null;
+      
+      const priceStr = unsupportReason === null ? getExactShopPrice(shop) : null;
       const distStr = userLocation ? calculateDistance(userLocation.lat, userLocation.lng, shop.latitude, shop.longitude) : null;
+      
       return {
-        ...shop, exactPriceNum: priceStr ? parseFloat(priceStr) : Infinity, exactPriceStr: priceStr,
+        ...shop, isUnavailable, unsupportReason, isClosed, isPaused,
+        exactPriceNum: priceStr ? parseFloat(priceStr) : Infinity, exactPriceStr: priceStr,
         distanceNum: distStr ? parseFloat(distStr) : Infinity, distanceStr: distStr
       };
     })
+    .filter(s => !(!showInactiveShops && s.isUnavailable))
     .sort((a, b) => {
-      const aUnavailable = a.is_active === false || a.is_active === null || !!(a.paused_until && new Date(a.paused_until) > new Date());
-      const bUnavailable = b.is_active === false || b.is_active === null || !!(b.paused_until && new Date(b.paused_until) > new Date());
-      if (aUnavailable && !bUnavailable) return 1;
-      if (!aUnavailable && bUnavailable) return -1;
-
-      const aConfigured = a.exactPriceStr !== null;
-      const bConfigured = b.exactPriceStr !== null;
-      if (!aConfigured && bConfigured) return 1;
-      if (aConfigured && !bConfigured) return -1;
-
-      if (sortBy === "distance") {
-        const distA = a.distanceNum === Infinity ? 99999 : a.distanceNum;
-        const distB = b.distanceNum === Infinity ? 99999 : b.distanceNum;
-        return distA - distB;
-      }
+      if (a.isUnavailable && !b.isUnavailable) return 1;
+      if (!a.isUnavailable && b.isUnavailable) return -1;
+      if (sortBy === "distance") return a.distanceNum - b.distanceNum;
       return a.exactPriceNum - b.exactPriceNum;
     });
 
-  // Calculate if we should block the user from moving to Step 2
-  const isNextDisabled =
-    !file ||
-    locating ||
+  const isNextDisabled = !file || locating || 
     (printConfig.print_type === 'MIXED' && (!colorValidation.isValid || colorValidation.parsedCount === 0)) ||
     (printConfig.sided === 'MIXED' && (!doubleValidation.isValid || doubleValidation.parsedCount === 0));
 
@@ -523,9 +515,18 @@ export default function StudentDashboardPage() {
 
         {/* ================= STEP 1: UPLOAD & CONFIGURATION ================= */}
         {step === 1 && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            
+            {/* 1. DOCUMENT UPLOAD */}
             <div className={`border rounded-[2.5rem] p-6 sm:p-10 transition-all duration-500 backdrop-blur-xl ${isDark ? "bg-[#111111]/60 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/5" : "bg-white border-stone-200/60 shadow-xl shadow-stone-200/40"}`}>
-              <h2 className="text-2xl font-black mb-6 tracking-tight">Document Upload</h2>
+              <div className="flex justify-between items-start mb-6">
+                 <h2 className="text-2xl font-black tracking-tight">1. Document Upload</h2>
+                 {file && (
+                    <div className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border ${isDark ? "bg-white/5 border-white/10" : "bg-stone-50 border-stone-200"}`}>
+                        {printConfig.total_pages} Pages Detected
+                    </div>
+                 )}
+              </div>
               <label className={`relative overflow-hidden border-2 border-dashed rounded-[2rem] p-12 sm:p-20 flex flex-col items-center justify-center cursor-pointer group transition-all duration-500 ${isDark ? "border-white/15 hover:border-white/40 bg-white/[0.02] hover:bg-white/[0.05]" : "border-stone-300 hover:border-stone-500 bg-stone-50/50 hover:bg-stone-100"}`}>
                 <input type="file" accept="application/pdf" onChange={handleFileChange} className="hidden" />
                 {file ? (
@@ -548,22 +549,18 @@ export default function StudentDashboardPage() {
               </label>
             </div>
 
-            <div className={`border rounded-[2.5rem] p-6 sm:p-10 relative z-20 backdrop-blur-xl transition-all duration-500 ${isDark ? "bg-[#111111]/60 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/5" : "bg-white border-stone-200/60 shadow-xl shadow-stone-200/40"}`}>              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-6">
-              <div>
-                <h2 className="text-2xl font-black tracking-tight mb-2">Print Settings</h2>
-                <p className={`font-medium text-sm ${isDark ? "text-white/60" : "text-stone-500"}`}>Configure your stack exactly how you want it.</p>
-              </div>
-            </div>
+            {/* 2. CORE PRINT SETTINGS */}
+            <div className={`border rounded-[2.5rem] p-6 sm:p-10 relative z-20 backdrop-blur-xl transition-all duration-500 ${isDark ? "bg-[#111111]/60 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/5" : "bg-white border-stone-200/60 shadow-xl shadow-stone-200/40"}`}>
+              <h2 className="text-2xl font-black tracking-tight mb-6">2. Print Settings</h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                <div className={`p-5 rounded-2xl border transition-all duration-300 ${isDark ? "bg-[#0A0A0A] border-white/10 hover:border-white/20" : "bg-stone-50 border-stone-200/60 hover:border-stone-300"}`}>
-                  <label className={`block text-[10px] font-bold mb-3 uppercase tracking-widest ${isDark ? "text-white/50" : "text-stone-500"}`}>Pages Detected</label>
-                  <div className="font-black text-lg flex items-center justify-between">
-                    {file ? `${printConfig.total_pages} Pages` : "--"}
-                    {file && <CheckCircle2 className={`w-5 h-5 ${isDark ? "text-green-400" : "text-green-600"}`} />}
-                  </div>
-                </div>
-
+                <CustomSelect
+                  label="Paper Size"
+                  value={printConfig.paper_size}
+                  options={[{ label: "Standard A4", value: "A4" }, { label: "Large A3", value: "A3" }, { label: "Plotter A2", value: "A2" }, { label: "Plotter A1", value: "A1" }, { label: "Plotter A0", value: "A0" }]}
+                  onChange={(val: string) => setPrintConfig({ ...printConfig, paper_size: val as any })}
+                  isDark={isDark}
+                />
                 <CustomSelect
                   label="Color Mode"
                   value={printConfig.print_type}
@@ -571,7 +568,6 @@ export default function StudentDashboardPage() {
                   onChange={(val: string) => setPrintConfig({ ...printConfig, print_type: val as "BW" | "COLOR" | "MIXED" })}
                   isDark={isDark}
                 />
-
                 <CustomSelect
                   label="Layout"
                   value={printConfig.sided}
@@ -579,67 +575,119 @@ export default function StudentDashboardPage() {
                   onChange={(val: string) => setPrintConfig({ ...printConfig, sided: val as "SINGLE" | "DOUBLE" | "MIXED" })}
                   isDark={isDark}
                 />
-
                 <div className={`p-5 rounded-2xl border transition-all duration-300 focus-within:ring-2 ${isDark ? "bg-[#0A0A0A] border-white/10 hover:border-white/20 focus-within:ring-white/30" : "bg-stone-50 border-stone-200/60 hover:border-stone-300 focus-within:ring-stone-900/20"}`}>
-                  <label className={`block text-[10px] font-bold mb-2 uppercase tracking-widest ${isDark ? "text-white/50" : "text-stone-500"}`}>Copies</label>
-                  <input type="number" min="1" max="100" value={printConfig.copies} onChange={(e) => setPrintConfig({ ...printConfig, copies: parseInt(e.target.value) || 1 })} className="w-full bg-transparent font-black text-lg outline-none cursor-pointer" />
+                    <label className={`block text-[10px] font-bold mb-2 uppercase tracking-widest ${isDark ? "text-white/50" : "text-stone-500"}`}>Copies</label>
+                    <input type="number" min="1" max="100" value={printConfig.copies} onChange={(e) => setPrintConfig({ ...printConfig, copies: parseInt(e.target.value) || 1 })} className="w-full bg-transparent font-black text-lg outline-none cursor-pointer" />
                 </div>
-
-                {/* UX IMPROVED: COLOR PAGES INPUT */}
-                {printConfig.print_type === "MIXED" && (
-                  <div className={`p-5 rounded-2xl border transition-all duration-300 col-span-1 sm:col-span-2 lg:col-span-4 animate-in fade-in zoom-in-95 focus-within:ring-2 ${!colorValidation.isValid ? (isDark ? "border-red-500/50 focus-within:ring-red-500/30 bg-red-500/5" : "border-red-400 focus-within:ring-red-400/30 bg-red-50") :
-                      colorValidation.parsedCount > 0 ? (isDark ? "border-yellow-500/50 focus-within:ring-yellow-500/30 bg-yellow-500/5" : "border-yellow-400 focus-within:ring-yellow-400/30 bg-yellow-50") :
-                        (isDark ? "bg-[#0A0A0A] border-white/10 focus-within:ring-white/30" : "bg-stone-50 border-stone-200/60 focus-within:ring-stone-900/20")
-                    }`}>
-                    <label className={`block text-[10px] font-bold mb-2 uppercase tracking-widest ${isDark ? "text-yellow-500/80" : "text-yellow-600"}`}>Color Pages (e.g. 1, 3-5)</label>
-                    <input
-                      type="text"
-                      placeholder={`1-${printConfig.total_pages}`}
-                      value={printConfig.color_pages || ''}
-                      onChange={(e) => setPrintConfig({ ...printConfig, color_pages: e.target.value })}
-                      className="w-full bg-transparent font-black text-xl outline-none placeholder:opacity-30"
-                    />
-                    <div className="flex justify-between items-center mt-2">
-                      <p className={`text-[10px] font-medium ${isDark ? 'text-white/40' : 'text-stone-500'}`}>*All unlisted pages will be B&W.</p>
-                      {!colorValidation.isValid ? (
-                        <p className="text-[10px] font-bold text-red-500 animate-pulse flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {colorValidation.error}</p>
-                      ) : colorValidation.parsedCount > 0 ? (
-                        <p className="text-[10px] font-bold text-green-500 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> {colorValidation.parsedCount} pages selected</p>
-                      ) : null}
-                    </div>
-                  </div>
-                )}
-
-                {/* UX IMPROVED: DOUBLE-SIDED PAGES INPUT */}
-                {printConfig.sided === "MIXED" && (
-                  <div className={`p-5 rounded-2xl border transition-all duration-300 col-span-1 sm:col-span-2 lg:col-span-4 animate-in fade-in zoom-in-95 focus-within:ring-2 ${!doubleValidation.isValid ? (isDark ? "border-red-500/50 focus-within:ring-red-500/30 bg-red-500/5" : "border-red-400 focus-within:ring-red-400/30 bg-red-50") :
-                      doubleValidation.parsedCount > 0 ? (isDark ? "border-indigo-500/50 focus-within:ring-indigo-500/30 bg-indigo-500/5" : "border-indigo-400 focus-within:ring-indigo-400/30 bg-indigo-50") :
-                        (isDark ? "bg-[#0A0A0A] border-white/10 focus-within:ring-white/30" : "bg-stone-50 border-stone-200/60 focus-within:ring-stone-900/20")
-                    }`}>
-                    <label className={`block text-[10px] font-bold mb-2 uppercase tracking-widest ${isDark ? "text-indigo-400" : "text-indigo-600"}`}>Double-Sided Pages (e.g. 2-10)</label>
-                    <input
-                      type="text"
-                      placeholder={`2-${printConfig.total_pages}`}
-                      value={printConfig.double_pages || ''}
-                      onChange={(e) => setPrintConfig({ ...printConfig, double_pages: e.target.value })}
-                      className="w-full bg-transparent font-black text-xl outline-none placeholder:opacity-30"
-                    />
-                    <div className="flex justify-between items-center mt-2">
-                      <p className={`text-[10px] font-medium ${isDark ? 'text-white/40' : 'text-stone-500'}`}>*All unlisted pages will be Single-Sided.</p>
-                      {!doubleValidation.isValid ? (
-                        <p className="text-[10px] font-bold text-red-500 animate-pulse flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {doubleValidation.error}</p>
-                      ) : doubleValidation.parsedCount > 0 ? (
-                        <p className="text-[10px] font-bold text-green-500 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> {doubleValidation.parsedCount} pages selected</p>
-                      ) : null}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
-            <button onClick={handleNextStep} disabled={isNextDisabled} className={`relative w-full py-5 rounded-[2rem] font-black text-lg tracking-widest uppercase transition-all duration-500 flex items-center justify-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden ${isDark ? "bg-white text-black hover:bg-gray-200 shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:-translate-y-1" : "bg-stone-900 text-white hover:bg-black shadow-xl hover:-translate-y-1"}`}>
+            {/* 3. ADVANCED CONDITIONAL INPUTS (Mixed Types) */}
+            {(printConfig.print_type === "MIXED" || printConfig.sided === "MIXED") && (
+                <div className={`border rounded-[2.5rem] p-6 sm:p-10 relative z-10 backdrop-blur-xl transition-all duration-500 animate-in fade-in slide-in-from-top-4 ${isDark ? "bg-[#111111]/60 border-white/10 ring-1 ring-white/5" : "bg-white border-stone-200/60"}`}>
+                  <h2 className="text-2xl font-black tracking-tight mb-6">Custom Page Selection</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    {printConfig.print_type === "MIXED" && (
+                      <div className={`p-5 rounded-2xl border transition-all duration-300 focus-within:ring-2 ${!colorValidation.isValid ? (isDark ? "border-red-500/50 focus-within:ring-red-500/30 bg-red-500/5" : "border-red-400 focus-within:ring-red-400/30 bg-red-50") :
+                          colorValidation.parsedCount > 0 ? (isDark ? "border-yellow-500/50 focus-within:ring-yellow-500/30 bg-yellow-500/5" : "border-yellow-400 focus-within:ring-yellow-400/30 bg-yellow-50") :
+                            (isDark ? "bg-[#0A0A0A] border-white/10 focus-within:ring-white/30" : "bg-stone-50 border-stone-200/60 focus-within:ring-stone-900/20")
+                        }`}>
+                        <label className={`block text-[10px] font-bold mb-2 uppercase tracking-widest ${isDark ? "text-yellow-500/80" : "text-yellow-600"}`}>Color Pages (e.g. 1, 3-5)</label>
+                        <input
+                          type="text"
+                          placeholder={`1-${printConfig.total_pages}`}
+                          value={printConfig.color_pages || ''}
+                          onChange={(e) => setPrintConfig({ ...printConfig, color_pages: e.target.value })}
+                          className="w-full bg-transparent font-black text-xl outline-none placeholder:opacity-30"
+                        />
+                        <div className="flex justify-between items-center mt-2">
+                          <p className={`text-[10px] font-medium ${isDark ? 'text-white/40' : 'text-stone-500'}`}>*All unlisted pages will be B&W.</p>
+                          {!colorValidation.isValid ? (
+                            <p className="text-[10px] font-bold text-red-500 animate-pulse flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {colorValidation.error}</p>
+                          ) : colorValidation.parsedCount > 0 ? (
+                            <p className="text-[10px] font-bold text-green-500 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> {colorValidation.parsedCount} pages selected</p>
+                          ) : null}
+                        </div>
+                      </div>
+                    )}
+
+                    {printConfig.sided === "MIXED" && (
+                      <div className={`p-5 rounded-2xl border transition-all duration-300 focus-within:ring-2 ${!doubleValidation.isValid ? (isDark ? "border-red-500/50 focus-within:ring-red-500/30 bg-red-500/5" : "border-red-400 focus-within:ring-red-400/30 bg-red-50") :
+                          doubleValidation.parsedCount > 0 ? (isDark ? "border-indigo-500/50 focus-within:ring-indigo-500/30 bg-indigo-500/5" : "border-indigo-400 focus-within:ring-indigo-400/30 bg-indigo-50") :
+                            (isDark ? "bg-[#0A0A0A] border-white/10 focus-within:ring-white/30" : "bg-stone-50 border-stone-200/60 focus-within:ring-stone-900/20")
+                        }`}>
+                        <label className={`block text-[10px] font-bold mb-2 uppercase tracking-widest ${isDark ? "text-indigo-400" : "text-indigo-600"}`}>Double-Sided Pages (e.g. 2-10)</label>
+                        <input
+                          type="text"
+                          placeholder={`2-${printConfig.total_pages}`}
+                          value={printConfig.double_pages || ''}
+                          onChange={(e) => setPrintConfig({ ...printConfig, double_pages: e.target.value })}
+                          className="w-full bg-transparent font-black text-xl outline-none placeholder:opacity-30"
+                        />
+                        <div className="flex justify-between items-center mt-2">
+                          <p className={`text-[10px] font-medium ${isDark ? 'text-white/40' : 'text-stone-500'}`}>*All unlisted pages will be Single-Sided.</p>
+                          {!doubleValidation.isValid ? (
+                            <p className="text-[10px] font-bold text-red-500 animate-pulse flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {doubleValidation.error}</p>
+                          ) : doubleValidation.parsedCount > 0 ? (
+                            <p className="text-[10px] font-bold text-green-500 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> {doubleValidation.parsedCount} pages selected</p>
+                          ) : null}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+            )}
+
+            {/* 4. FINISHING TOUCHES */}
+            <div className={`border rounded-[2.5rem] p-6 sm:p-10 relative z-10 backdrop-blur-xl transition-all duration-500 ${isDark ? "bg-[#111111]/60 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/5" : "bg-white border-stone-200/60 shadow-xl shadow-stone-200/40"}`}>
+                <h2 className="text-2xl font-black tracking-tight mb-2">3. Finishing Touches</h2>
+                <p className={`font-medium text-sm mb-6 ${isDark ? "text-white/60" : "text-stone-500"}`}>Add professional binding, protective covers, or lamination to your document.</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Select box takes up 1 column on desktop */}
+                    <div className="md:col-span-1 relative z-20">
+                        <CustomSelect
+                          label="Binding Type"
+                          value={printConfig.binding_type}
+                          options={[{ label: "No Binding", value: "NONE" }, { label: "Spiral Binding", value: "SPIRAL" }, { label: "Hard Binding", value: "HARD" }]}
+                          onChange={(val: string) => setPrintConfig({ ...printConfig, binding_type: val as any })}
+                          isDark={isDark}
+                        />
+                    </div>
+
+                    {/* Checkboxes take up 2 columns on desktop and wrap gracefully */}
+                    <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <CustomCheckbox 
+                          label="Staple Document" 
+                          checked={printConfig.wants_stapling} 
+                          onChange={(v) => setPrintConfig({...printConfig, wants_stapling: v})} 
+                          isDark={isDark} 
+                        />
+                        <CustomCheckbox 
+                          label="Transparent File / Cover" 
+                          checked={printConfig.wants_cover} 
+                          onChange={(v) => setPrintConfig({...printConfig, wants_cover: v})} 
+                          isDark={isDark} 
+                        />
+                        <CustomCheckbox 
+                          label="Paper File / Folder" 
+                          checked={printConfig.wants_paper_file} 
+                          onChange={(v) => setPrintConfig({...printConfig, wants_paper_file: v})} 
+                          isDark={isDark} 
+                        />
+                        <CustomCheckbox 
+                          label="Laminate Pages" 
+                          checked={printConfig.wants_lamination} 
+                          onChange={(v) => setPrintConfig({...printConfig, wants_lamination: v})} 
+                          isDark={isDark} 
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <button onClick={handleNextStep} disabled={isNextDisabled} className={`relative w-full py-6 rounded-[2rem] font-black text-xl tracking-widest uppercase transition-all duration-500 flex items-center justify-center gap-4 group disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden ${isDark ? "bg-white text-black hover:bg-gray-200 shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:-translate-y-1" : "bg-stone-900 text-white hover:bg-black shadow-xl hover:-translate-y-1"}`}>
               <span className="relative z-10 flex items-center gap-3">
-                {locating ? <><Activity className="w-5 h-5 animate-pulse" /> Locating nearby shops...</> : <>Find Print Shops <ArrowRight className="w-6 h-6 transition-transform group-hover:translate-x-1" /></>}
+                {locating ? <><Activity className="w-6 h-6 animate-pulse" /> Locating nearby shops...</> : <>Find Print Shops <ArrowRight className="w-6 h-6 transition-transform group-hover:translate-x-1" /></>}
               </span>
             </button>
 
@@ -738,12 +786,7 @@ export default function StudentDashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-300px)] min-h-[600px]">
 
               <div className="lg:col-span-5 flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar pb-24 lg:pb-0">
-                {sortedShops.map((shop: Shop) => {
-                  const isClosed = shop.is_active === false || shop.is_active === null;
-                  const isPaused = !!(shop.paused_until && new Date(shop.paused_until) > new Date());
-                  const isUnavailable = isClosed || isPaused;
-                  const isConfigured = shop.exactPriceStr !== null && shop.exactPriceStr !== undefined;
-
+                {sortedShops.map((shop: any) => {
                   const isSelected = selectedShopId === shop.id;
                   const queueCount = shopQueues[shop.id] || 0;
                   const waitMins = queueCount * 3;
@@ -754,9 +797,9 @@ export default function StudentDashboardPage() {
                   return (
                     <div
                       key={shop.id}
-                      onClick={() => { if (isConfigured && !isUnavailable) setSelectedShopId(shop.id); }}
-                      className={`relative border rounded-3xl p-4 sm:p-5 transition-all duration-300 flex flex-col shrink-0 overflow-hidden ${isUnavailable ? `opacity-60 grayscale-[0.5] cursor-not-allowed ${isDark ? "bg-[#111111]/40 border-white/5" : "bg-stone-50 border-stone-200"}` :
-                          !isConfigured ? "opacity-40 grayscale cursor-not-allowed" :
+                      onClick={() => { if (!shop.isUnavailable) setSelectedShopId(shop.id); }}
+                      className={`relative border rounded-3xl p-4 sm:p-5 transition-all duration-300 flex flex-col shrink-0 overflow-hidden ${
+                          shop.isUnavailable ? `opacity-60 grayscale-[0.5] cursor-not-allowed ${isDark ? "bg-[#111111]/40 border-white/5" : "bg-stone-50 border-stone-200"}` :
                             isSelected ? (isDark ? "bg-white/10 border-white shadow-[0_0_20px_rgba(255,255,255,0.1)] ring-1 ring-white/50 cursor-default" : "border-stone-900 ring-1 ring-stone-900 bg-white shadow-md cursor-default") :
                               (isDark ? "border-white/10 bg-[#111111]/80 hover:bg-white/5 cursor-pointer" : "border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm cursor-pointer")
                         }`}
@@ -775,7 +818,7 @@ export default function StudentDashboardPage() {
                         <div className="flex-1 min-w-0 flex flex-col justify-start">
                           <div className="flex justify-between items-start gap-2 w-full">
                             <h3 className="font-black text-lg tracking-tight truncate leading-tight mt-0.5">{shop.name}</h3>
-                            {isConfigured && !isUnavailable && (
+                            {!shop.isUnavailable && (
                               <div className="text-right shrink-0">
                                 <div className="text-lg sm:text-xl font-black tracking-tighter leading-none">₹{shop.exactPriceStr}</div>
                               </div>
@@ -794,19 +837,23 @@ export default function StudentDashboardPage() {
                               </span>
                             )}
 
-                            {isPaused ? (
+                            {shop.isPaused ? (
                               <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border flex items-center gap-1 ${isDark ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' : 'bg-yellow-50 border-yellow-200 text-yellow-600'}`}>
                                 <Clock className="w-2.5 h-2.5" /> Reopens at {new Date(shop.paused_until!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
-                            ) : isClosed ? (
+                            ) : shop.isClosed ? (
                               <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border flex items-center gap-1 ${isDark ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-red-50 border-red-200 text-red-600'}`}>
                                 <XCircle className="w-2.5 h-2.5" /> Temporarily Closed
                               </span>
-                            ) : isConfigured ? (
+                            ) : shop.unsupportReason !== null ? (
+                               <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border flex items-center gap-1 ${isDark ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-red-50 border-red-200 text-red-600'}`}>
+                                <AlertCircle className="w-2.5 h-2.5" /> {shop.unsupportReason}
+                              </span>
+                            ) : (
                               <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border flex items-center gap-1 ${queueCount === 0 ? isDark ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-green-50 border-green-200 text-green-600' : queueCount > 5 ? isDark ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-600' : isDark ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-600'}`}>
                                 {queueCount === 0 ? <><CheckCircle2 className="w-2.5 h-2.5" /> No Wait</> : <><Timer className="w-2.5 h-2.5" /> ~{waitMins} min</>}
                               </span>
-                            ) : null}
+                            )}
 
                             <a href={mapUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border flex items-center gap-1 transition-colors ${isDark ? 'bg-white/5 border-white/10 text-white/70 hover:text-white hover:bg-white/20' : 'bg-stone-50 border-stone-200 text-stone-600 hover:text-stone-900 hover:bg-stone-100'}`}>
                               Directions <ExternalLink className="w-2.5 h-2.5" />
@@ -816,7 +863,7 @@ export default function StudentDashboardPage() {
                         </div>
                       </div>
 
-                      {isSelected && isConfigured && !isUnavailable && (
+                      {isSelected && !shop.isUnavailable && (
                         <div className="mt-4 pt-4 border-t border-dashed border-current border-opacity-20 animate-in fade-in slide-in-from-top-2 duration-300">
                           <button onClick={() => setStep(3)} className={`hidden lg:flex w-full items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest transition-all ${isDark ? "bg-white text-black hover:bg-gray-200" : "bg-stone-900 text-white hover:bg-black"}`}>
                             Proceed to Checkout <ArrowRight className="w-4 h-4" />
@@ -844,10 +891,8 @@ export default function StudentDashboardPage() {
                   shops={shops as Shop[]}
                   selectedShopId={selectedShopId}
                   onShopSelect={(id) => {
-                    const shop = shops.find(s => s.id === id);
-                    const isClosed = shop?.is_active === false || shop?.is_active === null;
-                    const isPaused = shop?.paused_until && new Date(shop?.paused_until) > new Date();
-                    if (shop?.pricing && !isClosed && !isPaused) setSelectedShopId(id);
+                    const shop = sortedShops.find(s => s.id === id);
+                    if (shop && !shop.isUnavailable) setSelectedShopId(id);
                   }}
                   isDark={isDark}
                 />
@@ -893,7 +938,7 @@ export default function StudentDashboardPage() {
                   <span className="font-bold text-sm max-w-[50%] truncate">{file?.name}</span>
                 </div>
 
-                {/* NEW: DYNAMIC RECEIPT BREAKDOWN WITH EXACT RUPEES */}
+                {/* DYNAMIC RECEIPT BREAKDOWN WITH FINISHING FEES */}
                 {(() => {
                   const breakdown = getPriceBreakdown(shops.find((s) => s.id === selectedShopId));
                   if (!breakdown) return null;
@@ -903,7 +948,10 @@ export default function StudentDashboardPage() {
 
                   return (
                     <div className={`p-4 rounded-xl border space-y-3 ${isDark ? 'bg-white/5 border-white/10' : 'bg-stone-50 border-stone-200'}`}>
-                      <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>Price Breakdown (Per Copy)</p>
+                      <p className={`text-[10px] font-black uppercase tracking-widest mb-1 flex justify-between ${isDark ? 'text-white/40' : 'text-stone-400'}`}>
+                         <span>Price Breakdown (Per Copy)</span>
+                         <span className="text-yellow-500">{printConfig.paper_size} Paper</span>
+                      </p>
 
                       {breakdown.colorCount > 0 && (
                         <div className="flex justify-between items-center text-sm">
@@ -930,10 +978,32 @@ export default function StudentDashboardPage() {
                         </div>
                       )}
 
+                      {breakdown.laminationTotalForCopy > 0 && (
+                        <div className="flex justify-between items-center text-sm pt-2 border-t border-dashed border-current border-opacity-20">
+                          <span className={isDark ? "text-cyan-400/80" : "text-cyan-600/80"}>
+                            Lamination ({printConfig.total_pages} pg)
+                          </span>
+                          <span className={`font-bold ${isDark ? "text-cyan-400" : "text-cyan-600"}`}>
+                            +₹{breakdown.laminationTotalForCopy.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+
+                      {breakdown.flatFees.length > 0 && (
+                         <div className="pt-2 border-t border-dashed border-current border-opacity-20 space-y-2">
+                             {breakdown.flatFees.map((fee, idx) => (
+                                 <div key={idx} className="flex justify-between items-center text-sm">
+                                     <span className={isDark ? "text-pink-400/80" : "text-pink-600/80"}>+ {fee.name}</span>
+                                     <span className={`font-bold ${isDark ? "text-pink-400" : "text-pink-600"}`}>₹{fee.price.toFixed(2)}</span>
+                                 </div>
+                             ))}
+                         </div>
+                      )}
+
                       {printConfig.copies > 1 && (
                         <div className="flex justify-between items-center text-sm pt-2 border-t border-current border-opacity-10 font-bold">
                           <span>Total for 1 Copy</span>
-                          <span>₹{breakdown.finalTotalForOneCopy.toFixed(2)}</span>
+                          <span>₹{(breakdown.finalTotalForOneCopy + breakdown.flatFees.reduce((a, b) => a + b.price, 0)).toFixed(2)}</span>
                         </div>
                       )}
                     </div>
