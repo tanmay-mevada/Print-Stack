@@ -115,11 +115,38 @@ export async function updateShopPricingAction(formData: FormData) {
   const { data: shop } = await supabase.from('shops').select('id').eq('owner_id', user.id).single()
   if (!shop) return { error: 'You must set up your shop profile first.' }
 
-  const bw_price = parseFloat(formData.get('bw_price') as string)
-  const color_price = parseFloat(formData.get('color_price') as string)
-  const double_side_modifier = parseFloat(formData.get('double_side_modifier') as string)
+  // Helper to handle optional fields (converts "null" string or empty to actual null)
+  const getOptNum = (key: string) => {
+      const val = formData.get(key);
+      if (!val || val === 'null' || val === '') return null;
+      return parseFloat(val as string);
+  }
 
-  const { error } = await supabase.from('pricing_configs').upsert({ shop_id: shop.id, bw_price, color_price, double_side_modifier }, { onConflict: 'shop_id' })
+  // Helper for Stock (defaults to 0 if left empty)
+  const getOptStock = (key: string) => {
+      const val = formData.get(key);
+      if (!val || val === 'null' || val === '') return 0;
+      return parseInt(val as string);
+  }
+
+  const updates = {
+      shop_id: shop.id,
+      bw_price: parseFloat(formData.get('bw_price') as string),
+      color_price: parseFloat(formData.get('color_price') as string),
+      double_side_modifier: parseFloat(formData.get('double_side_modifier') as string),
+      
+      a3_price: getOptNum('a3_price'), a3_stock: getOptStock('a3_stock'),
+      a2_price: getOptNum('a2_price'), a2_stock: getOptStock('a2_stock'),
+      a1_price: getOptNum('a1_price'), a1_stock: getOptStock('a1_stock'),
+      a0_price: getOptNum('a0_price'), a0_stock: getOptStock('a0_stock'),
+      
+      spiral_binding_price: getOptNum('spiral_binding_price'),
+      hard_binding_price: getOptNum('hard_binding_price'),
+      stapling_price: getOptNum('stapling_price'),
+      transparent_cover_price: getOptNum('transparent_cover_price')
+  };
+
+  const { error } = await supabase.from('pricing_configs').upsert(updates, { onConflict: 'shop_id' })
   if (error) return { error: error.message }
   
   revalidatePath('/shop')

@@ -59,7 +59,6 @@ async function sendOrderConfirmationEmail(to: string, name: string, orderId: str
 // ADVANCED PRICING MATH UTILITIES
 // ============================================================================
 
-// Converts a string like "1, 3-5" into a JavaScript Set: {1, 3, 4, 5}
 function parsePageRange(rangeStr: string, maxPages: number): Set<number> {
   const pages = new Set<number>();
   if (!rangeStr) return pages;
@@ -84,7 +83,7 @@ function parsePageRange(rangeStr: string, maxPages: number): Set<number> {
 // ============================================================================
 
 export async function fetchAvailableShopsAction(lat?: number, lng?: number) {
-  noStore(); // Prevents aggressive caching of the shops list
+  noStore(); 
   const supabase = await createClient()
 
   const { data: allShops } = await supabase
@@ -121,9 +120,13 @@ export async function submitOrderAction(payload: {
     copies: number; 
     total_pages: number;
     color_pages?: string;
-    bw_pages?: string;
-    single_pages?: string;
     double_pages?: string;
+    paper_size: 'A4' | 'A3' | 'A2' | 'A1' | 'A0';
+    binding_type: 'NONE' | 'SPIRAL' | 'HARD';
+    wants_stapling: boolean;
+    wants_cover: boolean;
+    wants_lamination: boolean; // <-- NEW
+    wants_paper_file: boolean; // <-- NEW
   }; 
 }) {
   const supabase = await createClient()
@@ -133,34 +136,74 @@ export async function submitOrderAction(payload: {
   const { data: pricing } = await supabase.from('pricing_configs').select('*').eq('shop_id', payload.shopId).single()
   if (!pricing) return { error: 'Missing pricing config.' }
 
-  // THE MATRIX PRICING ENGINE
-  let finalExactPrice = 0;
+  const requiredPages = payload.config.total_pages * payload.config.copies;
 
+  // 1. HARD BACKEND SECURITY VALIDATION
+  if (payload.config.paper_size !== 'A4') {
+    const pKey = payload.config.paper_size.toLowerCase();
+    if (pricing[`${pKey}_price`] === null) return { error: `${payload.config.paper_size} is not supported by this shop.` }
+    if (pricing[`${pKey}_stock`] < requiredPages) return { error: `Shop does not have enough ${payload.config.paper_size} stock.` }
+  }
+  if (payload.config.binding_type === 'SPIRAL' && pricing.spiral_binding_price === null) return { error: 'Spiral binding not supported.' }
+  if (payload.config.binding_type === 'HARD' && pricing.hard_binding_price === null) return { error: 'Hard binding not supported.' }
+  if (payload.config.wants_stapling && pricing.stapling_price === null) return { error: 'Stapling not supported.' }
+  if (payload.config.wants_cover && pricing.transparent_cover_price === null) return { error: 'Covers not supported.' }
+  if (payload.config.wants_lamination && pricing.lamination_price === null) return { error: 'Lamination not supported.' }
+  if (payload.config.wants_paper_file && pricing.paper_file_price === null) return { error: 'Paper files not supported.' }
+
+  // 2. MATRIX PRICING ENGINE
+  let totalCostForOneCopy = 0;
+
+  const getPagePrice = (isColor: boolean, isDouble: boolean) => {
+    let base = 0;
+    if (payload.config.paper_size === 'A3') base = pricing.a3_price;
+    else if (payload.config.paper_size === 'A2') base = pricing.a2_price;
+    else if (payload.config.paper_size === 'A1') base = pricing.a1_price;
+    else if (payload.config.paper_size === 'A0') base = pricing.a0_price;
+    else base = isColor ? pricing.color_price : pricing.bw_price; // Standard A4
+    
+    return base * (isDouble ? pricing.double_side_modifier : 1);
+  }
+
+  // Calculate Base Page Prices
   if (payload.config.print_type === 'MIXED' || payload.config.sided === 'MIXED') {
-    // If they used Advanced Settings, calculate page by page
     const colorSet = parsePageRange(payload.config.color_pages || '', payload.config.total_pages);
     const doubleSet = parsePageRange(payload.config.double_pages || '', payload.config.total_pages);
-    
-    let totalCostForOneCopy = 0;
-    
     for (let i = 1; i <= payload.config.total_pages; i++) {
       const isColor = payload.config.print_type === 'COLOR' || (payload.config.print_type === 'MIXED' && colorSet.has(i));
       const isDouble = payload.config.sided === 'DOUBLE' || (payload.config.sided === 'MIXED' && doubleSet.has(i));
-      
-      const basePrice = isColor ? pricing.color_price : pricing.bw_price;
-      const modifier = isDouble ? pricing.double_side_modifier : 1;
-      
-      totalCostForOneCopy += (basePrice * modifier);
+      totalCostForOneCopy += getPagePrice(isColor, isDouble);
     }
-    finalExactPrice = totalCostForOneCopy * payload.config.copies;
   } else {
-    // Standard basic calculation
-    let pricePerPage = payload.config.print_type === 'COLOR' ? pricing.color_price : pricing.bw_price;
-    let sideModifier = payload.config.sided === 'DOUBLE' ? pricing.double_side_modifier : 1;
-    finalExactPrice = (pricePerPage * sideModifier) * payload.config.total_pages * payload.config.copies;
+    totalCostForOneCopy = getPagePrice(payload.config.print_type === 'COLOR', payload.config.sided === 'DOUBLE') * payload.config.total_pages;
   }
 
-  // Insert into database with the new columns
+  // Add Lamination (Price is PER PAGE)
+  if (payload.config.wants_lamination) {
+      totalCostForOneCopy += (pricing.lamination_price * payload.config.total_pages);
+  }
+
+  let finalExactPrice = totalCostForOneCopy * payload.config.copies;
+
+  // Add Finishing Flat Fees (Multiply by copies because each document needs its own finishing)
+  let finishingCostPerCopy = 0;
+  if (payload.config.binding_type === 'SPIRAL') finishingCostPerCopy += pricing.spiral_binding_price;
+  if (payload.config.binding_type === 'HARD') finishingCostPerCopy += pricing.hard_binding_price;
+  if (payload.config.wants_stapling) finishingCostPerCopy += pricing.stapling_price;
+  if (payload.config.wants_cover) finishingCostPerCopy += pricing.transparent_cover_price;
+  if (payload.config.wants_paper_file) finishingCostPerCopy += pricing.paper_file_price;
+
+  finalExactPrice += (finishingCostPerCopy * payload.config.copies);
+
+  // 3. INVENTORY DEDUCTION (Reserve the stock immediately)
+  if (payload.config.paper_size !== 'A4') {
+    const pKey = payload.config.paper_size.toLowerCase();
+    await supabase.from('pricing_configs').update({ 
+      [`${pKey}_stock`]: pricing[`${pKey}_stock`] - requiredPages 
+    }).eq('shop_id', payload.shopId);
+  }
+
+  // 4. CREATE ORDER
   const { data: newOrder, error } = await supabase.from('orders').insert({
     student_id: user.id, 
     shop_id: payload.shopId, 
@@ -170,11 +213,15 @@ export async function submitOrderAction(payload: {
     sided: payload.config.sided,
     copies: payload.config.copies, 
     color_pages: payload.config.color_pages || null,
-    bw_pages: payload.config.bw_pages || null,
-    single_pages: payload.config.single_pages || null,
-    double_pages: payload.config.double_pages || null,
+    double_pages: payload.config.double_pages || null, 
     total_price: finalExactPrice, 
-    status: 'CREATED' 
+    status: 'CREATED',
+    paper_size: payload.config.paper_size, 
+    binding_type: payload.config.binding_type === 'NONE' ? null : payload.config.binding_type,
+    wants_stapling: payload.config.wants_stapling, 
+    wants_cover: payload.config.wants_cover,
+    wants_lamination: payload.config.wants_lamination, // <-- NEW
+    wants_paper_file: payload.config.wants_paper_file  // <-- NEW
   }).select('id').single()
 
   if (error) return { error: error.message }
@@ -186,7 +233,9 @@ export async function submitOrderAction(payload: {
     merchantId: process.env.PHONEPE_MERCHANT_ID, merchantTransactionId: formattedTransactionId,
     merchantUserId: user.id.replace(/-/g, ''), amount: amountInPaise,
     redirectUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/student/verify?id=${newOrder.id}&txid=${formattedTransactionId}`,
-    redirectMode: "REDIRECT", paymentInstrument: { type: "PAY_PAGE" }
+    redirectMode: "REDIRECT", 
+    callbackUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhook/phonepe`,
+    paymentInstrument: { type: "PAY_PAGE" }
   }
 
   const base64Payload = Buffer.from(JSON.stringify(paymentPayload)).toString('base64')

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { updateOrderStatusAction, verifyPickupOTPAction, getDownloadUrlAction } from '@/app/shop/actions'
-import { ArrowLeft, FileText, Download, CheckCircle2, Clock, User, FileDigit, RefreshCw, KeyRound, X, AlertCircle } from 'lucide-react'
+import { ArrowLeft, FileText, Download, CheckCircle2, Clock, User, FileDigit, RefreshCw, KeyRound, X, AlertCircle, Layers, BookOpen, Paperclip } from 'lucide-react'
 import toast, { Toaster } from 'react-hot-toast'
 import LoadingScreen from '@/components/LoadingScreen'
 import { useTheme } from '@/context/ThemeContext'
@@ -22,7 +22,7 @@ export default function OrderDetailsPage() {
     // OTP State
     const [otpInput, setOtpInput] = useState('')
     const [verifying, setVerifying] = useState(false)
-    const [showOtpModal, setShowOtpModal] = useState(false) // Added Modal State
+    const [showOtpModal, setShowOtpModal] = useState(false) 
 
     useEffect(() => {
         async function fetchOrderDetails() {
@@ -49,13 +49,9 @@ export default function OrderDetailsPage() {
 
     const handleDownload = async () => {
         if (!order?.file_path) return toast.error("No file found for this order.")
-        
         const loadingToast = toast.loading("Generating secure download link...")
-        
         const res = await getDownloadUrlAction(order.file_path)
-            
         toast.dismiss(loadingToast)
-            
         if (res.url) {
             window.open(res.url, '_blank')
             toast.success("Download started!")
@@ -67,50 +63,38 @@ export default function OrderDetailsPage() {
     const handleStatusUpdate = async (newStatus: string) => {
         setUpdating(true)
         const updateToast = toast.loading(`Updating status to ${newStatus}...`)
-        
         const res = await updateOrderStatusAction(order.id, newStatus, order.student_id)
-        
         toast.dismiss(updateToast)
         
         if (res.success) {
             setOrder({ ...order, status: newStatus })
-            if (newStatus === 'READY') {
-                toast.success("Order Ready! OTP email securely sent to student.", { duration: 5000 })
-            } else {
-                toast.success(`Order moved to ${newStatus}`)
-            }
+            if (newStatus === 'READY') toast.success("Order Ready! OTP email securely sent to student.", { duration: 5000 })
+            else toast.success(`Order moved to ${newStatus}`)
         } else {
             toast.error(`Error: ${res.error}`)
         }
-        
         setUpdating(false)
     }
 
     const handleVerifyOtp = async () => {
         if (!otpInput || otpInput.length !== 6) return toast.error("Please enter the 6-digit OTP.")
-        
         setVerifying(true)
         const verifyToast = toast.loading("Verifying code...")
-        
         const res = await verifyPickupOTPAction(order.id, otpInput)
-
         toast.dismiss(verifyToast)
 
         if (res.success) {
             setOrder({ ...order, status: 'COMPLETED' })
             toast.success("OTP Verified! Order is now complete.", { duration: 4000 })
-            setShowOtpModal(false) // Close modal on success
-            setOtpInput('') // Clear input
+            setShowOtpModal(false)
+            setOtpInput('') 
         } else {
             toast.error(res.error || "Invalid OTP. Please try again.")
         }
-        
         setVerifying(false)
     }
 
-    if (loading) {
-        return <LoadingScreen isDark={isDark} />
-    }
+    if (loading) return <LoadingScreen isDark={isDark} />
 
     if (!order) {
         return (
@@ -124,17 +108,16 @@ export default function OrderDetailsPage() {
     }
 
     const fileName = order.file_path ? order.file_path.split('-').slice(1).join('-') : 'Document.pdf'
-    
-    // Check if this order uses advanced configuration
     const isMixedPrint = order.print_type === 'MIXED';
     const isMixedSided = order.sided === 'MIXED';
     const hasAdvancedConfig = isMixedPrint || isMixedSided;
 
+    // Check if this order needs special handling (Large format or Binding)
+    const requiresSpecialHandling = order.paper_size !== 'A4' || order.binding_type || order.wants_stapling || order.wants_cover;
+
     return (
         <div className={`min-h-screen font-sans transition-colors duration-700 pb-20 ${
-            isDark 
-            ? 'bg-[#050505] text-white selection:bg-white/20' 
-            : 'bg-[#faf9f6] text-stone-900 selection:bg-stone-900/20'
+            isDark ? 'bg-[#050505] text-white selection:bg-white/20' : 'bg-[#faf9f6] text-stone-900 selection:bg-stone-900/20'
         }`}>
             
             <Toaster 
@@ -151,12 +134,8 @@ export default function OrderDetailsPage() {
                         letterSpacing: '0.05em',
                         boxShadow: isDark ? '0 20px 40px rgba(0,0,0,0.5)' : '0 20px 40px rgba(0,0,0,0.1)',
                     },
-                    success: {
-                        iconTheme: { primary: '#22c55e', secondary: isDark ? '#050505' : '#ffffff' },
-                    },
-                    error: {
-                        iconTheme: { primary: '#ef4444', secondary: isDark ? '#050505' : '#ffffff' },
-                    },
+                    success: { iconTheme: { primary: '#22c55e', secondary: isDark ? '#050505' : '#ffffff' } },
+                    error: { iconTheme: { primary: '#ef4444', secondary: isDark ? '#050505' : '#ffffff' } },
                 }}
             />
 
@@ -179,12 +158,9 @@ export default function OrderDetailsPage() {
                     </div>
                     
                     <div className={`px-5 py-3 rounded-2xl text-sm font-black uppercase tracking-widest border backdrop-blur-md flex items-center gap-3 ${
-                        order.status === 'COMPLETED' 
-                            ? (isDark ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-green-50 border-green-200 text-green-700') :
-                        order.status === 'READY' 
-                            ? (isDark ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-indigo-50 border-indigo-200 text-indigo-700') :
-                        order.status === 'PRINTING' 
-                            ? (isDark ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-700') :
+                        order.status === 'COMPLETED' ? (isDark ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-green-50 border-green-200 text-green-700') :
+                        order.status === 'READY' ? (isDark ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-indigo-50 border-indigo-200 text-indigo-700') :
+                        order.status === 'PRINTING' ? (isDark ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-700') :
                         (isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-stone-100 border-stone-200 text-stone-700')
                     }`}>
                         <div className={`w-2.5 h-2.5 rounded-full ${
@@ -201,10 +177,10 @@ export default function OrderDetailsPage() {
                     
                     {/* Left Column: Order Info */}
                     <div className="md:col-span-2 space-y-8">
+                        
+                        {/* MAIN DOCUMENT CARD */}
                         <div className={`border p-8 sm:p-10 rounded-[2.5rem] ring-1 backdrop-blur-xl transition-colors duration-500 ${
-                            isDark 
-                            ? 'bg-[#111111]/80 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-white/5' 
-                            : 'bg-white border-stone-200 shadow-xl shadow-stone-200/50 ring-stone-100'
+                            isDark ? 'bg-[#111111]/80 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-white/5' : 'bg-white border-stone-200 shadow-xl shadow-stone-200/50 ring-stone-100'
                         }`}>
                             <h2 className={`text-xs font-bold uppercase tracking-widest mb-8 flex items-center gap-2 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>
                                 <FileDigit className="w-4 h-4" /> Document Overview
@@ -220,9 +196,7 @@ export default function OrderDetailsPage() {
                                     <p className="font-black text-2xl truncate mb-2">{fileName}</p>
                                     <p className={`font-bold uppercase tracking-widest text-xs flex items-center gap-2 ${isDark ? 'text-white/50' : 'text-stone-500'}`}>
                                         <Clock className="w-3.5 h-3.5" />
-                                        {new Date(order.created_at).toLocaleString('en-IN', {
-                                            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                                        })}
+                                        {new Date(order.created_at).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                     </p>
                                 </div>
                             </div>
@@ -278,10 +252,53 @@ export default function OrderDetailsPage() {
                             )}
                         </div>
 
+                        {/* NEW: PHYSICAL REQUIREMENTS (Paper Size & Finishing) */}
+                        {requiresSpecialHandling && (
+                            <div className={`border p-8 rounded-[2.5rem] shadow-xl ring-1 backdrop-blur-xl transition-colors duration-500 ${
+                                isDark ? 'bg-indigo-950/20 border-indigo-500/20 ring-indigo-500/10' : 'bg-indigo-50/50 border-indigo-200 ring-indigo-100 shadow-indigo-100/50'
+                            }`}>
+                                <h2 className={`text-xs font-black uppercase tracking-widest mb-6 flex items-center gap-2 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                                    <Layers className="w-4 h-4" /> Physical Requirements
+                                </h2>
+                                
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {order.paper_size !== 'A4' && (
+                                        <div className={`p-4 rounded-xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-white border-stone-200 shadow-sm'}`}>
+                                            <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${isDark ? 'text-white/50' : 'text-stone-500'}`}>Paper Size</p>
+                                            <p className="font-black text-2xl text-yellow-500">{order.paper_size}</p>
+                                        </div>
+                                    )}
+
+                                    {order.binding_type && (
+                                        <div className={`p-4 rounded-xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-white border-stone-200 shadow-sm'}`}>
+                                            <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${isDark ? 'text-white/50' : 'text-stone-500'}`}>Binding</p>
+                                            <p className="font-black text-xl flex items-center gap-2">
+                                                <BookOpen className="w-5 h-5 opacity-50" />
+                                                {order.binding_type === 'SPIRAL' ? 'Spiral Bind' : 'Hard Bind'}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {(order.wants_stapling || order.wants_cover) && (
+                                    <div className="flex gap-3 mt-4">
+                                        {order.wants_stapling && (
+                                            <span className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest border flex items-center gap-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-stone-200 text-stone-700'}`}>
+                                                <Paperclip className="w-3.5 h-3.5" /> Staple Document
+                                            </span>
+                                        )}
+                                        {order.wants_cover && (
+                                            <span className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest border flex items-center gap-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-stone-200 text-stone-700'}`}>
+                                                <Layers className="w-3.5 h-3.5" /> Add Clear Cover
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <div className={`border p-8 sm:p-10 rounded-[2.5rem] shadow-xl ring-1 backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-6 transition-colors duration-500 ${
-                            isDark 
-                            ? 'bg-[#111111]/80 border-white/10 ring-white/5' 
-                            : 'bg-white border-stone-200 ring-stone-100 shadow-stone-200/50'
+                            isDark ? 'bg-[#111111]/80 border-white/10 ring-white/5' : 'bg-white border-stone-200 ring-stone-100 shadow-stone-200/50'
                         }`}>
                             <div>
                                 <h2 className={`text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-2 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>
@@ -302,9 +319,7 @@ export default function OrderDetailsPage() {
                     <div className="space-y-6">
                         
                         <div className={`border p-8 rounded-[2.5rem] shadow-xl ring-1 backdrop-blur-xl transition-colors duration-500 ${
-                            isDark 
-                            ? 'bg-gradient-to-b from-[#1a1a1e] to-[#111111] border-white/10 ring-white/5' 
-                            : 'bg-white border-stone-200 ring-stone-100 shadow-stone-200/50'
+                            isDark ? 'bg-gradient-to-b from-[#1a1a1e] to-[#111111] border-white/10 ring-white/5' : 'bg-white border-stone-200 ring-stone-100 shadow-stone-200/50'
                         }`}>
                             <h3 className="font-black text-xl mb-2">Print File</h3>
                             <p className={`text-sm font-medium mb-8 leading-relaxed ${isDark ? 'text-white/50' : 'text-stone-500'}`}>Download the secure PDF to your local machine for printing.</p>
@@ -312,9 +327,7 @@ export default function OrderDetailsPage() {
                             <button 
                                 onClick={handleDownload}
                                 className={`w-full py-5 rounded-[1.5rem] font-black tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-3 hover:-translate-y-1 ${
-                                    isDark 
-                                    ? 'bg-white text-black hover:bg-gray-200 shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-[0_0_40px_rgba(255,255,255,0.25)]' 
-                                    : 'bg-stone-900 text-white hover:bg-stone-800 shadow-lg shadow-stone-900/20'
+                                    isDark ? 'bg-white text-black hover:bg-gray-200 shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-[0_0_40px_rgba(255,255,255,0.25)]' : 'bg-stone-900 text-white hover:bg-stone-800 shadow-lg shadow-stone-900/20'
                                 }`}
                             >
                                 <Download className="w-5 h-5" /> Download PDF
@@ -322,9 +335,7 @@ export default function OrderDetailsPage() {
                         </div>
 
                         <div className={`border p-8 rounded-[2.5rem] shadow-xl ring-1 backdrop-blur-xl transition-colors duration-500 ${
-                            isDark 
-                            ? 'bg-[#111111]/80 border-white/10 ring-white/5' 
-                            : 'bg-white border-stone-200 ring-stone-100 shadow-stone-200/50'
+                            isDark ? 'bg-[#111111]/80 border-white/10 ring-white/5' : 'bg-white border-stone-200 ring-stone-100 shadow-stone-200/50'
                         }`}>
                             <h3 className="font-black text-xl mb-6 flex items-center gap-3">
                                 <RefreshCw className={`w-5 h-5 ${updating ? 'animate-spin' : ''}`} /> 
@@ -332,7 +343,6 @@ export default function OrderDetailsPage() {
                             </h3>
                             
                             <div className="flex flex-col gap-4">
-                                
                                 <button 
                                     onClick={() => handleStatusUpdate('PRINTING')}
                                     disabled={order.status === 'PRINTING' || order.status === 'READY' || order.status === 'COMPLETED'}
@@ -359,7 +369,6 @@ export default function OrderDetailsPage() {
                                     {(order.status === 'READY' || order.status === 'COMPLETED') && <CheckCircle2 className="w-4 h-4" />}
                                 </button>
 
-                                {/* Step 3: Now triggers Modal when READY */}
                                 {order.status === 'COMPLETED' ? (
                                     <div className={`py-4 px-5 rounded-2xl font-bold tracking-widest uppercase text-sm border text-left flex justify-between items-center cursor-not-allowed ${
                                         isDark ? 'bg-green-500/10 border-green-500/20 text-green-500/50' : 'bg-green-50 border-green-200 text-green-700/50'
@@ -371,20 +380,13 @@ export default function OrderDetailsPage() {
                                     <button 
                                         onClick={() => setShowOtpModal(true)}
                                         className={`py-4 px-5 rounded-2xl font-bold tracking-widest uppercase text-sm border transition-all text-left flex items-center justify-between group ${
-                                            isDark 
-                                            ? 'bg-white/5 border-white/10 hover:bg-green-500/20 hover:text-green-400 hover:border-green-500/50 text-white' 
-                                            : 'bg-stone-50 border-stone-200 hover:bg-green-50 hover:text-green-700 hover:border-green-300 text-stone-700'
+                                            isDark ? 'bg-white/5 border-white/10 hover:bg-green-500/20 hover:text-green-400 hover:border-green-500/50 text-white' : 'bg-stone-50 border-stone-200 hover:bg-green-50 hover:text-green-700 hover:border-green-300 text-stone-700'
                                         }`}
                                     >
                                         3. Enter OTP & Complete
                                     </button>
                                 ) : (
-                                    <button 
-                                        disabled={true}
-                                        className={`py-4 px-5 rounded-2xl font-bold tracking-widest uppercase text-sm border text-left flex justify-between items-center cursor-not-allowed ${
-                                            isDark ? 'bg-white/5 border-white/10 text-white/30' : 'bg-stone-50 border-stone-200 text-stone-400'
-                                        }`}
-                                    >
+                                    <button disabled={true} className={`py-4 px-5 rounded-2xl font-bold tracking-widest uppercase text-sm border text-left flex justify-between items-center cursor-not-allowed ${isDark ? 'bg-white/5 border-white/10 text-white/30' : 'bg-stone-50 border-stone-200 text-stone-400'}`}>
                                         3. Completed 
                                     </button>
                                 )}
@@ -408,13 +410,8 @@ export default function OrderDetailsPage() {
                                 <KeyRound className="w-4 h-4" /> Student Handover
                             </h3>
                             <button 
-                                onClick={() => {
-                                    setShowOtpModal(false)
-                                    setOtpInput('')
-                                }} 
-                                className={`p-2 rounded-full transition-colors ${
-                                    isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-stone-100 text-stone-400 hover:text-stone-700'
-                                }`}
+                                onClick={() => { setShowOtpModal(false); setOtpInput('') }} 
+                                className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-white/10 text-white/50 hover:text-white' : 'hover:bg-stone-100 text-stone-400 hover:text-stone-700'}`}
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -428,18 +425,14 @@ export default function OrderDetailsPage() {
                                 value={otpInput}
                                 onChange={(e) => setOtpInput(e.target.value.replace(/[^0-9]/g, ''))}
                                 className={`w-full border rounded-xl px-4 py-4 font-mono text-2xl tracking-[0.5em] text-center outline-none transition-all placeholder:tracking-normal placeholder:text-sm ${
-                                    isDark 
-                                    ? 'bg-[#0A0A0A] border-white/10 focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 placeholder:text-white/20 text-white' 
-                                    : 'bg-stone-50 border-stone-300 focus:border-green-500 focus:ring-1 focus:ring-green-500 placeholder:text-stone-400 text-stone-900'
+                                    isDark ? 'bg-[#0A0A0A] border-white/10 focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 placeholder:text-white/20 text-white' : 'bg-stone-50 border-stone-300 focus:border-green-500 focus:ring-1 focus:ring-green-500 placeholder:text-stone-400 text-stone-900'
                                 }`}
                             />
                             <button 
                                 onClick={handleVerifyOtp}
                                 disabled={verifying || otpInput.length < 6}
                                 className={`w-full py-4 rounded-xl font-black tracking-widest uppercase text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                                    isDark 
-                                    ? 'bg-green-500 text-black hover:bg-green-400 shadow-[0_0_20px_rgba(34,197,94,0.2)]' 
-                                    : 'bg-green-600 text-white hover:bg-green-500 shadow-md'
+                                    isDark ? 'bg-green-500 text-black hover:bg-green-400 shadow-[0_0_20px_rgba(34,197,94,0.2)]' : 'bg-green-600 text-white hover:bg-green-500 shadow-md'
                                 }`}
                             >
                                 {verifying ? 'Verifying...' : 'Verify & Complete'}
