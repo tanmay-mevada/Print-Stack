@@ -361,7 +361,8 @@ export default function ShopDashboardPage() {
             </div>
 
           {/* ================= ULTRA-COMPACT SEARCH & FILTER BAR ================= */}
-<div className={`p-2 rounded-2xl sm:rounded-full border flex flex-col sm:flex-row gap-2 items-center backdrop-blur-xl shadow-sm transition-colors relative ${isDark ? 'bg-[#111111]/80 border-white/10 ring-1 ring-white/5' : 'bg-white border-stone-200'
+{/* ================= ULTRA-COMPACT SEARCH & FILTER BAR ================= */}
+<div className={`p-2 rounded-2xl sm:rounded-full border flex flex-col sm:flex-row gap-2 items-center backdrop-blur-xl shadow-sm transition-colors z-40 relative ${isDark ? 'bg-[#111111]/80 border-white/10 ring-1 ring-white/5' : 'bg-white border-stone-200'
   }`}>
 
               <div className="relative flex-1 w-full pl-3">
