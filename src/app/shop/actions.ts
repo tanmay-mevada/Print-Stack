@@ -271,51 +271,6 @@ export async function verifyPickupOTPAction(orderId: string, inputOtp: string) {
   }
 }
 
-export async function replyToComplaintAction(complaintId: string, reply: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Not authenticated' }
-
-  const { data: complaint } = await supabase
-    .from('complaints')
-    .select('id, shop_id, order_id, status')
-    .eq('id', complaintId)
-    .single()
-
-  if (!complaint) return { error: 'Complaint not found' }
-
-  const { data: shop } = await supabase.from('shops').select('id').eq('owner_id', user.id).eq('id', complaint.shop_id).single()
-  if (!shop) return { error: 'You are not the owner of this shop' }
-
-  if (complaint.status !== 'PENDING') return { error: 'This complaint has already been addressed' }
-
-  const { error: updateErr } = await supabase
-    .from('complaints')
-    .update({
-      status: 'REPLIED',
-      shopkeeper_reply: reply.trim(),
-      replied_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', complaintId)
-
-  if (updateErr) return { error: updateErr.message }
-
-  const { data: order } = await supabase.from('orders').select('student_id').eq('id', complaint.order_id).single()
-  if (order?.student_id) {
-    await supabase.from('notifications').insert({
-      user_id: order.student_id,
-      title: 'Shop Replied to Your Complaint',
-      message: `The shop has responded to your complaint for order #${complaint.order_id.split('-')[0]}.`,
-      type: 'COMPLAINT_REPLIED',
-    })
-  }
-
-  revalidatePath('/shop/complaints')
-  revalidatePath('/shop')
-  return { success: true }
-}
-
 export async function resolveGoogleMapsLinkAction(link: string) {
   try {
     const response = await fetch(link, { method: 'GET', redirect: 'follow', headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });

@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
-import { BellRing, CheckCircle2, Printer, ShoppingBag, AlertCircle, MessageCircle } from 'lucide-react'
+import { BellRing, CheckCircle2, Printer, ShoppingBag } from 'lucide-react'
 import { useTheme } from '@/context/ThemeContext'
 
 export default function NotificationListener() {
@@ -47,15 +47,6 @@ export default function NotificationListener() {
             } else if (newNotification.type === 'ORDER_NEW') {
               Icon = ShoppingBag;
               iconColor = isDark ? '#fbbf24' : '#d97706'; // Yellow
-            } else if (newNotification.type === 'COMPLAINT_NEW') {
-              Icon = AlertCircle;
-              iconColor = isDark ? '#f87171' : '#dc2626'; // Red
-            } else if (newNotification.type === 'COMPLAINT_REPLIED') {
-              Icon = MessageCircle;
-              iconColor = isDark ? '#34d399' : '#10b981'; // Emerald
-            } else if (newNotification.type === 'REFUND_COMPLETED') {
-              Icon = CheckCircle2;
-              iconColor = isDark ? '#4ade80' : '#16a34a'; // Green
             }
 
             // Trigger the beautiful hot-toast popup

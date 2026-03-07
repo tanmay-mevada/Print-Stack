@@ -8,6 +8,7 @@ import { useTheme } from '@/context/ThemeContext'
 import toast, { Toaster } from 'react-hot-toast'
 import LoadingScreen from '@/components/LoadingScreen'
 import { ArrowLeft, IndianRupee, Layers, Palette } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export default function ShopPricingPage() {
   const { isDark } = useTheme()
@@ -36,7 +37,7 @@ export default function ShopPricingPage() {
     e.preventDefault()
     setSaving(true)
     
-    const savingToast = toast.loading('Updating pricing...')
+    const savingToast = toast.loading(t('updatingPricing'))
     
     const formData = new FormData(e.currentTarget)
     const res = await updateShopPricingAction(formData)
@@ -93,7 +94,7 @@ export default function ShopPricingPage() {
             isDark ? 'text-white/50 hover:text-white' : 'text-stone-500 hover:text-stone-900'
         }`}
       >
-        <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+        <ArrowLeft className="w-4 h-4" /> {tCommon('common.backToDashboard')}
       </Link>
 
       {/* Card */}

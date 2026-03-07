@@ -3,22 +3,16 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { ArrowLeft, Clock, FileText, Printer, CheckCircle2, Sun, Moon, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Clock, FileText, Printer, CheckCircle2, Sun, Moon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
-import { createComplaintAction } from '../complaint-actions'
-import toast from 'react-hot-toast'
 
 export default function OrderHistoryPage() {
     const t = useTranslations('student')
     const tCommon = useTranslations()
     const [isDark, setIsDark] = useState(true)
     const [orders, setOrders] = useState<any[]>([])
-    const [complaintsByOrder, setComplaintsByOrder] = useState<Record<string, boolean>>({})
     const [loading, setLoading] = useState(true)
-    const [complaintOrderId, setComplaintOrderId] = useState<string | null>(null)
-    const [complaintText, setComplaintText] = useState('')
-    const [submitting, setSubmitting] = useState(false)
 
     useEffect(() => {
         async function fetchUserOrders() {
@@ -26,21 +20,13 @@ export default function OrderHistoryPage() {
             const { data: { user } } = await supabase.auth.getUser()
 
             if (user) {
-                const { data: orderData } = await supabase
+                const { data } = await supabase
                     .from('orders')
-                    .select('*, shops(name)')
+                    .select('*, shops(name)') 
                     .eq('student_id', user.id)
                     .order('created_at', { ascending: false })
 
-                if (orderData) setOrders(orderData)
-
-                const { data: complaintData } = await supabase
-                    .from('complaints')
-                    .select('order_id')
-                    .eq('student_id', user.id)
-                const map: Record<string, boolean> = {}
-                complaintData?.forEach(c => { map[c.order_id] = true })
-                setComplaintsByOrder(map)
+                if (data) setOrders(data)
             }
             setLoading(false)
         }
@@ -86,9 +72,6 @@ export default function OrderHistoryPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <Link href="/student/complaints" className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold uppercase tracking-wider ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-stone-200 hover:bg-stone-300 text-stone-900'}`}>
-                            <AlertCircle className="w-4 h-4" /> Complaints & Refunds
-                        </Link>
                         <LanguageSwitcher />
                     <button 
                         type="button"
@@ -178,20 +161,6 @@ export default function OrderHistoryPage() {
                                             <CheckCircle2 className="w-4 h-4" /> Paid & Picked Up
                                         </div>
                                     )}
-                                    {['PAID', 'PRINTING', 'READY'].includes(order.status) && !complaintsByOrder[order.id] && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setComplaintOrderId(order.id)}
-                                            className={`mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider ${isDark ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-400' : 'bg-amber-100 hover:bg-amber-200 text-amber-700'}`}
-                                        >
-                                            <AlertCircle className="w-4 h-4" /> Raise Complaint
-                                        </button>
-                                    )}
-                                    {complaintsByOrder[order.id] && (
-                                        <Link href="/student/complaints" className={`mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-stone-200 hover:bg-stone-300 text-stone-700'}`}>
-                                            <AlertCircle className="w-4 h-4" /> View Complaint
-                                        </Link>
-                                    )}
                                 </div>
 
                             </div>
@@ -200,52 +169,6 @@ export default function OrderHistoryPage() {
                 </div>
 
             </div>
-
-            {/* Raise Complaint Modal */}
-            {complaintOrderId && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => !submitting && setComplaintOrderId(null)}>
-                    <div className={`w-full max-w-md rounded-2xl p-6 shadow-2xl ${isDark ? 'bg-[#111] border border-white/10' : 'bg-white border border-stone-200'}`} onClick={e => e.stopPropagation()}>
-                        <h3 className="text-xl font-black mb-4">Raise Complaint</h3>
-                        <p className={`text-sm mb-4 ${isDark ? 'text-white/60' : 'text-stone-500'}`}>Describe the issue. The shop has 2 hours to respond before an automatic refund.</p>
-                        <textarea
-                            value={complaintText}
-                            onChange={e => setComplaintText(e.target.value)}
-                            placeholder="e.g. Order not ready, wrong printing, etc."
-                            rows={4}
-                            className={`w-full rounded-xl px-4 py-3 text-sm border resize-none ${isDark ? 'bg-white/5 border-white/20 text-white placeholder:text-white/40' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'}`}
-                        />
-                        <div className="flex gap-3 mt-4">
-                            <button
-                                type="button"
-                                onClick={() => !submitting && setComplaintOrderId(null)}
-                                className={`flex-1 py-3 rounded-xl text-sm font-bold uppercase tracking-wider ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-stone-200 hover:bg-stone-300'}`}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                disabled={submitting || !complaintText.trim()}
-                                onClick={async () => {
-                                    setSubmitting(true)
-                                    const res = await createComplaintAction(complaintOrderId, complaintText)
-                                    setSubmitting(false)
-                                    if (res.success) {
-                                        setComplaintOrderId(null)
-                                        setComplaintText('')
-                                        setComplaintsByOrder(prev => ({ ...prev, [complaintOrderId]: true }))
-                                        toast.success('Complaint raised. Shop will be notified.')
-                                    } else {
-                                        toast.error(res.error || 'Failed to raise complaint')
-                                    }
-                                }}
-                                className="flex-1 py-3 rounded-xl text-sm font-bold uppercase tracking-wider bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white"
-                            >
-                                {submitting ? 'Submitting...' : 'Submit'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     )
 }
