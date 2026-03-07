@@ -70,7 +70,7 @@ export default async function VerifyPaymentPage({
 
         const { error: updateError } = await supabaseAdmin
             .from('orders')
-            .update({ status: 'PAID' })
+            .update({ status: 'PAID', phonepe_transaction_id: transactionId })
             .eq('id', orderId)
 
         if (updateError) {

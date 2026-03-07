@@ -27,9 +27,13 @@ import {
   LayoutDashboard
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function Home() {
+  const t = useTranslations();
+  const tHome = useTranslations("home");
   const { isDark, toggleTheme } = useTheme();
   const router = useRouter();
 
@@ -91,11 +95,11 @@ export default function Home() {
           {/* ================= NAV LINKS ================= */}
           <div className={`hidden md:flex gap-8 font-semibold text-sm transition-colors ${isDark ? "text-white/50" : "text-stone-500"}`}>
             {[
-              { label: "How it works", href: "#how-it-works" },
-              { label: "Features", href: "#features" },
-              { label: "Tech Stack", href: "#tech-stack" },
+              { label: tHome("nav.howItWorks"), href: "#how-it-works" },
+              { label: tHome("nav.features"), href: "#features" },
+              { label: tHome("nav.techStack"), href: "#tech-stack" },
             ].map((item) => (
-              <a key={item.label} href={item.href} className={`transition-colors duration-200 ${isDark ? "hover:text-white" : "hover:text-stone-900"}`}>
+              <a key={item.href} href={item.href} className={`transition-colors duration-200 ${isDark ? "hover:text-white" : "hover:text-stone-900"}`}>
                 {item.label}
               </a>
             ))}
@@ -103,6 +107,7 @@ export default function Home() {
 
           {/* ================= RIGHT SIDE ================= */}
           <div className="flex items-center gap-3 sm:gap-4">
+            <LanguageSwitcher />
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -118,12 +123,12 @@ export default function Home() {
                 <>
                   <Link href="/login">
                     <span className={`text-sm font-bold transition-colors ${isDark ? "text-white/70 hover:text-white" : "text-stone-600 hover:text-stone-900"}`}>
-                      Log in
+                      {t("common.logIn")}
                     </span>
                   </Link>
                   <Link href="/signup">
                     <span className={`px-5 py-2.5 text-sm font-bold rounded-full transition-all duration-300 ${isDark ? "bg-white text-black hover:bg-gray-200" : "bg-stone-900 text-white hover:bg-stone-800"}`}>
-                      Sign up
+                      {t("common.signUp")}
                     </span>
                   </Link>
                 </>
@@ -141,12 +146,12 @@ export default function Home() {
                     <div className={`absolute right-0 mt-3 w-48 border rounded-2xl shadow-xl z-50 overflow-hidden transition-colors duration-300 animate-in fade-in slide-in-from-top-2 ${isDark ? 'bg-[#111111] border-white/10 shadow-black' : 'bg-white border-stone-200 shadow-stone-200/50'}`}>
                       <div className={`p-2 border-b ${isDark ? 'border-white/10' : 'border-stone-100'}`}>
                         <Link href={portalLink} className={`flex items-center gap-2 p-3 rounded-xl text-sm font-bold transition-colors ${isDark ? 'hover:bg-white/10 text-white/80 hover:text-white' : 'hover:bg-stone-50 text-stone-700 hover:text-stone-900'}`}>
-                          <LayoutDashboard className="w-4 h-4" /> Go to Portal
+                          <LayoutDashboard className="w-4 h-4" /> {t("common.goToPortal")}
                         </Link>
                       </div>
                       <div className="p-2">
                         <button onClick={handleSignOut} className={`w-full flex items-center gap-2 p-3 rounded-xl text-sm font-bold transition-colors text-left ${isDark ? 'hover:bg-red-500/10 text-red-400 hover:text-red-300' : 'hover:bg-red-50 text-red-600 hover:text-red-700'}`}>
-                          <LogOut className="w-4 h-4" /> Log out
+                          <LogOut className="w-4 h-4" /> {t("common.signOut")}
                         </button>
                       </div>
                     </div>
@@ -201,7 +206,7 @@ export default function Home() {
               <p className={`text-base font-bold truncate transition-colors ${isDark ? "text-white" : "text-stone-900"}`}>Project_Thesis.pdf</p>
               <div className="flex items-center gap-2 mt-1">
                 <CheckCircle2 className={`w-4 h-4 transition-colors ${isDark ? "text-white" : "text-stone-900"}`} />
-                <p className={`text-xs uppercase tracking-wider transition-colors ${isDark ? "text-white/60" : "text-stone-500"}`}>Ready</p>
+                <p className={`text-xs uppercase tracking-wider transition-colors ${isDark ? "text-white/60" : "text-stone-500"}`}>{tHome("hero.projectReady")}</p>
               </div>
             </div>
           </div>
@@ -212,17 +217,17 @@ export default function Home() {
           className={`hidden lg:block absolute bottom-[15%] right-[8%] xl:right-[12%] backdrop-blur-xl p-8 rounded-[2.5rem] w-64 rotate-6 hover:rotate-0 hover:scale-110 transition-all duration-500 border ${isDark ? "bg-[#111111]/90 border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.9)] text-white" : "bg-stone-900/90 border-stone-800 shadow-[0_30px_80px_rgba(0,0,0,0.2)] text-white"}`}
         >
           <div className="flex justify-between items-center mb-5">
-            <p className={`text-xs uppercase tracking-widest font-bold transition-colors ${isDark ? "text-white/50" : "text-white/60"}`}>Secure OTP</p>
+            <p className={`text-xs uppercase tracking-widest font-bold transition-colors ${isDark ? "text-white/50" : "text-white/60"}`}>{tHome("hero.secureOtp")}</p>
             <ShieldCheck className="w-6 h-6 text-white" />
           </div>
           <p className="text-5xl font-black tracking-tight text-white">392-817</p>
-          <p className={`text-sm mt-2 transition-colors ${isDark ? "text-white/50" : "text-white/60"}`}>Reveal at counter</p>
+          <p className={`text-sm mt-2 transition-colors ${isDark ? "text-white/50" : "text-white/60"}`}>{tHome("hero.revealAtCounter")}</p>
         </div>
 
         {/* Floating Payment Chip */}
         <div className={`hidden lg:flex absolute top-[35%] right-[16%] xl:right-[20%] border px-6 py-4 rounded-full items-center gap-3 hover:scale-110 transition-all duration-400 ${isDark ? "bg-[#1A1A1A] border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.8)]" : "bg-white border-black/10 shadow-[0_15px_40px_rgba(0,0,0,0.1)]"}`}>
           <MousePointer2 className={`w-5 h-5 transition-colors ${isDark ? "text-white" : "text-stone-900"}`} />
-          <span className={`text-sm font-semibold transition-colors ${isDark ? "text-white/80" : "text-stone-800"}`}>Instant Payment</span>
+          <span className={`text-sm font-semibold transition-colors ${isDark ? "text-white/80" : "text-stone-800"}`}>{tHome("hero.instantPayment")}</span>
         </div>
 
         {/* Core Content */}
@@ -238,24 +243,24 @@ export default function Home() {
             )}
             {/* Hackathon Badge */}
             <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-full border text-xs font-black uppercase tracking-widest backdrop-blur-lg shadow-sm transition-colors duration-500 ${isDark ? "bg-white/5 border-white/10 text-white/70" : "bg-black/5 border-black/10 text-stone-600"}`}>
-              <Sparkles className="w-4 h-4" /> CVM Hackathon 2026 • PS: 227
+              <Sparkles className="w-4 h-4" /> {tHome("hero.badge")}
             </div>
           </div>
 
           <h1 className={`text-4xl lg:text-[10rem] xl:text-[11.5rem] leading-[0.85] font-black tracking-[-0.06em] transition-colors duration-500 lg:tracking-tight tracking-widest ${isDark ? "text-white" : "text-stone-900"}`}>
-            QUEUE-FREE
+            {tHome("hero.queueFree")}
             <br />
-            <span className={`lg:mt-0 mt-3 block ${isDark ? "text-white/40" : "text-black/20"}`}>PRINTING</span>
+            <span className={`lg:mt-0 mt-3 block ${isDark ? "text-white/40" : "text-black/20"}`}>{tHome("hero.printing")}</span>
           </h1>
 
           <p className={`mt-6 md:mt-8 lg:mt-8 lg:text-xl sm:text-2xl font-medium max-w-3xl mx-auto leading-relaxed transition-colors duration-500 ${isDark ? "text-white/60" : "text-stone-600"}`}>
-            Upload once. Compare prices. Pay instantly. Pick up securely. No noise. No chaos.
+            {tHome("hero.tagline")}
           </p>
 
           <div className="mt-10 lg:mt-10 flex flex-col sm:flex-row justify-center items-center gap-6">
             <Link href="https://github.com/tanmay-mevada/Print-Stack" target="_blank">
               <button className={`hidden w-auto lg:px-12 px-8 py-4 lg:py-5 font-black rounded-xl lg:rounded-2xl text-md lg:text-lg hover:scale-105 transition-all duration-300 lg:flex items-center justify-center gap-2 whitespace-nowrap ${isDark ? "bg-white text-black hover:shadow-[0_20px_60px_rgba(255,255,255,0.2)]" : "bg-stone-900 text-white hover:shadow-[0_20px_60px_rgba(0,0,0,0.2)]"}`}>
-                Explore<ArrowRight className="w-5 h-5" />
+                {t("common.explore")}<ArrowRight className="w-5 h-5" />
               </button>
             </Link>
 
@@ -265,19 +270,19 @@ export default function Home() {
                 <>
                   <Link href="/login">
                     <button className={`px-6 py-2.5 text-lg font-bold rounded-full transition-all duration-300 ${isDark ? "bg-white/10 text-white hover:bg-white/20" : "bg-black/5 text-stone-900 hover:bg-black/10"}`}>
-                      Log in
+                      {t("common.logIn")}
                     </button>
                   </Link>
                   <Link href="/signup">
                     <button className={`px-6 py-2.5 text-md font-bold rounded-full transition-all duration-300 ${isDark ? "bg-white text-black hover:bg-gray-200" : "bg-stone-900 text-white hover:bg-stone-800"}`}>
-                      Sign up
+                      {t("common.signUp")}
                     </button>
                   </Link>
                 </>
               ) : (
                 <Link href={portalLink}>
                   <button className={`px-8 py-3 text-md font-bold rounded-full transition-all duration-300 ${isDark ? "bg-white text-black hover:bg-gray-200" : "bg-stone-900 text-white hover:bg-stone-800"}`}>
-                    Go to Portal
+                    {t("common.goToPortal")}
                   </button>
                 </Link>
               )}
@@ -290,17 +295,17 @@ export default function Home() {
       <section id="how-it-works" className={`py-20 md:py-32 px-5 md:px-6 border-y relative z-10 transition-colors duration-500 ${isDark ? "bg-[#0A0A0A] border-white/10" : "bg-white border-black/10"}`}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14 md:mb-24 space-y-3 md:space-y-4">
-            <h2 className={`text-3xl sm:text-4xl md:text-6xl font-black tracking-tight transition-colors duration-500 ${isDark ? "text-white" : "text-stone-900"}`}>Digital Workflow</h2>
+            <h2 className={`text-3xl sm:text-4xl md:text-6xl font-black tracking-tight transition-colors duration-500 ${isDark ? "text-white" : "text-stone-900"}`}>{tHome("howItWorks.title")}</h2>
             <p className={`max-w-xl md:max-w-2xl mx-auto text-base sm:text-lg md:text-xl font-medium transition-colors duration-500 ${isDark ? "text-white/60" : "text-stone-600"}`}>
-              We solve manual printing delays. Upload, pay online, and skip the queue entirely.
+              {tHome("howItWorks.subtitle")}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {[
-              { step: "01", title: "Upload & Detect", desc: "Upload assignments or reports. Auto page detection instantly calculates your exact price.", icon: Upload },
-              { step: "02", title: "Compare & Pay", desc: "Compare nearby shop availability. Make a secure, cashless payment via Razorpay.", icon: CreditCard },
-              { step: "03", title: "Secure Pickup", desc: "Provide your OTP at the shop. Collect your printed documents without waiting in line.", icon: ShieldCheck },
+              { step: "01", title: tHome("howItWorks.step1.title"), desc: tHome("howItWorks.step1.desc"), icon: Upload },
+              { step: "02", title: tHome("howItWorks.step2.title"), desc: tHome("howItWorks.step2.desc"), icon: CreditCard },
+              { step: "03", title: tHome("howItWorks.step3.title"), desc: tHome("howItWorks.step3.desc"), icon: ShieldCheck },
             ].map((item, idx) => (
               <div key={idx} className="relative group">
                 <div className={`text-6xl md:text-8xl font-black absolute -top-6 md:-top-10 -left-4 md:-left-6 select-none z-20 transition-colors duration-500 ${isDark ? "text-white/5 group-hover:text-white/10" : "text-black/5 group-hover:text-black/10"}`}>
@@ -331,8 +336,8 @@ export default function Home() {
                   <Store className={`w-5 h-5 md:w-6 md:h-6 transition-colors ${isDark ? "text-white group-hover:text-black" : "text-stone-900 group-hover:text-white"}`} />
                 </div>
                 <div className="mt-6 md:mt-8">
-                  <h3 className={`text-2xl md:text-3xl font-black tracking-tight mb-2 transition-colors ${isDark ? "text-white" : "text-stone-900"}`}>Multi-Shop Ecosystem</h3>
-                  <p className={`text-sm md:text-base font-medium leading-relaxed max-w-lg transition-colors ${isDark ? "text-white/60" : "text-stone-600"}`}>Students can browse nearby print shops, check their real-time operational status, and compare pricing.</p>
+                  <h3 className={`text-2xl md:text-3xl font-black tracking-tight mb-2 transition-colors ${isDark ? "text-white" : "text-stone-900"}`}>{tHome("features.multiShop.title")}</h3>
+                  <p className={`text-sm md:text-base font-medium leading-relaxed max-w-lg transition-colors ${isDark ? "text-white/60" : "text-stone-600"}`}>{tHome("features.multiShop.desc")}</p>
                 </div>
               </div>
             </div>
@@ -344,8 +349,8 @@ export default function Home() {
                   <ShieldCheck className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 </div>
                 <div className="mt-6 md:mt-8">
-                  <h3 className="text-2xl md:text-3xl font-black tracking-tight mb-2 text-white">Secure Handover</h3>
-                  <p className={`text-sm font-medium leading-relaxed ${isDark ? "text-white/60" : "text-stone-300"}`}>OTP-based verification guarantees secure document handover.</p>
+                  <h3 className="text-2xl md:text-3xl font-black tracking-tight mb-2 text-white">{tHome("features.secureHandover.title")}</h3>
+                  <p className={`text-sm font-medium leading-relaxed ${isDark ? "text-white/60" : "text-stone-300"}`}>{tHome("features.secureHandover.desc")}</p>
                 </div>
               </div>
             </div>
@@ -354,11 +359,11 @@ export default function Home() {
               <div className="h-full flex flex-col justify-between min-h-[200px] md:min-h-[220px]">
                 <div>
                   <Layers className={`w-8 md:w-10 h-8 md:h-10 mb-4 ${isDark ? "text-black/80" : "text-white/80"}`} />
-                  <h3 className="text-2xl md:text-3xl font-black tracking-tight mb-1">Shop Analytics</h3>
-                  <p className="text-sm font-bold tracking-wide opacity-70">Real-time tracking</p>
+                  <h3 className="text-2xl md:text-3xl font-black tracking-tight mb-1">{tHome("features.analytics.title")}</h3>
+                  <p className="text-sm font-bold tracking-wide opacity-70">{tHome("features.analytics.subtitle")}</p>
                 </div>
                 <div className="mt-5 pt-5 border-t border-black/10">
-                  <p className="text-xs md:text-sm font-semibold leading-relaxed opacity-70">Daily revenue insights and digital workflow management.</p>
+                  <p className="text-xs md:text-sm font-semibold leading-relaxed opacity-70">{tHome("features.analytics.desc")}</p>
                 </div>
               </div>
             </div>
@@ -366,10 +371,10 @@ export default function Home() {
             <div className={`md:col-span-8 group rounded-2xl md:rounded-3xl p-6 md:p-8 border transition-all duration-500 cursor-pointer flex flex-col ${isDark ? "bg-[#111111] border-white/10 hover:bg-white" : "bg-white border-black/10 hover:bg-stone-900"}`}>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 h-full min-h-[200px] md:min-h-[220px]">
                 <div className="space-y-2 md:space-y-3 max-w-xl">
-                  <h3 className={`text-2xl md:text-3xl font-black tracking-tight transition-colors ${isDark ? "text-white group-hover:text-black" : "text-stone-900 group-hover:text-white"}`}>Bulk & Urgent Orders</h3>
-                  <p className={`text-sm md:text-base font-medium transition-colors ${isDark ? "text-white/60 group-hover:text-black/60" : "text-stone-600 group-hover:text-white/60"}`}>Manage peak loads efficiently for thesis and lab records.</p>
+                  <h3 className={`text-2xl md:text-3xl font-black tracking-tight transition-colors ${isDark ? "text-white group-hover:text-black" : "text-stone-900 group-hover:text-white"}`}>{tHome("features.bulkOrders.title")}</h3>
+                  <p className={`text-sm md:text-base font-medium transition-colors ${isDark ? "text-white/60 group-hover:text-black/60" : "text-stone-600 group-hover:text-white/60"}`}>{tHome("features.bulkOrders.desc")}</p>
                   <div className="md:hidden mt-3">
-                    <p className={`text-sm font-medium leading-relaxed ${isDark ? "text-white/60 group-hover:text-black/60" : "text-stone-600 group-hover:text-white/60"}`}>Manage high-volume academic printing with streamlined digital workflow and priority handling.</p>
+                    <p className={`text-sm font-medium leading-relaxed ${isDark ? "text-white/60 group-hover:text-black/60" : "text-stone-600 group-hover:text-white/60"}`}>{tHome("features.bulkOrders.desc")}</p>
                   </div>
                 </div>
                 <div className={`hidden md:flex w-16 h-16 border rounded-full items-center justify-center transition-all duration-500 shrink-0 ${isDark ? "bg-white/10 border-white/20 group-hover:bg-black" : "bg-black/5 border-black/10 group-hover:bg-white"}`}>
@@ -384,7 +389,7 @@ export default function Home() {
 
       <section id="tech-stack" className={`py-20 md:py-24 px-5 md:px-6 border-t transition-colors duration-500 ${isDark ? "bg-[#0A0A0A] border-white/10" : "bg-[#faf9f6] border-black/10"}`}>
         <div className="max-w-5xl mx-auto text-center">
-          <p className={`font-bold uppercase tracking-widest text-xs md:text-sm mb-10 md:mb-12 transition-colors ${isDark ? "text-white/40" : "text-stone-400"}`}>Powered By Modern Tech Stack</p>
+          <p className={`font-bold uppercase tracking-widest text-xs md:text-sm mb-10 md:mb-12 transition-colors ${isDark ? "text-white/40" : "text-stone-400"}`}>{tHome("techStack.title")}</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-10 gap-x-6 md:flex md:flex-wrap md:justify-center md:gap-x-16 md:gap-y-12 items-center transition-opacity duration-700">
             <div className="flex flex-col items-center justify-center text-center min-w-[110px]">
               <Code2 className={`w-7 h-7 md:w-8 md:h-8 ${isDark ? "text-white" : "text-stone-800"}`} />
@@ -423,24 +428,21 @@ export default function Home() {
               <span className={`font-black tracking-tight text-2xl ${isDark ? "text-white" : "text-stone-900"}`}>PrintStack</span>
             </div>
             <p className={`text-base font-medium leading-relaxed max-w-sm ${isDark ? "text-white/60" : "text-stone-600"}`}>
-              Developed by <strong className={isDark ? "text-white" : "text-stone-900"}>Team TurboC++</strong> for the CVM Hackathon 2026. A secure and scalable architecture designed to eliminate daily printing queues.
+              {tHome("footer.developedBy")} <strong className={isDark ? "text-white" : "text-stone-900"}>{tHome("footer.team")}</strong> {tHome("footer.hackathon")}
             </p>
           </div>
           <div>
-            <h4 className={`font-bold tracking-wide uppercase text-sm mb-6 ${isDark ? "text-white" : "text-stone-900"}`}>Team TurboC++</h4>
+            <h4 className={`font-bold tracking-wide uppercase text-sm mb-6 ${isDark ? "text-white" : "text-stone-900"}`}>{tHome("footer.teamTurbo")}</h4>
             <ul className={`space-y-3 text-sm font-medium ${isDark ? "text-white/60" : "text-stone-600"}`}>
-              <li>Aum Ghodasara (Leader)</li>
-              <li>Tanmay Mevada</li>
-              <li>Urvi Ladhani</li>
-              <li>Archie Patel</li>
+              {(tHome.raw("footer.members") as string[]).map((name, i) => <li key={i}>{name}</li>)}
             </ul>
           </div>
           <div>
-            <h4 className={`font-bold tracking-wide uppercase text-sm mb-6 ${isDark ? "text-white" : "text-stone-900"}`}>Advisory</h4>
+            <h4 className={`font-bold tracking-wide uppercase text-sm mb-6 ${isDark ? "text-white" : "text-stone-900"}`}>{tHome("footer.advisory")}</h4>
             <ul className={`space-y-3 text-sm font-medium ${isDark ? "text-white/60" : "text-stone-600"}`}>
-              <li>Mentor: Mosin Ibrahim Hasan</li>
-              <li>Birla Vishvakarma Mahavidyalaya</li>
-              <li>AI/ML Domain</li>
+              <li>{tHome("footer.mentor")}</li>
+              <li>{tHome("footer.college")}</li>
+              <li>{tHome("footer.domain")}</li>
             </ul>
           </div>
         </div>
@@ -452,8 +454,7 @@ export default function Home() {
           }`}
         >
           <p className="text-center md:text-left opacity-70">
-            © 2026 PrintStack • Built for Innovation in Engineering &
-            Technology.
+            {tHome("footer.copyright")}
           </p>
 
           <Link
@@ -466,8 +467,8 @@ export default function Home() {
             }`}
           >
             <Github className="w-4 h-4" />
-            <span className="hidden sm:inline">View Source on GitHub</span>
-            <span className="sm:hidden">GitHub Repo</span>
+            <span className="hidden sm:inline">{tHome("footer.viewSource")}</span>
+            <span className="sm:hidden">{tHome("footer.githubRepo")}</span>
           </Link>
         </div>
       </footer>

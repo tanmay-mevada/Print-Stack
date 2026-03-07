@@ -15,8 +15,12 @@ import {
   Moon,
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
+import { useTranslations } from "next-intl";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function LoginPage() {
+  const t = useTranslations("auth");
+  const tCommon = useTranslations();
   const router = useRouter();
   const { isDark, toggleTheme } = useTheme();
   const [error, setError] = useState<string | null>(null);
@@ -78,18 +82,21 @@ export default function LoginPage() {
             </span>
           </Link>
 
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className={`p-2 rounded-full flex items-center justify-center transition-all duration-300 ${isDark ? "bg-white/10 hover:bg-white/20 text-white" : "bg-black/5 hover:bg-black/10 text-stone-900"}`}
-            aria-label="Toggle Theme"
-          >
-            {isDark ? (
-              <Sun className="w-5 h-5" />
-            ) : (
-              <Moon className="w-5 h-5" />
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className={`p-2 rounded-full flex items-center justify-center transition-all duration-300 ${isDark ? "bg-white/10 hover:bg-white/20 text-white" : "bg-black/5 hover:bg-black/10 text-stone-900"}`}
+              aria-label="Toggle Theme"
+            >
+              {isDark ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
+            </button>
+          </div>
         </div>
 
         <div className="max-w-md w-full mx-auto mt-16 lg:mt-6">
@@ -97,12 +104,12 @@ export default function LoginPage() {
             <h2
               className={`lg:text-3xl text-2xl font-black tracking-tight mb-3 transition-colors ${isDark ? "text-white" : "text-stone-900"}`}
             >
-              Welcome back
+              {t("welcomeBack")}
             </h2>
             <p
               className={`font-medium transition-colors ${isDark ? "text-white/60" : "text-stone-500"}`}
             >
-              Enter your credentials to access your digital print queue.
+              {t("enterCredentials")}
             </p>
           </div>
 
@@ -125,7 +132,7 @@ export default function LoginPage() {
               <label
                 className={`block text-sm font-bold mb-2 uppercase tracking-wide transition-colors ${isDark ? "text-white/80" : "text-stone-700"}`}
               >
-                Email Address
+                {t("email")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -152,13 +159,13 @@ export default function LoginPage() {
                 <label
                   className={`block text-sm font-bold uppercase tracking-wide transition-colors ${isDark ? "text-white/80" : "text-stone-700"}`}
                 >
-                  Password
+                  {t("password")}
                 </label>
                 <Link
                   href="/forgot-password"
                   className={`text-sm font-bold transition-colors ${isDark ? "text-white/60 hover:text-white" : "text-stone-500 hover:text-stone-900"}`}
                 >
-                  Forgot password?
+                  {t("forgotPassword")}
                 </Link>
               </div>
               <div className="relative">
@@ -211,11 +218,11 @@ export default function LoginPage() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Signing in...
+                  {t("signingIn")}
                 </span>
               ) : (
                 <>
-                  Sign In <ArrowRight className="w-5 h-5" />
+                  {t("signIn")} <ArrowRight className="w-5 h-5" />
                 </>
               )}
             </button>
@@ -228,7 +235,7 @@ export default function LoginPage() {
             <span
               className={`px-4 text-xs font-bold uppercase tracking-widest transition-colors ${isDark ? "text-white/40" : "text-stone-400"}`}
             >
-              Or
+              {tCommon("common.or")}
             </span>
             <div
               className={`flex-1 border-t transition-colors ${isDark ? "border-white/10" : "border-stone-200"}`}
@@ -267,7 +274,7 @@ export default function LoginPage() {
                   fill="#EA4335"
                 />
               </svg>
-              Continue with Google
+              {t("continueWithGoogle")}
             </button>
           </form>
 
@@ -275,12 +282,12 @@ export default function LoginPage() {
             <p
               className={`font-medium transition-colors ${isDark ? "text-white/60" : "text-stone-500"}`}
             >
-              Dont have an account?{" "}
+              {t("dontHaveAccount")}{" "}
               <Link
                 href="/signup"
                 className={`font-bold hover:underline transition-all ${isDark ? "text-white hover:text-gray-300" : "text-stone-900 hover:text-stone-700"}`}
               >
-                Sign up
+                {tCommon("common.signUp")}
               </Link>
             </p>
           </div>

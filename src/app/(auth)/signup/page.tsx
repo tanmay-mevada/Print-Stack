@@ -6,8 +6,12 @@ import { useRouter } from "next/navigation";
 import { signInWithGoogleAction, signupAction } from "../actions";
 import { Printer, Mail, Lock, ArrowRight, User, Sun, Moon, Zap } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
+import { useTranslations } from "next-intl";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function SignupPage() {
+  const t = useTranslations("auth");
+  const tCommon = useTranslations();
   const router = useRouter();
   const { isDark, toggleTheme } = useTheme();
   const [error, setError] = useState<string | null>(null);
@@ -59,7 +63,9 @@ export default function SignupPage() {
             </span>
           </Link>
 
-          <button
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <button
             type="button"
             onClick={toggleTheme}
             className={`p-2 rounded-full flex items-center justify-center transition-all duration-300 ${isDark ? "bg-white/10 hover:bg-white/20 text-white" : "bg-black/5 hover:bg-black/10 text-stone-900"}`}
@@ -71,6 +77,7 @@ export default function SignupPage() {
               <Moon className="w-4 h-4 sm:w-5 sm:h-5" />
             )}
           </button>
+          </div>
         </div>
 
         {/* Form Container (Compacted to remove scrolling) */}
@@ -79,13 +86,12 @@ export default function SignupPage() {
             <h2
               className={`lg:text-3xl text-2xl font-black tracking-tight mb-2 transition-colors ${isDark ? "text-white" : "text-stone-900"}`}
             >
-              Create an account
+              {t("createAccount")}
             </h2>
             <p
               className={`text-sm sm:text-base font-medium transition-colors ${isDark ? "text-white/60" : "text-stone-500"}`}
             >
-              Join the paperless revolution and skip the printing queues
-              forever.
+              {t("createAccountDesc")}
             </p>
           </div>
 
@@ -111,7 +117,7 @@ export default function SignupPage() {
               <label
                 className={`block text-xs font-bold mb-1.5 uppercase tracking-wide transition-colors ${isDark ? "text-white/80" : "text-stone-700"}`}
               >
-                Full Name
+                {t("fullName")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -122,7 +128,7 @@ export default function SignupPage() {
                 <input
                   name="name"
                   type="text"
-                  placeholder="Jane Doe"
+                  placeholder={t("placeholders.fullName")}
                   required
                   className={`block w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm rounded-xl transition-all shadow-sm outline-none focus:ring-2 ${
                     isDark
@@ -137,7 +143,7 @@ export default function SignupPage() {
               <label
                 className={`block text-xs font-bold mb-1.5 uppercase tracking-wide transition-colors ${isDark ? "text-white/80" : "text-stone-700"}`}
               >
-                Email Address
+                {t("email")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -148,7 +154,7 @@ export default function SignupPage() {
                 <input
                   name="email"
                   type="email"
-                  placeholder="student@university.edu.in"
+                  placeholder={t("placeholders.emailPlaceholder")}
                   required
                   className={`block w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm rounded-xl transition-all shadow-sm outline-none focus:ring-2 ${
                     isDark
@@ -163,7 +169,7 @@ export default function SignupPage() {
               <label
                 className={`block text-xs font-bold mb-1.5 uppercase tracking-wide transition-colors ${isDark ? "text-white/80" : "text-stone-700"}`}
               >
-                Password
+                {t("password")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -174,7 +180,7 @@ export default function SignupPage() {
                 <input
                   name="password"
                   type="password"
-                  placeholder="Create a strong password"
+                  placeholder={t("placeholders.createPassword")}
                   required
                   minLength={6}
                   className={`block w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm rounded-xl transition-all shadow-sm outline-none focus:ring-2 ${
@@ -216,11 +222,11 @@ export default function SignupPage() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Creating account...
+                  {t("creatingAccount")}
                 </span>
               ) : (
                 <>
-                  Sign Up <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                  {tCommon("common.signUp")} <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 </>
               )}
             </button>
@@ -233,7 +239,7 @@ export default function SignupPage() {
             <span
               className={`px-4 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-colors ${isDark ? "text-white/40" : "text-stone-400"}`}
             >
-              Or
+              {tCommon("common.or")}
             </span>
             <div
               className={`flex-1 border-t transition-colors ${isDark ? "border-white/10" : "border-stone-200"}`}
@@ -272,7 +278,7 @@ export default function SignupPage() {
                   fill="#EA4335"
                 />
               </svg>
-              Sign up with Google
+              {t("signUpWithGoogle")}
             </button>
           </form>
 
@@ -280,12 +286,12 @@ export default function SignupPage() {
             <p
               className={`text-sm sm:text-base font-medium transition-colors ${isDark ? "text-white/60" : "text-stone-500"}`}
             >
-              Already have an account?{" "}
+              {t("alreadyHaveAccount")}{" "}
               <Link
                 href="/login"
                 className={`font-bold hover:underline transition-all ${isDark ? "text-white hover:text-gray-300" : "text-stone-900 hover:text-stone-700"}`}
               >
-                Sign in
+                {t("signIn")}
               </Link>
             </p>
           </div>

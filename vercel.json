@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/refunds/check",
+      "schedule": "*/15 * * * *"
+    }
+  ]
+}

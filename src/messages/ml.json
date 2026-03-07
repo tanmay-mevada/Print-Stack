@@ -1,0 +1,159 @@
+{
+  "common": {
+    "logIn": "ലോഗിൻ",
+    "signUp": "സൈൻ അപ്പ്",
+    "signOut": "ലോഗ് ഔട്ട്",
+    "goToPortal": "പോർട്ടലിലേക്ക് പോകുക",
+    "printStack": "PrintStack",
+    "explore": "പര്യവേക്ഷണം ചെയ്യുക",
+    "or": "അഥവാ",
+    "loading": "ലോഡ് ചെയ്യുന്നു...",
+    "toggleTheme": "തീം മാറ്റുക",
+    "backToDashboard": "Back to Dashboard",
+    "backToLogin": "Back to Login"
+  },
+  "home": {
+    "nav": {
+      "howItWorks": "എങ്ങനെ പ്രവർത്തിക്കും",
+      "features": "സവിശേഷതകൾ",
+      "techStack": "ടെക് സ്റ്റാക്ക്"
+    },
+    "hero": {
+      "queueFree": "ക്യൂ ഇല്ലാത്ത",
+      "printing": "പ്രിന്റിംഗ്",
+      "tagline": "ഒരു തവണ അപ്‌ലോഡ് ചെയ്യുക। വില താരതമ്യം ചെയ്യുക। തൽക്ഷണം പണമടയ്ക്കുക। സുരക്ഷിതമായി എടുക്കുക। ഒരു കലിപ്പുമില്ല।",
+      "welcomeBack": "തിരികെ സ്വാഗതം",
+      "badge": "CVM ഹാക്കാഥൺ 2026 • PS: 227",
+      "projectReady": "തയ്യാറ്",
+      "secureOtp": "സുരക്ഷിത OTP",
+      "revealAtCounter": "കൌണ്ടറിൽ വെളിപ്പെടുത്തുക",
+      "instantPayment": "തൽക്ഷണ പേയ്‌മെന്റ്"
+    },
+    "howItWorks": {
+      "title": "ഡിജിറ്റൽ വർക്ക്ഫ്ലോ",
+      "subtitle": "മാന്യുവൽ പ്രിന്റിംഗ് തടസ്സം ഞങ്ങൾ പരിഹരിക്കുന്നു। അപ്‌ലോഡ് ചെയ്യുക, ഓൺലൈനിൽ പണമടയ്ക്കുക, ക്യൂ പൂർണ്ണമായും ഒഴിവാക്കുക।",
+      "step1": { "title": "അപ്‌ലോഡ് ചെയ്യുകയും കണ്ടെത്തുകയും", "desc": "അസൈൻമെന്റുകളോ റിപ്പോർട്ടുകളോ അപ്‌ലോഡ് ചെയ്യുക। ഓട്ടോ പേജ് ഡിറ്റക്ഷൻ നിങ്ങളുടെ കൃത്യമായ വില തൽക്ഷണം കണക്കാക്കുന്നു।" },
+      "step2": { "title": "താരതമ്യം ചെയ്യുകയും പണമടയ്ക്കുകയും", "desc": "സമീപത്തെ കട ലഭ്യത താരതമ്യം ചെയ്യുക। Razorpay വഴി സുരക്ഷിതമായ, കാഷ്‌ലെസ് പേയ്‌മെന്റ് നടത്തുക।" },
+      "step3": { "title": "സുരക്ഷിത പിക്കപ്പ്", "desc": "കടയിൽ നിങ്ങളുടെ OTP നൽകുക। ക്യൂവിൽ കാത്തിരിക്കാതെ അച്ചടിച്ച പ്രമാണങ്ങൾ എടുക്കുക।" }
+    },
+    "features": {
+      "multiShop": { "title": "മൾട്ടി-ഷോപ്പ് ഇക്കോസിസ്റ്റം", "desc": "വിദ്യാർത്ഥികൾക്ക് സമീപത്തെ പ്രിന്റ് ഷോപ്പുകൾ ബ്രൗസ് ചെയ്യാനും റിയൽ-ടൈം സ്ഥിതി പരിശോധിക്കാനും വില താരതമ്യം ചെയ്യാനും കഴിയും।" },
+      "secureHandover": { "title": "സുരക്ഷിത ഹാൻഡ്‌ഓവർ", "desc": "OTP അടിസ്ഥാന തിരിച്ചറിയൽ സുരക്ഷിത ഡോക്യുമെന്റ് ഹാൻഡ്‌ഓവർ ഉറപ്പാക്കുന്നു।" },
+      "analytics": { "title": "ഷോപ്പ് അനലിറ്റിക്സ്", "subtitle": "റിയൽ-ടൈം ട്രാക്കിംഗ്", "desc": "ദৈനംദിന വരുമാന അവലോകനവും ഡിജിറ്റൽ വർക്ക്ഫ്ലോ മാനേജ്മെന്റും।" },
+      "bulkOrders": { "title": "ബൾക്കും അത്യാവശ്യ ഓർഡറുകളും", "desc": "തീസിസും ലാബ് റെക്കോർഡുകളും ലക്ഷ്യം വച്ച് പീക്ക് ലോഡ് കാര്യക്ഷമമായി നിയന്ത്രിക്കുക।" }
+    },
+    "techStack": { "title": "ആധുനിക ടെക് സ്റ്റാക്ക് പവർ ചെയ്യുന്നത്" },
+    "footer": {
+      "developedBy": "വികസിപ്പിച്ചത്",
+      "team": "ടീം ടർബോസി++",
+      "hackathon": "CVM ഹാക്കാഥൺ 2026-നായി। ദൈനംദിന പ്രിന്റിംഗ് ക്യൂകൾ ഇല്ലാതാക്കാൻ സുരക്ഷിതവും സ്കെയ്‌ലുചെയ്യാവുന്നതുമായ ആർക്കിടെക്ചർ।",
+      "teamTurbo": "ടീം ടർബോസി++",
+      "advisory": "ആഭിമുഖ്യം",
+      "members": ["ഓം ഘോഡാസര (ലീഡർ)", "തൻമയ് മേവാഡ", "ഊർവി ലാഢാണി", "ആർച്ചി പട്ടേൽ"],
+      "mentor": "മെന്റർ: മോസിൻ ഇബ്രാഹിം ഹസൻ",
+      "college": "ബിർള വിശ്വകർമ മഹാവിദ്യാലയം",
+      "domain": "AI/ML ഡൊമെയ്ൻ",
+      "copyright": "© 2026 PrintStack • എഞ്ചിനീയറിംഗ് & ടെക്നോളജിയിലെ നവീകരണത്തിനായി നിർമ്മിച്ചത്।",
+      "viewSource": "GitHub-ൽ സ്രോതസ്സ് കാണുക",
+      "githubRepo": "GitHub റെപ്പോ"
+    }
+  },
+  "auth": {
+    "welcomeBack": "തിരികെ സ്വാഗതം",
+    "enterCredentials": "നിങ്ങളുടെ ഡിജിറ്റൽ പ്രിന്റ് ക്യൂ ആക്സസ് ചെയ്യാൻ ക്രെഡൻഷ്യലുകൾ നൽകുക।",
+    "createAccount": "നിങ്ങളുടെ അക്കൗണ്ട് സൃഷ്ടിക്കുക",
+    "createAccountDesc": "പേപ്പർലെസ് വിപ്ലവത്തിൽ ചേരുകയും പ്രിന്റിംഗ് ക്യൂകൾ എക്കാലവും ഒഴിവാക്കുകയും ചെയ്യുക।",
+    "email": "ഇമെയിൽ വിലാസം",
+    "password": "പാസ്‌വേഡ്",
+    "forgotPassword": "പാസ്‌വേഡ് മറന്നോ?",
+    "fullName": "പൂർണ്ണ പേര്",
+    "confirmPassword": "പാസ്‌വേഡ് ഉറപ്പിക്കുക",
+    "signIn": "സൈൻ ഇൻ",
+    "signUp": "Sign Up",
+    "signingIn": "സൈൻ ഇൻ ചെയ്യുന്നു...",
+    "creatingAccount": "Creating account...",
+    "continueWithGoogle": "Google ഉപയോഗിച്ച് തുടരുക",
+    "signUpWithGoogle": "Sign up with Google",
+    "returnToSignUp": "Return to Sign Up",
+    "dontHaveAccount": "അക്കൗണ്ട് ഇല്ലേ?",
+    "alreadyHaveAccount": "ഇതിനകം അക്കൗണ്ട് ഉണ്ടോ?",
+    "placeholders": {
+      "email": "student@cvmu.edu.in",
+      "emailPlaceholder": "student@university.edu.in",
+      "password": "••••••••",
+      "fullName": "ജെയ്ൻ ഡോ",
+      "createPassword": "ശക്തമായ പാസ്‌വേഡ് സൃഷ്ടിക്കുക",
+      "studentEmail": "student@college.edu"
+    },
+    "forgotPasswordPage": {
+      "title": "Reset Password",
+      "subtitle": "Enter your email to receive a secure recovery link.",
+      "checkInbox": "Check your inbox",
+      "linkSent": "Link sent successfully",
+      "sending": "Sending...",
+      "sendResetLink": "Send Reset Link"
+    },
+    "resetPasswordPage": {
+      "title": "New Password",
+      "subtitle": "Secure your account with a new password.",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "updating": "Updating...",
+      "updatePassword": "Update Password",
+      "passwordsNoMatch": "Passwords do not match."
+    },
+    "verifyOtp": {
+      "missingInfo": "Missing Information",
+      "missingInfoDesc": "We couldn't find an email address to verify. Please return to the signup page and try again.",
+      "checkEmail": "Check your email",
+      "sentCodeTo": "We sent a 6-digit security code to",
+      "secureOtpCode": "Secure OTP Code",
+      "verifying": "Verifying...",
+      "verifyAndContinue": "Verify & Continue",
+      "checkSpam": "Didn't receive the email? Check your spam folder.",
+      "bankGradeTitle": "Bank-Grade Identity Check",
+      "bankGradeDesc": "We verify every account to ensure a secure environment. Your digital documents, payment information, and print queues remain completely private.",
+      "loadingGateway": "Loading Secure Gateway..."
+    },
+    "verifyReset": {
+      "invalidLink": "Invalid Link",
+      "invalidLinkDesc": "This link is missing a secure token or has already been used.",
+      "requestNewLink": "Request New Link",
+      "secureVerification": "Secure Verification",
+      "confirmReset": "To protect your account from automated scanners, please confirm you want to reset your password.",
+      "verifying": "Verifying...",
+      "confirmAndReset": "Confirm & Reset Password",
+      "loadingPortal": "Loading Secure Portal..."
+    }
+  },
+  "shop": {
+    "dashboard": "Shop Dashboard",
+    "editShopDetails": "ഷോപ്പ് വിശദാംശങ്ങൾ എഡിറ്റ് ചെയ്യുക",
+    "editPrices": "വിലകൾ എഡിറ്റ് ചെയ്യുക",
+    "logOut": "ലോഗ് ഔട്ട്",
+    "pricing": {
+      "editPricing": "Edit Pricing",
+      "subtitle": "Update your per-page printing configuration.",
+      "updatingPricing": "Updating pricing...",
+      "pricingUpdated": "Pricing updated successfully!"
+    }
+  },
+  "student": {
+    "orderHistory": "Order History",
+    "orderHistoryDesc": "All your past printing requests.",
+    "noOrdersYet": "No Orders Yet",
+    "noOrdersDesc": "You have not printed anything yet. Once you do, it will appear here.",
+    "profile": {
+      "editProfile": "Edit Profile",
+      "savingProfile": "Saving profile...",
+      "uploadImage": "Please upload an image file.",
+      "imageSize": "Image must be less than 5MB."
+    }
+  },
+  "order": {
+    "status": { "completed": "പൂർത്തിയായി", "ready": "തയ്യാറ്", "printing": "പ്രിന്റ് ചെയ്യുന്നു", "pending": "തീർപ്പുകൽപ്പിക്കാത്തത്" }
+  },
+  "loading": {
+    "preparingStack": "Preparing Stack"
+  }
+}

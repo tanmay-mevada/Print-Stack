@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/context/ThemeContext"; // <-- Import the provider
+import { ThemeProvider } from "@/context/ThemeContext";
+import { LocaleProvider } from "@/context/LocaleContext";
+import IntlLocaleProvider from "@/components/IntlLocaleProvider";
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import AuthErrorCatcher from '@/components/AuthErrorCatcher'
@@ -37,9 +39,12 @@ export default function RootLayout({
         <SpeedInsights/>
         <Toaster position="top-center" />
         <AuthErrorCatcher />
-        {/* Wrap children in the ThemeProvider */}
         <ThemeProvider>
-          {children}
+          <LocaleProvider>
+            <IntlLocaleProvider>
+              {children}
+            </IntlLocaleProvider>
+          </LocaleProvider>
         </ThemeProvider>
       </body>
     </html>

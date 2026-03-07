@@ -1,0 +1,162 @@
+{
+  "common": {
+    "logIn": "Log in",
+    "signUp": "Sign up",
+    "signOut": "Log out",
+    "goToPortal": "Go to Portal",
+    "printStack": "PrintStack",
+    "explore": "Explore",
+    "or": "Or",
+    "loading": "Loading...",
+    "toggleTheme": "Toggle Theme",
+    "backToDashboard": "Back to Dashboard",
+    "backToLogin": "Back to Login"
+  },
+  "home": {
+    "nav": {
+      "howItWorks": "How it works",
+      "features": "Features",
+      "techStack": "Tech Stack"
+    },
+    "hero": {
+      "queueFree": "QUEUE-FREE",
+      "printing": "PRINTING",
+      "tagline": "Upload once. Compare prices. Pay instantly. Pick up securely. No noise. No chaos.",
+      "welcomeBack": "Welcome back",
+      "badge": "CVM Hackathon 2026 • PS: 227",
+      "projectReady": "Ready",
+      "secureOtp": "Secure OTP",
+      "revealAtCounter": "Reveal at counter",
+      "instantPayment": "Instant Payment"
+    },
+    "howItWorks": {
+      "title": "Digital Workflow",
+      "subtitle": "We solve manual printing delays. Upload, pay online, and skip the queue entirely.",
+      "step1": { "title": "Upload & Detect", "desc": "Upload assignments or reports. Auto page detection instantly calculates your exact price." },
+      "step2": { "title": "Compare & Pay", "desc": "Compare nearby shop availability. Make a secure, cashless payment via Razorpay." },
+      "step3": { "title": "Secure Pickup", "desc": "Provide your OTP at the shop. Collect your printed documents without waiting in line." }
+    },
+    "features": {
+      "multiShop": { "title": "Multi-Shop Ecosystem", "desc": "Students can browse nearby print shops, check their real-time operational status, and compare pricing." },
+      "secureHandover": { "title": "Secure Handover", "desc": "OTP-based verification guarantees secure document handover." },
+      "analytics": { "title": "Shop Analytics", "subtitle": "Real-time tracking", "desc": "Daily revenue insights and digital workflow management." },
+      "bulkOrders": { "title": "Bulk & Urgent Orders", "desc": "Manage peak loads efficiently for thesis and lab records." }
+    },
+    "techStack": { "title": "Powered By Modern Tech Stack" },
+    "footer": {
+      "developedBy": "Developed by",
+      "team": "Team TurboC++",
+      "hackathon": "for the CVM Hackathon 2026. A secure and scalable architecture designed to eliminate daily printing queues.",
+      "teamTurbo": "Team TurboC++",
+      "advisory": "Advisory",
+      "members": ["Aum Ghodasara (Leader)", "Tanmay Mevada", "Urvi Ladhani", "Archie Patel"],
+      "mentor": "Mentor: Mosin Ibrahim Hasan",
+      "college": "Birla Vishvakarma Mahavidyalaya",
+      "domain": "AI/ML Domain",
+      "copyright": "© 2026 PrintStack • Built for Innovation in Engineering & Technology.",
+      "viewSource": "View Source on GitHub",
+      "githubRepo": "GitHub Repo"
+    }
+  },
+  "auth": {
+    "welcomeBack": "Welcome back",
+    "enterCredentials": "Enter your credentials to access your digital print queue.",
+    "createAccount": "Create an account",
+    "createAccountDesc": "Join the paperless revolution and skip the printing queues forever.",
+    "email": "Email Address",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "fullName": "Full Name",
+    "confirmPassword": "Confirm Password",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signingIn": "Signing in...",
+    "creatingAccount": "Creating account...",
+    "continueWithGoogle": "Continue with Google",
+    "signUpWithGoogle": "Sign up with Google",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?",
+    "returnToSignUp": "Return to Sign Up",
+    "placeholders": {
+      "email": "student@cvmu.edu.in",
+      "emailPlaceholder": "student@university.edu.in",
+      "password": "••••••••",
+      "fullName": "Jane Doe",
+      "createPassword": "Create a strong password",
+      "studentEmail": "student@college.edu"
+    },
+    "forgotPasswordPage": {
+      "title": "Reset Password",
+      "subtitle": "Enter your email to receive a secure recovery link.",
+      "checkInbox": "Check your inbox",
+      "linkSent": "Link sent successfully",
+      "sending": "Sending...",
+      "sendResetLink": "Send Reset Link"
+    },
+    "resetPasswordPage": {
+      "title": "New Password",
+      "subtitle": "Secure your account with a new password.",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "updating": "Updating...",
+      "updatePassword": "Update Password",
+      "passwordsNoMatch": "Passwords do not match."
+    },
+    "verifyOtp": {
+      "missingInfo": "Missing Information",
+      "missingInfoDesc": "We couldn't find an email address to verify. Please return to the signup page and try again.",
+      "checkEmail": "Check your email",
+      "sentCodeTo": "We sent a 6-digit security code to",
+      "secureOtpCode": "Secure OTP Code",
+      "verifying": "Verifying...",
+      "verifyAndContinue": "Verify & Continue",
+      "checkSpam": "Didn't receive the email? Check your spam folder.",
+      "bankGradeTitle": "Bank-Grade Identity Check",
+      "bankGradeDesc": "We verify every account to ensure a secure environment. Your digital documents, payment information, and print queues remain completely private.",
+      "loadingGateway": "Loading Secure Gateway..."
+    },
+    "verifyReset": {
+      "invalidLink": "Invalid Link",
+      "invalidLinkDesc": "This link is missing a secure token or has already been used.",
+      "requestNewLink": "Request New Link",
+      "secureVerification": "Secure Verification",
+      "confirmReset": "To protect your account from automated scanners, please confirm you want to reset your password.",
+      "verifying": "Verifying...",
+      "confirmAndReset": "Confirm & Reset Password",
+      "loadingPortal": "Loading Secure Portal..."
+    }
+  },
+  "shop": {
+    "dashboard": "Shop Dashboard",
+    "editShopDetails": "Edit Shop Details",
+    "editPrices": "Edit Prices",
+    "logOut": "Log Out",
+    "pricing": {
+      "editPricing": "Edit Pricing",
+      "subtitle": "Update your per-page printing configuration.",
+      "updatingPricing": "Updating pricing...",
+      "pricingUpdated": "Pricing updated successfully!"
+    },
+    "profile": {
+      "editProfile": "Edit Shop Profile"
+    }
+  },
+  "student": {
+    "orderHistory": "Order History",
+    "orderHistoryDesc": "All your past printing requests.",
+    "noOrdersYet": "No Orders Yet",
+    "noOrdersDesc": "You have not printed anything yet. Once you do, it will appear here.",
+    "profile": {
+      "editProfile": "Edit Profile",
+      "savingProfile": "Saving profile...",
+      "uploadImage": "Please upload an image file.",
+      "imageSize": "Image must be less than 5MB."
+    }
+  },
+  "order": {
+    "status": { "completed": "Completed", "ready": "Ready", "printing": "Printing", "pending": "Pending" }
+  },
+  "loading": {
+    "preparingStack": "Preparing Stack"
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "common": {
+    "logIn": "లాగిన్",
+    "signUp": "సైన్ అప్",
+    "signOut": "లాగ్ అవుట్",
+    "goToPortal": "పోర్టల్ కి వెళ్ళండి",
+    "printStack": "PrintStack",
+    "explore": "అన్వేషించండి",
+    "or": "లేదా",
+    "loading": "లోడ్ అవుతోంది...",
+    "toggleTheme": "థీమ్ మార్చండి",
+    "backToDashboard": "Back to Dashboard",
+    "backToLogin": "Back to Login"
+  },
+  "home": {
+    "nav": {
+      "howItWorks": "ఎలా పని చేస్తుంది",
+      "features": "ఫీచర్లు",
+      "techStack": "టెక్ స్టాక్"
+    },
+    "hero": {
+      "queueFree": "క్యూ రహిత",
+      "printing": "ప్రింటింగ్",
+      "tagline": "ఒక్కసారి అప్‌లోడ్ చేయండి। ధరలను పోల్చండి। వెంటనే చెల్లించండి। సురక్షితంగా స్వీకరించండి। శబ్దం లేదు। గందరగోళం లేదు।",
+      "welcomeBack": "మళ్ళీ స్వాగతం",
+      "badge": "CVM హాకాథాన్ 2026 • PS: 227",
+      "projectReady": "సిద్ధం",
+      "secureOtp": "సురక్షిత OTP",
+      "revealAtCounter": "కౌంటర్ వద్ద చూపించండి",
+      "instantPayment": "తక్షణ చెల్లింపు"
+    },
+    "howItWorks": {
+      "title": "డిజిటల్ వర్క్‌ఫ్లో",
+      "subtitle": "మాన్యువల్ ప్రింటింగ్ ఆలస్యాన్ని మేము పరిష్కరిస్తాము। అప్‌లోడ్ చేయండి, ఆన్‌లైన్ చెల్లించండి, క్యూ మొత్తం దాటండి।",
+      "step1": { "title": "అప్‌లోడ్ మరియు డిటెక్ట్", "desc": "అసైన్‌మెంట్లు లేదా రిపోర్ట్లను అప్‌లోడ్ చేయండి। ఆటో పేజ్ డిటెక్షన్ వెంటనే మీ ఖచ్చితమైన ధరను లెక్కిస్తుంది।" },
+      "step2": { "title": "పోల్చండి మరియు చెల్లించండి", "desc": "దగ్గరి షాప్ లభ్యతను పోల్చండి। Razorpay ద్వారా సురక్షితమైన, క్యాష్‌లెస్ చెల్లింపు చేయండి।" },
+      "step3": { "title": "సురక్షిత పికప్", "desc": "షాప్ వద్ద మీ OTP ఇవ్వండి। వరుసలో వేచి ఉండకుండా మీ ప్రింట్ చేసిన పత్రాలను స్వీకరించండి।" }
+    },
+    "features": {
+      "multiShop": { "title": "మల్టీ-షాప్ ఎకోసిస్టమ్", "desc": "విద్యార్థులు దగ్గరి ప్రింట్ షాప్లను బ్రౌజ్ చేయవచ్చు, వాటి రియల్-టైమ్ స్థితిని తనిఖీ చేయవచ్చు మరియు ధరలను పోల్చవచ్చు।" },
+      "secureHandover": { "title": "సురక్షిత హ్యాండ్‌ఓవర్", "desc": "OTP ఆధారిత ధృవీకరణ సురక్షితమైన డాక్యుమెంట్ హ్యాండ్‌ఓవర్ను హామీ ఇస్తుంది।" },
+      "analytics": { "title": "షాప్ అనలిటిక్స్", "subtitle": "రియల్-టైమ్ ట్రాకింగ్", "desc": "దైనందిన రెవిన్యూ అంతర్దృష్టులు మరియు డిజిటల్ వర్క్‌ఫ్లో నిర్వహణ।" },
+      "bulkOrders": { "title": "బల్క్ మరియు అత్యవసర ఆర్డర్లు", "desc": "థీసిస్ మరియు ల్యాబ్ రికార్డుల కోసం పీక్ లోడ్ను సమర్థవంతంగా నిర్వహించండి।" }
+    },
+    "techStack": { "title": "మాడర్న్ టెక్ స్టాక్ ద్వారా పవర్ చేయబడింది" },
+    "footer": {
+      "developedBy": "అభివృద్ధి చేసినది",
+      "team": "టీమ్ టర్బోసి++",
+      "hackathon": "CVM హాకాథాన్ 2026 కోసం। రోజువారీ ప్రింటింగ్ క్యూలను తొలగించడానికి సురక్షితమైన మరియు స్కేలబుల్ ఆర్కిటెక్చర్।",
+      "teamTurbo": "టీమ్ టర్బోసి++",
+      "advisory": "సలహాదారు",
+      "members": ["ఓం ఘోడాసరా (లీడర్)", "తన్మయ్ మేవాడా", "ఊర్వి లాఢాని", "ఆర్చి పటేల్"],
+      "mentor": "మెంటర్: మోసిన్ ఇబ్రాహిం హసన్",
+      "college": "బిర్లా విశ్వకర్మ మహావిద్యాలయం",
+      "domain": "AI/ML డొమైన్",
+      "copyright": "© 2026 PrintStack • ఇంజనీరింగ్ మరియు టెక్నాలజీలో నవకల్పన కోసం నిర్మించబడింది।",
+      "viewSource": "GitHubలో సోర్స్ చూడండి",
+      "githubRepo": "GitHub రెపో"
+    }
+  },
+  "auth": {
+    "welcomeBack": "మళ్ళీ స్వాగతం",
+    "enterCredentials": "మీ డిజిటల్ ప్రింట్ క్యూను యాక్సెస్ చేయడానికి మీ రుజువులను నమోదు చేయండి।",
+    "createAccount": "మీ ఖాతాను సృష్టించండి",
+    "createAccountDesc": "పేపర్‌లెస్ విప్లవంలో చేరండి మరియు ప్రింటింగ్ క్యూలను ఎప్పటికీ దాటండి।",
+    "email": "ఇమెయిల్ చిరునామా",
+    "password": "పాస్‌వర్డ్",
+    "forgotPassword": "పాస్‌వర్డ్ మర్చిపోయారా?",
+    "fullName": "పూర్తి పేరు",
+    "confirmPassword": "పాస్‌వర్డ్ నిర్ధారించండి",
+    "signIn": "సైన్ ఇన్",
+    "signUp": "Sign Up",
+    "signingIn": "సైన్ ఇన్ అవుతోంది...",
+    "creatingAccount": "Creating account...",
+    "continueWithGoogle": "Googleతో కొనసాగించండి",
+    "signUpWithGoogle": "Sign up with Google",
+    "returnToSignUp": "Return to Sign Up",
+    "dontHaveAccount": "ఖాతా లేదా?",
+    "alreadyHaveAccount": "ఇప్పటికే ఖాతా ఉందా?",
+    "placeholders": {
+      "email": "student@cvmu.edu.in",
+      "emailPlaceholder": "student@university.edu.in",
+      "password": "••••••••",
+      "fullName": "జేన్ డో",
+      "createPassword": "బలమైన పాస్‌వర్డ్ సృష్టించండి",
+      "studentEmail": "student@college.edu"
+    },
+    "forgotPasswordPage": {
+      "title": "Reset Password",
+      "subtitle": "Enter your email to receive a secure recovery link.",
+      "checkInbox": "Check your inbox",
+      "linkSent": "Link sent successfully",
+      "sending": "Sending...",
+      "sendResetLink": "Send Reset Link"
+    },
+    "resetPasswordPage": {
+      "title": "New Password",
+      "subtitle": "Secure your account with a new password.",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "updating": "Updating...",
+      "updatePassword": "Update Password",
+      "passwordsNoMatch": "Passwords do not match."
+    },
+    "verifyOtp": {
+      "missingInfo": "Missing Information",
+      "missingInfoDesc": "We couldn't find an email address to verify. Please return to the signup page and try again.",
+      "checkEmail": "Check your email",
+      "sentCodeTo": "We sent a 6-digit security code to",
+      "secureOtpCode": "Secure OTP Code",
+      "verifying": "Verifying...",
+      "verifyAndContinue": "Verify & Continue",
+      "checkSpam": "Didn't receive the email? Check your spam folder.",
+      "bankGradeTitle": "Bank-Grade Identity Check",
+      "bankGradeDesc": "We verify every account to ensure a secure environment. Your digital documents, payment information, and print queues remain completely private.",
+      "loadingGateway": "Loading Secure Gateway..."
+    },
+    "verifyReset": {
+      "invalidLink": "Invalid Link",
+      "invalidLinkDesc": "This link is missing a secure token or has already been used.",
+      "requestNewLink": "Request New Link",
+      "secureVerification": "Secure Verification",
+      "confirmReset": "To protect your account from automated scanners, please confirm you want to reset your password.",
+      "verifying": "Verifying...",
+      "confirmAndReset": "Confirm & Reset Password",
+      "loadingPortal": "Loading Secure Portal..."
+    }
+  },
+  "shop": {
+    "dashboard": "Shop Dashboard",
+    "editShopDetails": "షాప్ వివరాలను సవరించండి",
+    "editPrices": "ధరలను సవరించండి",
+    "logOut": "లాగ్ అవుట్",
+    "pricing": {
+      "editPricing": "Edit Pricing",
+      "subtitle": "Update your per-page printing configuration.",
+      "updatingPricing": "Updating pricing...",
+      "pricingUpdated": "Pricing updated successfully!"
+    }
+  },
+  "student": {
+    "orderHistory": "Order History",
+    "orderHistoryDesc": "All your past printing requests.",
+    "noOrdersYet": "No Orders Yet",
+    "noOrdersDesc": "You have not printed anything yet. Once you do, it will appear here.",
+    "profile": {
+      "editProfile": "Edit Profile",
+      "savingProfile": "Saving profile...",
+      "uploadImage": "Please upload an image file.",
+      "imageSize": "Image must be less than 5MB."
+    }
+  },
+  "order": {
+    "status": { "completed": "పూర్తయింది", "ready": "సిద్ధం", "printing": "ప్రింట్ అవుతోంది", "pending": "పెండింగ్" }
+  },
+  "loading": {
+    "preparingStack": "Preparing Stack"
+  }
+}

@@ -3,12 +3,22 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { ArrowLeft, Clock, FileText, Printer, CheckCircle2, Sun, Moon } from 'lucide-react'
+import { ArrowLeft, Clock, FileText, Printer, CheckCircle2, Sun, Moon, AlertCircle } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
+import { createComplaintAction } from '../complaint-actions'
+import toast from 'react-hot-toast'
 
 export default function OrderHistoryPage() {
+    const t = useTranslations('student')
+    const tCommon = useTranslations()
     const [isDark, setIsDark] = useState(true)
     const [orders, setOrders] = useState<any[]>([])
+    const [complaintsByOrder, setComplaintsByOrder] = useState<Record<string, boolean>>({})
     const [loading, setLoading] = useState(true)
+    const [complaintOrderId, setComplaintOrderId] = useState<string | null>(null)
+    const [complaintText, setComplaintText] = useState('')
+    const [submitting, setSubmitting] = useState(false)
 
     useEffect(() => {
         async function fetchUserOrders() {
@@ -16,13 +26,21 @@ export default function OrderHistoryPage() {
             const { data: { user } } = await supabase.auth.getUser()
 
             if (user) {
-                const { data } = await supabase
+                const { data: orderData } = await supabase
                     .from('orders')
-                    .select('*, shops(name)') 
+                    .select('*, shops(name)')
                     .eq('student_id', user.id)
                     .order('created_at', { ascending: false })
 
-                if (data) setOrders(data)
+                if (orderData) setOrders(orderData)
+
+                const { data: complaintData } = await supabase
+                    .from('complaints')
+                    .select('order_id')
+                    .eq('student_id', user.id)
+                const map: Record<string, boolean> = {}
+                complaintData?.forEach(c => { map[c.order_id] = true })
+                setComplaintsByOrder(map)
             }
             setLoading(false)
         }
@@ -46,7 +64,7 @@ export default function OrderHistoryPage() {
     if (loading) {
         return (
             <div className={`min-h-screen flex items-center justify-center font-bold tracking-widest uppercase transition-colors duration-500 ${isDark ? 'bg-[#0A0A0A] text-white/50' : 'bg-[#faf9f6] text-stone-400'}`}>
-                Loading Order History...
+                {tCommon('common.loading')}
             </div>
         )
     }
@@ -62,11 +80,16 @@ export default function OrderHistoryPage() {
                             <ArrowLeft className="w-5 h-5" />
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-black tracking-tight">Order History</h1>
-                            <p className={`text-sm font-medium ${isDark ? 'text-white/50' : 'text-stone-500'}`}>All your past printing requests.</p>
+                            <h1 className="text-2xl font-black tracking-tight">{t('orderHistory')}</h1>
+                            <p className={`text-sm font-medium ${isDark ? 'text-white/50' : 'text-stone-500'}`}>{t('orderHistoryDesc')}</p>
                         </div>
                     </div>
 
+                    <div className="flex items-center gap-2">
+                        <Link href="/student/complaints" className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold uppercase tracking-wider ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-stone-200 hover:bg-stone-300 text-stone-900'}`}>
+                            <AlertCircle className="w-4 h-4" /> Complaints & Refunds
+                        </Link>
+                        <LanguageSwitcher />
                     <button 
                         type="button"
                         onClick={() => setIsDark(!isDark)}
@@ -74,6 +97,7 @@ export default function OrderHistoryPage() {
                     >
                         {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                     </button>
+                    </div>
                 </div>
 
                 {/* ORDERS LIST */}
@@ -83,9 +107,9 @@ export default function OrderHistoryPage() {
                             <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${isDark ? 'bg-white/5 text-white/50' : 'bg-stone-100 text-stone-400'}`}>
                                 <Printer className="w-10 h-10" />
                             </div>
-                            <h2 className="text-2xl font-black uppercase tracking-widest mb-4">No Orders Yet</h2>
+                            <h2 className="text-2xl font-black uppercase tracking-widest mb-4">{t('noOrdersYet')}</h2>
                             <p className={`font-medium ${isDark ? 'text-white/60' : 'text-stone-500'}`}>
-                                You have not printed anything yet. Once you do, it will appear here.
+                                {t('noOrdersDesc')}
                             </p>
                         </div>
                     ) : (
@@ -154,6 +178,20 @@ export default function OrderHistoryPage() {
                                             <CheckCircle2 className="w-4 h-4" /> Paid & Picked Up
                                         </div>
                                     )}
+                                    {['PAID', 'PRINTING', 'READY'].includes(order.status) && !complaintsByOrder[order.id] && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setComplaintOrderId(order.id)}
+                                            className={`mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider ${isDark ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-400' : 'bg-amber-100 hover:bg-amber-200 text-amber-700'}`}
+                                        >
+                                            <AlertCircle className="w-4 h-4" /> Raise Complaint
+                                        </button>
+                                    )}
+                                    {complaintsByOrder[order.id] && (
+                                        <Link href="/student/complaints" className={`mt-4 flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider ${isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-stone-200 hover:bg-stone-300 text-stone-700'}`}>
+                                            <AlertCircle className="w-4 h-4" /> View Complaint
+                                        </Link>
+                                    )}
                                 </div>
 
                             </div>
@@ -162,6 +200,52 @@ export default function OrderHistoryPage() {
                 </div>
 
             </div>
+
+            {/* Raise Complaint Modal */}
+            {complaintOrderId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => !submitting && setComplaintOrderId(null)}>
+                    <div className={`w-full max-w-md rounded-2xl p-6 shadow-2xl ${isDark ? 'bg-[#111] border border-white/10' : 'bg-white border border-stone-200'}`} onClick={e => e.stopPropagation()}>
+                        <h3 className="text-xl font-black mb-4">Raise Complaint</h3>
+                        <p className={`text-sm mb-4 ${isDark ? 'text-white/60' : 'text-stone-500'}`}>Describe the issue. The shop has 2 hours to respond before an automatic refund.</p>
+                        <textarea
+                            value={complaintText}
+                            onChange={e => setComplaintText(e.target.value)}
+                            placeholder="e.g. Order not ready, wrong printing, etc."
+                            rows={4}
+                            className={`w-full rounded-xl px-4 py-3 text-sm border resize-none ${isDark ? 'bg-white/5 border-white/20 text-white placeholder:text-white/40' : 'bg-stone-50 border-stone-200 text-stone-900 placeholder:text-stone-400'}`}
+                        />
+                        <div className="flex gap-3 mt-4">
+                            <button
+                                type="button"
+                                onClick={() => !submitting && setComplaintOrderId(null)}
+                                className={`flex-1 py-3 rounded-xl text-sm font-bold uppercase tracking-wider ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-stone-200 hover:bg-stone-300'}`}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={submitting || !complaintText.trim()}
+                                onClick={async () => {
+                                    setSubmitting(true)
+                                    const res = await createComplaintAction(complaintOrderId, complaintText)
+                                    setSubmitting(false)
+                                    if (res.success) {
+                                        setComplaintOrderId(null)
+                                        setComplaintText('')
+                                        setComplaintsByOrder(prev => ({ ...prev, [complaintOrderId]: true }))
+                                        toast.success('Complaint raised. Shop will be notified.')
+                                    } else {
+                                        toast.error(res.error || 'Failed to raise complaint')
+                                    }
+                                }}
+                                className="flex-1 py-3 rounded-xl text-sm font-bold uppercase tracking-wider bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white"
+                            >
+                                {submitting ? 'Submitting...' : 'Submit'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
