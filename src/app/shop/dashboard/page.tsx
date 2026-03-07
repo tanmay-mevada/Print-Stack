@@ -391,7 +391,8 @@ export default function ShopDashboardPage() {
           <div className="space-y-8 sm:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
             {/* ================= STATUS TOGGLE ================= */}
-            <div className={`relative overflow-visible border rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-12 flex flex-col lg:flex-row justify-between items-center gap-6 sm:gap-8 backdrop-blur-xl transition-all duration-500 ${isDark ? 'bg-[#111111]/60 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/5' : 'bg-white border-stone-200/60 shadow-xl shadow-stone-200/40'}`}>
+          {/* ================= STATUS TOGGLE ================= */}
+<div className={`relative z-50 overflow-visible border rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-12 flex flex-col lg:flex-row justify-between items-center gap-6 sm:gap-8 backdrop-blur-xl transition-all duration-500 ${isDark ? 'bg-[#111111]/60 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/5' : 'bg-white border-stone-200/60 shadow-xl shadow-stone-200/40'}`}>
               {shop.is_active && !isPaused && isDark && <div className="absolute inset-0 bg-green-500/5 blur-3xl rounded-[2.5rem] pointer-events-none" />}
               {isPaused && isDark && <div className="absolute inset-0 bg-yellow-500/5 blur-3xl rounded-[2.5rem] pointer-events-none" />}
 
@@ -439,9 +440,9 @@ export default function ShopDashboardPage() {
               </div>
             </div>
 
-            {/* ================= ULTRA-COMPACT SEARCH & FILTER BAR ================= */}
-            <div className={`p-2 rounded-2xl sm:rounded-full border flex flex-col sm:flex-row gap-2 items-center backdrop-blur-xl shadow-sm transition-colors z-20 relative ${isDark ? 'bg-[#111111]/80 border-white/10 ring-1 ring-white/5' : 'bg-white border-stone-200'
-              }`}>
+          {/* ================= ULTRA-COMPACT SEARCH & FILTER BAR ================= */}
+<div className={`p-2 rounded-2xl sm:rounded-full border flex flex-col sm:flex-row gap-2 items-center backdrop-blur-xl shadow-sm transition-colors relative ${isDark ? 'bg-[#111111]/80 border-white/10 ring-1 ring-white/5' : 'bg-white border-stone-200'
+  }`}>
 
               <div className="relative flex-1 w-full pl-3">
                 <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-white/40' : 'text-stone-400'}`} />
