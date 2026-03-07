@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { updateOrderStatusAction, verifyPickupOTPAction, getDownloadUrlAction } from '@/app/shop/actions'
-import { ArrowLeft, FileText, Download, CheckCircle2, Clock, User, FileDigit, RefreshCw, KeyRound, X, AlertCircle, Layers, BookOpen, Paperclip } from 'lucide-react'
+import { ArrowLeft, FileText, Download, CheckCircle2, Clock, User, FileDigit, RefreshCw, KeyRound, X, AlertCircle, Layers, BookOpen, Paperclip, Activity, Flame } from 'lucide-react'
 import toast, { Toaster } from 'react-hot-toast'
 import LoadingScreen from '@/components/LoadingScreen'
 import { useTheme } from '@/context/ThemeContext'
@@ -19,7 +19,6 @@ export default function OrderDetailsPage() {
     const [loading, setLoading] = useState(true)
     const [updating, setUpdating] = useState(false)
     
-    // OTP State
     const [otpInput, setOtpInput] = useState('')
     const [verifying, setVerifying] = useState(false)
     const [showOtpModal, setShowOtpModal] = useState(false) 
@@ -112,8 +111,12 @@ export default function OrderDetailsPage() {
     const isMixedSided = order.sided === 'MIXED';
     const hasAdvancedConfig = isMixedPrint || isMixedSided;
 
-    // Check if this order needs special handling (Large format or Binding)
-    const requiresSpecialHandling = order.paper_size !== 'A4' || order.binding_type || order.wants_stapling || order.wants_cover;
+    // Check for Finishing Touches
+    const hasFinishingTouches = 
+        (order.binding_type && order.binding_type !== 'NONE') || 
+        (order.cover_type && order.cover_type !== 'NONE') || 
+        order.wants_stapling || 
+        order.wants_lamination;
 
     return (
         <div className={`min-h-screen font-sans transition-colors duration-700 pb-20 ${
@@ -124,18 +127,11 @@ export default function OrderDetailsPage() {
                 position="top-center"
                 toastOptions={{
                     style: {
-                        background: isDark ? '#111111' : '#ffffff',
-                        color: isDark ? '#fff' : '#1c1917',
+                        background: isDark ? '#111111' : '#ffffff', color: isDark ? '#fff' : '#1c1917',
                         border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e7e5e4',
-                        borderRadius: '16px',
-                        padding: '16px 24px',
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                        letterSpacing: '0.05em',
+                        borderRadius: '16px', padding: '16px 24px', fontSize: '14px', fontWeight: 'bold',
                         boxShadow: isDark ? '0 20px 40px rgba(0,0,0,0.5)' : '0 20px 40px rgba(0,0,0,0.1)',
-                    },
-                    success: { iconTheme: { primary: '#22c55e', secondary: isDark ? '#050505' : '#ffffff' } },
-                    error: { iconTheme: { primary: '#ef4444', secondary: isDark ? '#050505' : '#ffffff' } },
+                    }
                 }}
             />
 
@@ -144,12 +140,35 @@ export default function OrderDetailsPage() {
                 {/* Header & Back Button */}
                 <button 
                     onClick={() => router.push('/shop/dashboard')} 
-                    className={`flex items-center gap-2 text-sm font-bold uppercase tracking-widest mb-10 transition-colors ${
+                    className={`flex items-center gap-2 text-sm font-bold uppercase tracking-widest mb-8 transition-colors ${
                         isDark ? 'text-white/50 hover:text-white' : 'text-stone-500 hover:text-stone-900'
                     }`}
                 >
                     <ArrowLeft className="w-4 h-4" /> Back to Dashboard
                 </button>
+
+                {/* 🔥 MASSIVE PRIORITY ALERT BANNER 🔥 */}
+                {order.is_priority && (
+                    <div className={`mb-10 p-6 sm:p-8 rounded-[2.5rem] border-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-2xl animate-in slide-in-from-top-4 duration-500 ${
+                        isDark 
+                        ? 'bg-orange-500/10 border-orange-500/50 shadow-[0_0_40px_rgba(249,115,22,0.15)] ring-1 ring-orange-500/20' 
+                        : 'bg-orange-50 border-orange-400 shadow-orange-500/20'
+                    }`}>
+                        <div className="flex items-center gap-5">
+                            <div className={`p-4 rounded-full animate-pulse shrink-0 ${isDark ? 'bg-orange-500/20 text-orange-500' : 'bg-orange-200 text-orange-600'}`}>
+                                <Flame className="w-8 h-8" />
+                            </div>
+                            <div>
+                                <h2 className={`text-2xl sm:text-3xl font-black tracking-tight uppercase ${isDark ? 'text-orange-500' : 'text-orange-700'}`}>
+                                    Priority Order
+                                </h2>
+                                <p className={`text-sm font-bold mt-1 ${isDark ? 'text-orange-500/70' : 'text-orange-600/80'}`}>
+                                    This student paid a 1.5x surge charge to jump the queue. Please process immediately.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
                     <div>
@@ -176,21 +195,25 @@ export default function OrderDetailsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     
                     {/* Left Column: Order Info */}
-                    <div className="md:col-span-2 space-y-8">
+                    <div className="md:col-span-2 space-y-6">
                         
                         {/* MAIN DOCUMENT CARD */}
                         <div className={`border p-8 sm:p-10 rounded-[2.5rem] ring-1 backdrop-blur-xl transition-colors duration-500 ${
-                            isDark ? 'bg-[#111111]/80 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-white/5' : 'bg-white border-stone-200 shadow-xl shadow-stone-200/50 ring-stone-100'
+                            order.is_priority 
+                                ? (isDark ? 'bg-orange-950/20 border-orange-500/30 shadow-[0_10px_40px_-15px_rgba(249,115,22,0.3)] ring-orange-500/20' : 'bg-orange-50/50 border-orange-300 shadow-xl shadow-orange-200/50 ring-orange-200')
+                                : (isDark ? 'bg-[#111111]/80 border-white/10 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.5)] ring-white/5' : 'bg-white border-stone-200 shadow-xl shadow-stone-200/50 ring-stone-100')
                         }`}>
-                            <h2 className={`text-xs font-bold uppercase tracking-widest mb-8 flex items-center gap-2 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>
+                            <h2 className={`text-xs font-bold uppercase tracking-widest mb-8 flex items-center gap-2 ${order.is_priority ? (isDark ? 'text-orange-400' : 'text-orange-600') : (isDark ? 'text-white/40' : 'text-stone-400')}`}>
                                 <FileDigit className="w-4 h-4" /> Document Overview
                             </h2>
                             
-                            <div className={`flex items-start gap-6 mb-10 pb-10 border-b ${isDark ? 'border-white/5' : 'border-stone-100'}`}>
+                            <div className={`flex items-start gap-6 mb-10 pb-10 border-b ${order.is_priority ? (isDark ? 'border-orange-500/20' : 'border-orange-200') : (isDark ? 'border-white/5' : 'border-stone-100')}`}>
                                 <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 border shadow-lg ${
-                                    isDark ? 'bg-gradient-to-br from-white/20 to-white/5 border-white/10' : 'bg-gradient-to-br from-stone-100 to-white border-stone-200'
+                                    order.is_priority 
+                                        ? (isDark ? 'bg-gradient-to-br from-orange-500/20 to-orange-500/5 border-orange-500/30 text-orange-500' : 'bg-gradient-to-br from-orange-100 to-white border-orange-300 text-orange-600')
+                                        : (isDark ? 'bg-gradient-to-br from-white/20 to-white/5 border-white/10 text-white' : 'bg-gradient-to-br from-stone-100 to-white border-stone-200 text-stone-900')
                                 }`}>
-                                    <FileText className={`w-8 h-8 drop-shadow-md ${isDark ? 'text-white' : 'text-stone-900'}`} />
+                                    <FileText className="w-8 h-8 drop-shadow-md" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="font-black text-2xl truncate mb-2">{fileName}</p>
@@ -201,35 +224,69 @@ export default function OrderDetailsPage() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-8 gap-x-4 mb-2">
+                            {/* UPDATED 5-COLUMN GRID (Added Paper Size) */}
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-y-8 gap-x-4 mb-8">
+                                <div>
+                                    <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>Paper Size</p>
+                                    <p className="font-black text-xl text-yellow-500">{order.paper_size || 'A4'}</p>
+                                </div>
                                 <div>
                                     <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>Color Mode</p>
                                     <p className={`font-black text-xl ${isMixedPrint ? (isDark ? 'text-yellow-500' : 'text-yellow-600') : ''}`}>
-                                        {isMixedPrint ? 'Mixed' : order.print_type === 'COLOR' ? 'Full Color' : 'B & W'}
+                                        {isMixedPrint ? 'Mixed' : order.print_type === 'COLOR' ? 'Color' : 'B & W'}
                                     </p>
                                 </div>
                                 <div>
                                     <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>Layout</p>
                                     <p className={`font-black text-xl ${isMixedSided ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`}>
-                                        {isMixedSided ? 'Mixed' : order.sided === 'DOUBLE' ? 'Double Sided' : 'Single Sided'}
+                                        {isMixedSided ? 'Mixed' : order.sided === 'DOUBLE' ? 'Double' : 'Single'}
                                     </p>
                                 </div>
                                 <div>
                                     <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>Pages</p>
-                                    <p className="font-black text-xl">{order.total_pages} Pages</p>
+                                    <p className="font-black text-xl">{order.total_pages}</p>
                                 </div>
                                 <div>
                                     <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>Copies</p>
-                                    <p className="font-black text-xl">{order.copies} Copies</p>
+                                    <p className="font-black text-xl">{order.copies}</p>
                                 </div>
                             </div>
 
+                            {/* FINISHING TOUCHES UI */}
+                            {hasFinishingTouches && (
+                                <div className={`mt-8 p-6 rounded-2xl border ${isDark ? 'bg-[#1a1a1a] border-white/10' : 'bg-stone-50 border-stone-200'}`}>
+                                    <h3 className={`text-[10px] font-bold uppercase tracking-widest mb-4 flex items-center gap-2 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                                        <Layers className="w-3.5 h-3.5" /> Required Finishing Touches
+                                    </h3>
+                                    <div className="flex flex-wrap gap-3">
+                                        {order.binding_type === 'SPIRAL' && (
+                                            <span className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border flex items-center gap-2 ${isDark ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300' : 'bg-indigo-50 border-indigo-200 text-indigo-700'}`}><BookOpen className="w-4 h-4"/> Spiral Binding</span>
+                                        )}
+                                        {order.binding_type === 'HARD' && (
+                                            <span className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border flex items-center gap-2 ${isDark ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300' : 'bg-indigo-50 border-indigo-200 text-indigo-700'}`}><BookOpen className="w-4 h-4"/> Hard Binding</span>
+                                        )}
+                                        {order.cover_type === 'PAPER' && (
+                                            <span className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border flex items-center gap-2 ${isDark ? 'bg-orange-500/10 border-orange-500/30 text-orange-300' : 'bg-orange-50 border-orange-200 text-orange-700'}`}><FileText className="w-4 h-4"/> Paper Folder</span>
+                                        )}
+                                        {order.cover_type === 'PLASTIC' && (
+                                            <span className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border flex items-center gap-2 ${isDark ? 'bg-blue-500/10 border-blue-500/30 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-700'}`}><Layers className="w-4 h-4"/> Plastic Cover</span>
+                                        )}
+                                        {order.wants_stapling && (
+                                            <span className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border flex items-center gap-2 ${isDark ? 'bg-zinc-800 border-zinc-700 text-zinc-300' : 'bg-white border-stone-300 text-stone-700 shadow-sm'}`}><Paperclip className="w-4 h-4"/> Stapled</span>
+                                        )}
+                                        {order.wants_lamination && (
+                                            <span className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border flex items-center gap-2 ${isDark ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300' : 'bg-cyan-50 border-cyan-200 text-cyan-700'}`}><Layers className="w-4 h-4"/> Laminated</span>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* ADVANCED PRINT INSTRUCTIONS ALERT BOX */}
                             {hasAdvancedConfig && (
-                                <div className={`mt-8 p-6 rounded-2xl border ${isDark ? 'bg-[#1a1a1a] border-white/10' : 'bg-stone-50 border-stone-200'}`}>
+                                <div className={`mt-6 p-6 rounded-2xl border ${isDark ? 'bg-[#1a1a1a] border-white/10' : 'bg-stone-50 border-stone-200'}`}>
                                     <h3 className="font-black tracking-widest uppercase text-xs flex items-center gap-2 mb-4">
                                         <AlertCircle className={`w-4 h-4 ${isDark ? 'text-yellow-500' : 'text-yellow-600'}`} /> 
-                                        Custom Print Instructions
+                                        Custom Mixed Instructions
                                     </h3>
                                     <div className="space-y-3">
                                         {isMixedPrint && order.color_pages && (
@@ -252,51 +309,6 @@ export default function OrderDetailsPage() {
                             )}
                         </div>
 
-                        {/* NEW: PHYSICAL REQUIREMENTS (Paper Size & Finishing) */}
-                        {requiresSpecialHandling && (
-                            <div className={`border p-8 rounded-[2.5rem] shadow-xl ring-1 backdrop-blur-xl transition-colors duration-500 ${
-                                isDark ? 'bg-indigo-950/20 border-indigo-500/20 ring-indigo-500/10' : 'bg-indigo-50/50 border-indigo-200 ring-indigo-100 shadow-indigo-100/50'
-                            }`}>
-                                <h2 className={`text-xs font-black uppercase tracking-widest mb-6 flex items-center gap-2 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
-                                    <Layers className="w-4 h-4" /> Physical Requirements
-                                </h2>
-                                
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {order.paper_size !== 'A4' && (
-                                        <div className={`p-4 rounded-xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-white border-stone-200 shadow-sm'}`}>
-                                            <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${isDark ? 'text-white/50' : 'text-stone-500'}`}>Paper Size</p>
-                                            <p className="font-black text-2xl text-yellow-500">{order.paper_size}</p>
-                                        </div>
-                                    )}
-
-                                    {order.binding_type && (
-                                        <div className={`p-4 rounded-xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-white border-stone-200 shadow-sm'}`}>
-                                            <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${isDark ? 'text-white/50' : 'text-stone-500'}`}>Binding</p>
-                                            <p className="font-black text-xl flex items-center gap-2">
-                                                <BookOpen className="w-5 h-5 opacity-50" />
-                                                {order.binding_type === 'SPIRAL' ? 'Spiral Bind' : 'Hard Bind'}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {(order.wants_stapling || order.wants_cover) && (
-                                    <div className="flex gap-3 mt-4">
-                                        {order.wants_stapling && (
-                                            <span className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest border flex items-center gap-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-stone-200 text-stone-700'}`}>
-                                                <Paperclip className="w-3.5 h-3.5" /> Staple Document
-                                            </span>
-                                        )}
-                                        {order.wants_cover && (
-                                            <span className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest border flex items-center gap-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-stone-200 text-stone-700'}`}>
-                                                <Layers className="w-3.5 h-3.5" /> Add Clear Cover
-                                            </span>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
                         <div className={`border p-8 sm:p-10 rounded-[2.5rem] shadow-xl ring-1 backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-6 transition-colors duration-500 ${
                             isDark ? 'bg-[#111111]/80 border-white/10 ring-white/5' : 'bg-white border-stone-200 ring-stone-100 shadow-stone-200/50'
                         }`}>
@@ -307,9 +319,13 @@ export default function OrderDetailsPage() {
                                 <p className="font-black text-2xl">{order.profiles?.name || 'Anonymous Student'}</p>
                             </div>
                             <div className={`sm:text-right p-5 rounded-2xl border ${
-                                isDark ? 'bg-white/5 border-white/10' : 'bg-stone-50 border-stone-200'
+                                order.is_priority 
+                                ? (isDark ? 'bg-orange-500/10 border-orange-500/30' : 'bg-orange-50 border-orange-200')
+                                : (isDark ? 'bg-white/5 border-white/10' : 'bg-stone-50 border-stone-200')
                             }`}>
-                                <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>Total Amount</p>
+                                <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center sm:justify-end gap-1 ${isDark ? 'text-white/40' : 'text-stone-400'}`}>
+                                    Total Amount {order.is_priority && <span className="text-orange-500 font-black">(INCLUDES SURGE)</span>}
+                                </p>
                                 <p className="font-black text-4xl">₹{order.total_price}</p>
                             </div>
                         </div>
@@ -317,7 +333,6 @@ export default function OrderDetailsPage() {
 
                     {/* Right Column: Actions */}
                     <div className="space-y-6">
-                        
                         <div className={`border p-8 rounded-[2.5rem] shadow-xl ring-1 backdrop-blur-xl transition-colors duration-500 ${
                             isDark ? 'bg-gradient-to-b from-[#1a1a1e] to-[#111111] border-white/10 ring-white/5' : 'bg-white border-stone-200 ring-stone-100 shadow-stone-200/50'
                         }`}>
@@ -390,13 +405,10 @@ export default function OrderDetailsPage() {
                                         3. Completed 
                                     </button>
                                 )}
-
                             </div>
                         </div>
-
                     </div>
                 </div>
-
             </div>
 
             {/* ================= OTP VERIFICATION MODAL ================= */}

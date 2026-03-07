@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { FileText, ChevronRight } from 'lucide-react'
+import { FileText, ChevronRight, Activity } from 'lucide-react'
 
 type OrderRowProps = {
   order: any;
@@ -23,10 +23,11 @@ export default function OrderRow({ order, isDark }: OrderRowProps) {
   return (
     <tr 
       onClick={() => router.push(`/shop/orders/${order.id}`)}
+      // 🔥 DYNAMIC ROW HIGHLIGHT: If priority is true, the whole row glows orange 🔥
       className={`cursor-pointer transition-all duration-300 group ${
-        isDark 
-        ? 'hover:bg-white/5 border-white/10' 
-        : 'hover:bg-stone-50/80 border-stone-200'
+        order.is_priority 
+          ? (isDark ? 'bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/30' : 'bg-orange-50 hover:bg-orange-100 border-orange-200')
+          : (isDark ? 'hover:bg-white/5 border-white/10' : 'hover:bg-stone-50/80 border-stone-200')
       }`}
     >
       
@@ -37,17 +38,26 @@ export default function OrderRow({ order, isDark }: OrderRowProps) {
         </span>
       </td>
 
-      {/* 2. Student Name */}
+      {/* 2. Student Name + Priority Badge */}
       <td className="p-6 border-r border-inherit">
-        <span className="font-bold text-sm truncate max-w-[150px] block">
-          {order.profiles?.name || 'Student'}
-        </span>
+        <div className="flex flex-col gap-1">
+          <span className="font-bold text-sm truncate max-w-[150px] block">
+            {order.profiles?.name || 'Student'}
+          </span>
+          {/* 🔥 PRIORITY LABEL 🔥 */}
+          {order.is_priority && (
+            <span className="text-[9px] font-black uppercase tracking-widest text-orange-500 flex items-center gap-1 animate-pulse">
+                <Activity className="w-3 h-3" /> Priority
+            </span>
+          )}
+        </div>
       </td>
 
       {/* 3. Document Name */}
       <td className="p-6 border-r border-inherit">
         <div className="flex items-center gap-2">
-          <FileText className={`w-4 h-4 shrink-0 ${isDark ? 'text-white/40' : 'text-stone-400'}`} />
+          {/* Change file icon color if priority */}
+          <FileText className={`w-4 h-4 shrink-0 ${order.is_priority ? 'text-orange-500' : (isDark ? 'text-white/40' : 'text-stone-400')}`} />
           <span className="font-bold text-sm truncate max-w-[150px] sm:max-w-[200px] block">
             {fileName}
           </span>
@@ -80,7 +90,7 @@ export default function OrderRow({ order, isDark }: OrderRowProps) {
               {order.status}
           </span>
           <ChevronRight className={`w-5 h-5 transition-transform group-hover:translate-x-1 ${
-              isDark ? 'text-white/30 group-hover:text-white' : 'text-stone-300 group-hover:text-stone-900'
+              order.is_priority ? 'text-orange-500' : (isDark ? 'text-white/30 group-hover:text-white' : 'text-stone-300 group-hover:text-stone-900')
           }`} />
         </div>
       </td>

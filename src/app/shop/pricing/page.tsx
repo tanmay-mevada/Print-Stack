@@ -20,7 +20,10 @@ export default function ShopPricingPage() {
     spiral_binding_price: null,
     hard_binding_price: null,
     stapling_price: null,
-    transparent_cover_price: null
+    transparent_cover_price: null,
+    // NEW FIELDS ADDED HERE:
+    paper_folder_price: null,
+    lamination_price: null
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -52,7 +55,9 @@ export default function ShopPricingPage() {
     // Convert empty strings to null for optional fields before passing to action
     const optionalFields = [
       'a3_price', 'a3_stock', 'a2_price', 'a2_stock', 'a1_price', 'a1_stock', 'a0_price', 'a0_stock',
-      'spiral_binding_price', 'hard_binding_price', 'stapling_price', 'transparent_cover_price'
+      'spiral_binding_price', 'hard_binding_price', 'stapling_price', 'transparent_cover_price',
+      // NEW FIELDS ADDED HERE:
+      'paper_folder_price', 'lamination_price'
     ];
 
     optionalFields.forEach(field => {
@@ -164,6 +169,7 @@ export default function ShopPricingPage() {
           </div>
 
           {/* CATEGORY 3: BINDING & FINISHING */}
+          {/* CATEGORY 3: BINDING & FINISHING */}
           <div className={`pt-8 border-t ${isDark ? 'border-white/10' : 'border-stone-200'}`}>
             <h2 className={`text-sm font-black uppercase tracking-widest mb-2 flex items-center gap-2 ${isDark ? 'text-white/80' : 'text-stone-600'}`}>
               <BookOpen className="w-4 h-4" /> 3. Finishing & Binding
@@ -174,7 +180,9 @@ export default function ShopPricingPage() {
               <PriceInput label="Spiral Binding" value={pricing?.spiral_binding_price} name="spiral_binding_price" />
               <PriceInput label="Hard Binding" value={pricing?.hard_binding_price} name="hard_binding_price" />
               <PriceInput label="Stapling (Per Doc)" value={pricing?.stapling_price} name="stapling_price" />
-              <PriceInput label="Transparent Covers" value={pricing?.transparent_cover_price} name="transparent_cover_price" />
+              {/* WE UPDATED THIS GRID TO HAVE BOTH PRICE FIELDS SEPARATELY */}
+              <PriceInput label="Transparent Cover (Plastic)" value={pricing?.transparent_cover_price} name="transparent_cover_price" />
+              <PriceInput label="Paper File / Folder" value={pricing?.paper_folder_price} name="paper_folder_price" />
             </div>
           </div>
 
