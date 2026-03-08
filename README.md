@@ -20,7 +20,11 @@
 
 ## About
 
-PrintStack eliminates the friction between students and print shops. Students upload PDFs, configure print settings, select a nearby shop on an interactive map, and pay instantly. Shopkeepers receive a live order queue and hand off documents securely via OTP verification — no queues, no miscommunication, no lost jobs.
+PrintStack is a digital marketplace that connects students with local print shops to streamline the entire printing process — from upload to collection. Students configure their print job, get an instant quote, pay online, and collect their documents securely. Shopkeepers get a real-time dashboard to manage orders, pricing, and daily revenue without any manual overhead.
+
+### Why It Was Built
+
+Traditional document printing is broken in several ways. Manual systems create long queues and unpredictable wait times. Pricing is opaque until you're already at the counter. Transactions are almost entirely cash-based, leaving no digital record for either party. And shop owners have no tools to track orders or manage workflow efficiently. PrintStack was built to solve all of these problems in one platform.
 
 ---
 
@@ -31,9 +35,10 @@ PrintStack eliminates the friction between students and print shops. Students up
 | Feature | Description |
 |---|---|
 | **Smart PDF Uploads** | Automatically detects page counts using `pdf-lib` |
+| **Instant Price Quoting** | Calculates the total cost immediately based on selected print settings — no surprises at the counter |
 | **Advanced Print Configuration** | Color vs. B&W page ranges, double-sided printing, large formats (A3, A2, A0) |
 | **Finishing Options** | Spiral/hard binding, lamination, stapling, transparent covers |
-| **Location-Based Routing** | Interactive map with nearby shops, distances, and live queue estimates |
+| **Shop Discovery** | Browse and compare nearby print shops with live pricing, distances, and queue estimates |
 | **Live Order Tracking** | Real-time progress tracking — Queue → Printing → Ready |
 | **Secure Handoff** | 6-digit OTP for verified document collection at the counter |
 
@@ -41,18 +46,21 @@ PrintStack eliminates the friction between students and print shops. Students up
 
 | Feature | Description |
 |---|---|
-| **Real-Time POS Dashboard** | Live incoming order feed — no manual refresh required |
+| **Real-Time POS Dashboard** | Live incoming order feed with status updates — no manual refresh required |
+| **Order Status Management** | Move orders through states: Pending → Printing → Ready → Delivered |
 | **Dynamic Pricing Matrix** | Control base pricing, double-sided multipliers, format stock limits, and flat fees |
+| **Revenue Analytics** | Monitor daily revenue and order throughput at a glance |
 | **Storefront Management** | Toggle shop status: Active, Closed, or Paused for a set duration |
 | **Secure PDF Access** | Auto-generated, short-lived signed URLs for downloading student documents |
+| **Bulk Order Handling** | Built to manage peak loads such as thesis submissions or event print runs |
 
 ### For Platform Admins
 
 | Feature | Description |
 |---|---|
 | **Admin SPA Dashboard** | Single Page Application to monitor the entire platform in real time |
-| **Global Ledger** | Track platform-wide revenue and active queues |
-| **Dispute Resolution** | Manage student complaints and process monetary refunds dynamically |
+| **Global Ledger** | Track platform-wide revenue and active queues across all shops |
+| **Dispute Resolution** | Review refund requests with reasons, track pending refund amounts, and manage open complaints against specific shops |
 
 ---
 
@@ -84,8 +92,8 @@ Email         Nodemailer
 **1. Clone the repository**
 
 ```bash
-git clone https://github.com/yourusername/printstack.git
-cd printstack
+git clone https://github.com/tanmay-mevada/Print-Stack.git
+cd Print-Stack
 ```
 
 **2. Install dependencies**
@@ -174,6 +182,39 @@ Please ensure your PR follows the existing code style, includes meaningful commi
 
 ---
 
+## Contributors
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/tanmay-mevada">
+        <img src="https://github.com/tanmay-mevada.png" width="72px" style="border-radius:50%"/><br/>
+        <sub><b>Tanmay Mevada</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Aum-Ghodasara">
+        <img src="https://github.com/Aum-Ghodasara.png" width="72px" style="border-radius:50%"/><br/>
+        <sub><b>Aum Ghodasara</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Urvi-Ladhani">
+        <img src="https://github.com/Urvi-Ladhani.png" width="72px" style="border-radius:50%"/><br/>
+        <sub><b>Urvi Ladhani</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/ampatel05">
+        <img src="https://github.com/ampatel05.png" width="72px" style="border-radius:50%"/><br/>
+        <sub><b>ampatel05</b></sub>
+      </a>
+    </td>
+  </tr>
+</table>
+
+---
+
 ## License
 
 Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
@@ -181,5 +222,5 @@ Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
 ---
 
 <div align="center">
-Built for students and shopkeepers. &nbsp;·&nbsp; <a href="https://github.com/yourusername/printstack">Give it a star if you find it useful.</a>
+Built for students and shopkeepers. &nbsp;·&nbsp; <a href="https://github.com/tanmay-mevada/Print-Stack">Give it a star if you find it useful.</a>
 </div>
