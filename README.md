@@ -222,5 +222,5 @@ Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
 ---
 
 <div align="center">
-Built for students and shopkeepers. &nbsp;·&nbsp; <a href="https://github.com/tanmay-mevada/Print-Stack">Give it a star if you find it useful.</a>
+<a href="https://github.com/tanmay-mevada/Print-Stack">Give it a star if you find it useful.</a>
 </div>
