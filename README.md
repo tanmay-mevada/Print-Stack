@@ -207,7 +207,7 @@ Please ensure your PR follows the existing code style, includes meaningful commi
     <td align="center">
       <a href="https://github.com/ampatel05">
         <img src="https://github.com/ampatel05.png" width="72px" style="border-radius:50%"/><br/>
-        <sub><b>ampatel05</b></sub>
+        <sub><b>Archie Patel</b></sub>
       </a>
     </td>
   </tr>
