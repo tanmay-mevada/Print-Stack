@@ -1,4 +1,4 @@
-<div align="center">
+w<div align="center">
 
 <img src="public/pblackx.png" alt="PrintStack Logo" width="120"/>
 
@@ -123,7 +123,7 @@ PHONEPE_SALT_INDEX=1
 
 # Email (Nodemailer)
 EMAIL_USER=your_platform_email@gmail.com
-EMAIL_PASS=your_app_specific_password
+EMAIL_PASS=your_app_password
 ```
 
 > Set `PHONEPE_ENV=PROD` when deploying to production.
