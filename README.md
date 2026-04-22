@@ -217,7 +217,7 @@ Please ensure your PR follows the existing code style, includes meaningful commi
 
 ## License
 
-Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
+Distributed under the MIT License. See [`LICENSE`](LICENSE) for details
 
 ---
 
